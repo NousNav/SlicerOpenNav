@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
@@ -63,6 +65,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = True
     parametersFormLayout.addRow(self.applyButton)
 
+    
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     
@@ -76,14 +79,16 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     
 
   def cleanup(self):
-    pass
+    self.logic.shutdown()
 
   
 
   def onApplyButton(self):   
     
     self.applyButton.enabled = False
-    self.logic.run()
+    self.applyButton.text = 'OptiTrack is starting...'
+    slicer.app.processEvents()
+    self.logic.start()   
     self.applyButton.enabled = True
     if self.logic.isRunning:
       self.applyButton.text = 'Stop OptiTrack'
@@ -107,28 +112,53 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
   def setup(self):
     self.connector = None
     self.isRunning = False
-
-  def run(self):
+    self.plusLauncherPath = 'C:/Users/Sam/PlusApp-2.8.0.20191105-Win64/bin/PlusServer.exe'
+    self.plusConfigPath = 'E:/NousNav/Modules/Scripted/OptiTrack/Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml'
+  
+  def shutdown(self):
+    if self.isRunning:
+      self.connector.Stop()
+      self.p.terminate()
+      self.isRunning = False 
+  
+  def start(self):
     """
     Run the actual algorithm
     """
+    import time
+
     if not self.isRunning:
+      self.isRunning = True
+      info = subprocess.STARTUPINFO()
+      info.dwFlags = 1
+      info.wShowWindow = 0
+      self.p = subprocess.Popen([self.plusLauncherPath, '--config-file='+self.plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+      time.sleep(5)
       if not self.connector:
         self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
         self.connector.SetTypeClient("localhost", 18944)
       self.connector.Start()
 
-      import time
-      time.sleep(5)
-
-      node = slicer.util.getNode('ProbeToTracker')
-      print(node)
-      self.isRunning = True
+      time.sleep(5)      
+      slicer.app.processEvents()
+      if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+        print('Server failed to launch:')        
+        self.shutdown()
+        output = self.p.stdout.read()
+        output = output.decode("utf-8")
+        print(output)
+        return
+      print('PLUS Server launched')
+      try:
+        node = slicer.util.getNode('ProbeToTracker')
+        node.CreateDefaultDisplayNodes()
+        print('Found ProbeToTracker')
+        node.GetDisplayNode().SetEditorVisibility(True)
+      except:
+        print('WARNING: Could not find probe')
     else:
-      self.connector.Stop()
-      self.isRunning = False    
+      self.shutdown()   
 
-    return True
 
 
 class OptiTrackTest(ScriptedLoadableModuleTest):
