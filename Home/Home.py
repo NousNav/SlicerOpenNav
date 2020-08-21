@@ -66,7 +66,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         dialog.show()
         dialog.activateWindow()
     button.clicked.connect( showDialog )
-    dialog.setWindowFlag(qt.Qt.WindowStaysOnTopHint)
+    dialog.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
     return dialog
 
   def setup(self):

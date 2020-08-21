@@ -82,7 +82,7 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         editDialog.show()
         editDialog.activateWindow()
 
-    editDialog.setWindowFlag(qt.Qt.WindowStaysOnTopHint)
+    editDialog.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
     self.editButton.clicked.connect( editSegmentation )
     editDialogLayout.addWidget( self.editButton )
 
