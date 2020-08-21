@@ -1,0 +1,3 @@
+QMenu::item:selected {    
+    background-color: #FF6600;
+}
