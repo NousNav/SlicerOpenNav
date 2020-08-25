@@ -6,10 +6,6 @@ import logging
 from slicer.util import VTKObservationMixin
 import textwrap
 
-#
-# Home
-#
-
 class Home(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -17,10 +13,10 @@ class Home(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home" # TODO make this more human readable by adding spaces
+    self.parent.title = "Home" 
     self.parent.categories = [""]
     self.parent.dependencies = ["Data", "SubjectHierarchy", "DICOM"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the Home module for the NousNav application
 """
@@ -38,10 +34,6 @@ import logging
 import textwrap
 from slicer.util import VTKObservationMixin
 
-  
-#
-# HomeWidget
-#
 
 class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """Uses ScriptedLoadableModuleWidget base class, available at:
@@ -52,23 +44,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
 
-  def createDialogForWidget(self, widget, button):
-    dialog = qt.QDialog(self.uiWidget)
-    dialogLayout = qt.QVBoxLayout()
-    dialogLayout.addWidget(widget)
-    closeButton = qt.QPushButton("Close")
-    closeButton.setDefault(True)
-    closeButton.clicked.connect(lambda : dialog.setVisible(False) )
-    dialogLayout.addWidget(closeButton)
-    dialogLayout.addStretch(1)
-    dialog.setLayout( dialogLayout )
-    def showDialog():
-        dialog.show()
-        dialog.activateWindow()
-    button.clicked.connect( showDialog )
-    dialog.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
-    return dialog
-
+   
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -91,72 +67,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
 
-    ###Tabs
-    self.CurrentIndex = -1
-    self.ui.ModuleTabWidget.currentChanged.connect( self.onTabChanged )
+    #The home module is a place holder for the planning and nvaigation moduel
+    self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
+    self.ui.PlanningTab.layout().addWidget(self.planningWidget)
 
-    #### Pre Planning Tab
-
-    #Data Loading / Editing
-    self.dataFrame = ctk.ctkCollapsibleGroupBox(self.parent)
-    self.ui.PrePlanningTab.layout().addWidget(self.dataFrame)
-    self.dataFrame.name = "Data"
-    self.dataFrame.title = "Data"
-    self.dataFrame.setChecked( True )
-    dataLayout = qt.QGridLayout()
-    self.dataFrame.setLayout( dataLayout )
-
-    self.dicomButton = qt.QPushButton('Show DICOM Browser')    
-    dataLayout.addWidget( self.dicomButton, 0, 0 )
-
-    #Don't show data widget by default
-    self.dataButton = qt.QPushButton("Browse Scene")
-    self.dataWidget = slicer.modules.data.createNewWidgetRepresentation()
-    showDataDialog = self.createDialogForWidget( self.dataWidget, self.dataButton)
-    dataLayout.addWidget( self.dataButton, 0, 1 )
-    
-
-    #Skin Segmentation Editor
-    self.segmentFrame = ctk.ctkCollapsibleGroupBox(self.parent)
-    self.ui.PrePlanningTab.layout().addWidget(self.segmentFrame)
-    self.segmentFrame.name = "Skin Segmentation"
-    self.segmentFrame.title = "Skin Segmentation"
-    self.segmentFrame.setChecked( True )
-    segmentLayout = qt.QVBoxLayout()
-    self.segmentFrame.setLayout( segmentLayout )
-
-    self.segmentationWidget = slicer.modules.nnsegmentation.createNewWidgetRepresentation()
-    segmentLayout.addWidget(self.segmentationWidget)
-
-    #Volume Rendering
-    self.renderFrame = ctk.ctkCollapsibleGroupBox(self.parent)
-    self.ui.PrePlanningTab.layout().addWidget(self.renderFrame)
-    self.renderFrame.name = "Volume Rendering"
-    self.renderFrame.title = "Volume Rendering"
-    self.renderFrame.setChecked( True )
-    renderLayout = qt.QVBoxLayout()
-    self.renderFrame.setLayout( renderLayout )
-
-    self.volumerenderWidget = slicer.modules.volumerendering.createNewWidgetRepresentation()
-    #self.presets = slicer.qSlicerVolumeRenderingPresetComboBox(self.renderFrame)
-    self.presets = slicer.util.findChild( self.volumerenderWidget, "PresetComboBox" )
-    self.presets.setParent( None )
-    renderLayout.addWidget(self.presets)
-    self.renderFrame.toggled.connect( lambda on: self.presets.setVisible(True) ) 
-
-    self.renderButton = qt.QPushButton("Advanced")
-    self.createDialogForWidget( self.volumerenderWidget, self.renderButton )
-    renderLayout.addWidget(self.renderButton )
-   
-    self.ui.PrePlanningTab.layout().addStretch(1)
-
-    #### Planning Tab
-    
-    #### Navigation Tab
-    self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation()
-    self.ui.NavigationTab.layout().addWidget(self.trackerWidget)
-
-
+    self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
+    self.ui.NavigationTab.layout().addWidget(self.planningWidget)
 
 
     #Begin listening for new volumes
@@ -460,21 +376,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return False
     return True
   
-
-  def onTabChanged(self, tabIndex):
-    if tabIndex == self.CurrentIndex:
-      return
-    #Enter New Tab
-    if tabIndex == self.ui.ModuleTabWidget.indexOf( self.ui.NavigationTab ):
-      self.trackerWidget.enter()
-    elif tabIndex == self.ui.ModuleTabWidget.indexOf( self.ui.PlanningTab ):
-      pass
-    #Update Current Tab
-    self.CurrentIndex = tabIndex
-
-#
-# HomeLogic
-#
 
 class HomeLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
