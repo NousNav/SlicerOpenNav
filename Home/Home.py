@@ -69,17 +69,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     #The home module is a place holder for the planning and nvaigation moduel
     self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
-    self.ui.PlanningTab.layout().addWidget(self.planningWidget)
+    self.ui.PlanningTab.layout().addWidget( self.planningWidget )
 
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
-    self.ui.NavigationTab.layout().addWidget(self.planningWidget)
+    self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
 
 
     #Begin listening for new volumes
     self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
             self.onNodeAdded)
-
-    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
     #Apply style
     self.applyStyle()
@@ -90,30 +88,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     with open(stylesheetfile,"r") as fh:
       slicer.app.styleSheet = fh.read()
   
-  def setupDICOMBrowser(self):
-    #Make sure that the DICOM widget exists
-    slicer.modules.dicom.widgetRepresentation()
-    self.dicomButton.setCheckable(True)
-    self.dicomButton.toggled.connect(self.toggleDICOMBrowser)
-    
-    #For some reason, the browser is instantiated as not hidden. Close
-    #so that the 'isHidden' check works as required
-    slicer.modules.DICOMWidget.browserWidget.close()
-  
-  def toggleDICOMBrowser(self, checked):
-    if checked:  
-      slicer.modules.DICOMWidget.onOpenBrowserWidget()
-      self.dicomButton = qt.QPushButton('Hide DICOM Browser') 
-    else:
-      slicer.modules.DICOMWidget.browserWidget.close()
-      self.dicomButton = qt.QPushButton('Show DICOM Browser') 
+
 
   def setupNodes(self):
     #Set up the layout / 3D View
     self.setup3DView()
     self.setupSliceViewers()
 
- 
 
   def showAdvancedEffects(self, show):    
     for effect in self.effectsToHide:
@@ -206,7 +187,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     controller.set3DAxisVisible(False)
     controller.set3DAxisLabelVisible(False)
     controller.setOrientationMarkerType(3)  #Axis marker
-    controller.setStyleSheet("background-color: #2EB24F")    
+    #controller.setStyleSheet("background-color: #222222")    
 
   def setup2DViewForNode(self, node):
     layoutManager = slicer.app.layoutManager()
@@ -301,7 +282,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   
   def displayCTImage(self, node):
     self.setup3DView()
-    volumeComboBox = slicer.util.findChild(self.volumerenderWidget, "VolumeNodeComboBox")
+    volumeComboBox = slicer.util.findChild(self.planningWidget.self().volumerenderWidget, "VolumeNodeComboBox")
     volumeComboBox.setCurrentNode( node )
     volRenLogic = slicer.modules.volumerendering.logic()
     displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(node)

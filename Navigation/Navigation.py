@@ -26,15 +26,8 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-import os
-import unittest
-import vtk, qt, ctk, slicer
-from slicer.ScriptedLoadableModule import *
-import logging
-import textwrap
-
   
-class NavigationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
+class NavigationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -44,17 +37,17 @@ class NavigationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
   def nextStep(self):
-    self.ui.PlanningWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex + 1)
+    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex + 1)
 
   def previousStep(self):
-    self.ui.PlanningWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex - 1)
+    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex - 1)
 
-  def createNextutton(self):
+  def createNextButton(self):
     btn = qt.QPushButton("Next Step")
     btn.clicked.connect(self.nextStep)
     return btn
 
-  def createPreviousutton(self):
+  def createPreviousButton(self):
     btn = qt.QPushButton("Previous Step")
     btn.clicked.connect(self.previousStep)
     return btn
@@ -81,24 +74,52 @@ class NavigationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #Create logic class
     self.logic = NavigationLogic()   
 
-    #setup scene
-    self.setupNodes()
-
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
 
-    ###Stacked widgtes navigation changes
+    ###Stacked widgets navigation changes
     self.CurrentNavigationIndex = -1
     self.ui.NavigationWidget.currentChanged.connect( self.onNavigationChanged )
 
+   
+    ### Navigation 
+    self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
     
-    #### Navigation Tab
-    #self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation()
-    #self.ui.NavigationTab.layout().addWidget(self.trackerWidget)
+    #Step 1: Connect Tracker:
+    self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Connect Tracker") )
+    self.ui.NavigationStep1.layout().addWidget(self.trackerWidget.connectButton)
+    self.ui.NavigationStep1.layout().addWidget(self.trackerWidget.configurationFrame)
+    self.ui.NavigationStep1.layout().addStretch(1)
+    self.ui.NavigationStep1.layout().addWidget( self.createStepWidget(False, True) )
 
+    #Step 2: Calibrate Tools
+    self.ui.NavigationStep2.layout().addWidget( qt.QLabel("Step 2: Calibrate Tools") )
+    self.ui.NavigationStep2.layout().addWidget(self.trackerWidget.toolsWidget)
+    self.ui.NavigationStep2.layout().addStretch(1)
+    self.ui.NavigationStep2.layout().addWidget( self.createStepWidget(True, True) )
+    
+    #Step 3: Registration 
+    self.ui.NavigationStep3.layout().addWidget( qt.QLabel("Step 3: Register Tracker to Data") )
+    self.ui.NavigationStep3.layout().addWidget(self.trackerWidget.registerWidget)
+    self.ui.NavigationStep3.layout().addStretch(1)
+    self.ui.NavigationStep3.layout().addWidget( self.createStepWidget(True, True) )
+    
+    #Step 4: Calibrate Tools
+    self.ui.NavigationStep4.layout().addWidget( qt.QLabel("Step 4: Calibrate Sterile Tools") )
+    #TODO bette way to get a new tools widget represnetation?
+    self.trackerWidget2 = slicer.modules.tracking.createNewWidgetRepresentation().self()
+    self.ui.NavigationStep4.layout().addWidget(self.trackerWidget2.toolsWidget)
+    self.ui.NavigationStep4.layout().addStretch(1)
+    self.ui.NavigationStep4.layout().addWidget( self.createStepWidget(True, True) )
 
-  #TODO
+    #Step 5: Navigation 
+    self.ui.NavigationStep5.layout().addWidget( qt.QLabel("Step 5: Navigation") )
+    self.ui.NavigationStep5.layout().addWidget(self.trackerWidget.trackCameraWidget)
+    self.ui.NavigationStep5.layout().addStretch(1)
+    self.ui.NavigationStep5.layout().addWidget( self.createStepWidget(True, False) )
+
+  #TODO add enter to neceassry widget
   def onNavigationChanged(self, tabIndex):
     if tabIndex == self.CurrentNavigationIndex:
       return

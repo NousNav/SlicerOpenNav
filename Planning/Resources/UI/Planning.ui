@@ -11,7 +11,7 @@
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-  <item>
+   <item>
     <widget class="QStackedWidget" name="PlanningWidget">
      <property name="currentIndex">
       <number>0</number>
@@ -23,21 +23,20 @@
       <attribute name="title">
        <string>Step 1: Load Data</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_1"/>
+      <layout class="QVBoxLayout" name="verticalLayout_planning1"/>
      </widget>
      <widget class="QWidget" name="PlanningStep2">
       <attribute name="title">
        <string>Step 2: Volume Rendering</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      <layout class="QVBoxLayout" name="verticalLayout_planning2"/>
      </widget>
      <widget class="QWidget" name="PlanningStep3">
       <attribute name="title">
        <string>Step 3: Segmentation</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+      <layout class="QVBoxLayout" name="verticalLayout_planning3"/>
      </widget>
-    </widget>
     </widget>
    </item>
   </layout>

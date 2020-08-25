@@ -15,10 +15,10 @@ class FiducialSelection(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "FiducialSelection" # TODO make this more human readable by adding spaces
+    self.parent.title = "Fiducial Selection" 
     self.parent.categories = [""]
     self.parent.dependencies = []
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the FiducialSelection module for the NousNav application 
 """
@@ -28,9 +28,6 @@ This is the FiducialSelection module for the NousNav application
 """ # replace with organization, grant and thanks.
 
   
-#
-# FiducialSelectionWidget
-#
 class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -243,9 +240,12 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.FromNode.GetDisplayNode().VisibilityOn()
     self.FromNode.SetSaveWithScene( False )
 
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent, self.onNumberOfPointsChanged)
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent, self.onNumberOfPointsChanged)
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.onPointsChanged)
+    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent, 
+            self.onNumberOfPointsChanged)
+    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent, 
+            self.onNumberOfPointsChanged)
+    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, 
+            self.onPointsChanged)
 
 
     volumeWidget = qt.QWidget(self.parent)
@@ -374,10 +374,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
   
 
-#
-# FiducialSelectionLogic
-#
-
 class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
@@ -409,11 +405,6 @@ class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
       fiducialNode = slicer.mrmlScene.GetNodeByID( fiducialNodeID )
     return fiducialNode
     
-     
-
-      
-      
-
   def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
     """
     Run the actual algorithm

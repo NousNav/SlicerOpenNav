@@ -30,11 +30,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
   
-#
-# HomeWidget
-#
-
-class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
+class PlanningWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -74,7 +70,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.setup(self)
 
     # Load widget from .ui file (created by Qt Designer)
-    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Home.ui'))
+    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Planning.ui'))
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
@@ -82,6 +78,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #Create logic class
     self.logic = PlanningLogic()   
 
+    #Dark palette does not propogate on its own?
+    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
+    
     ###Stacked widgtes navigation changes
     self.CurrentPlanningIndex = -1
     self.ui.PlanningWidget.currentChanged.connect( self.onPlanningChanged )
@@ -89,13 +88,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ####Planning
 
     #Step 1: Data Loading
+    self.ui.PlanningStep1.layout().addWidget( qt.QLabel("Step 1: Load Data") )
     self.dicomButton = qt.QPushButton('Show DICOM Browser')
     self.ui.PlanningStep1.layout().addWidget(self.dicomButton)
-    self.ui.PlanningStep1.layout().addWidget( self.createPlanningStepWidget(False, True) )
     self.ui.PlanningStep1.layout().addStretch(1)
+    self.ui.PlanningStep1.layout().addWidget( self.createPlanningStepWidget(False, True) )
 
 
     #Volume Rendering
+    self.ui.PlanningStep2.layout().addWidget( qt.QLabel("Step 2: Adjust Volume Rendering") )
     self.renderFrame = qt.QWidget()
     renderLayout = qt.QVBoxLayout()
     self.renderFrame.setLayout( renderLayout )
@@ -115,16 +116,37 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.renderFrameAdvanced.layout().addWidget(self.volumerenderWidget)
     self.ui.PlanningStep2.layout().addWidget(self.renderFrameAdvanced)
     
-    self.ui.PlanningStep2.layout().addWidget( self.createPlanningStepWidget(True, True) )
     self.ui.PlanningStep2.layout().addStretch(1)
+    self.ui.PlanningStep2.layout().addWidget( self.createPlanningStepWidget(True, True) )
 
     
     #Segmentation
+    self.ui.PlanningStep3.layout().addWidget( qt.QLabel("Step 3: Create Segmentation") )
     self.segmentationWidget = slicer.modules.nnsegmentation.createNewWidgetRepresentation()
     self.ui.PlanningStep3.layout().addWidget(self.segmentationWidget)
-    self.ui.PlanningStep3.layout().addWidget( self.createPlanningStepWidget(True, False) )
     self.ui.PlanningStep3.layout().addStretch(1)
+    self.ui.PlanningStep3.layout().addWidget( self.createPlanningStepWidget(True, False) )
+    
+    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
+
+  def setupDICOMBrowser(self):
+    #Make sure that the DICOM widget exists
+    slicer.modules.dicom.widgetRepresentation()
+    self.dicomButton.setCheckable(True)
+    self.dicomButton.toggled.connect(self.toggleDICOMBrowser)
+    
+    #For some reason, the browser is instantiated as not hidden. Close
+    #so that the 'isHidden' check works as required
+    slicer.modules.DICOMWidget.browserWidget.close()
+  
+  def toggleDICOMBrowser(self, checked):
+    if checked:  
+      slicer.modules.DICOMWidget.onOpenBrowserWidget()
+      self.dicomButton = qt.QPushButton('Hide DICOM Browser') 
+    else:
+      slicer.modules.DICOMWidget.browserWidget.close()
+      self.dicomButton = qt.QPushButton('Show DICOM Browser') 
 
   #TODO
   def onPlanningChanged(self, tabIndex):

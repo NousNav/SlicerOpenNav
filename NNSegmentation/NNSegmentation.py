@@ -16,10 +16,10 @@ class NNSegmentation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Segmentation" # TODO make this more human readable by adding spaces
+    self.parent.title = "NousNav Segmentation" 
     self.parent.categories = [""]
     self.parent.dependencies = ["SegmentEditor"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the segmentation module for the NousNav application
 """
@@ -30,10 +30,6 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
   
-#
-# NNSegmentationWidget
-#
-
 class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -54,7 +50,7 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     segWidget = qt.QWidget()
     segWidget.setLayout(hlayout)
     self.segmentationWidget = slicer.modules.segmenteditor.createNewWidgetRepresentation()
-    segmentButton = qt.QPushButton("Create Skin Segmentation")
+    segmentButton = qt.QPushButton("Automatic Segmentation")
     def segmentActiveVolume():
         nodeID = self.logic.getActiveVolume()
         if(nodeID is not None):
@@ -136,7 +132,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
         pass
 
     progress = slicer.util.createProgressDialog(parent=parentWidget, value=0, 
-            maximum=10, labelText="Creating Automatic Skin Segmentation")
+            maximum=10, labelText="Creating Automatic Segmentation")
 
     # Create segmentation
     segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")

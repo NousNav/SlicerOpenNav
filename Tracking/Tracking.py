@@ -7,9 +7,7 @@ import textwrap
 import numpy as np
 from slicer.util import VTKObservationMixin
 
-#
-# Tracking Module
-#
+
 class Tracking(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -17,10 +15,10 @@ class Tracking(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Tracking" # TODO make this more human readable by adding spaces
+    self.parent.title = "Tracking" 
     self.parent.categories = [""]
-    self.parent.dependencies = ["Data", "SubjectHierarchy", "DICOM"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.dependencies = []
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the tracking module for the NousNav application
 """
@@ -30,10 +28,6 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-
-#
-#Tool class
-#
 
 class TrackedTool:
  
@@ -116,11 +110,6 @@ class TrackedTool:
     self.updateModel()
 
 
-  
-
-#
-# TrackingWidget
-#
 class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -257,6 +246,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.configurationFrame.title = "Tracking Setup"
     self.configurationFrame.setChecked( False )
 
+    self.configurationWidget = qt.QWidget()
     configurationLayout.addWidget( qt.QLabel("IP Address:"), 0, 0 )
     self.ipaddress = qt.QLineEdit("192.168.1.8")
     configurationLayout.addWidget(self.ipaddress, 0, 1)
@@ -273,6 +263,8 @@ class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     configurationLayout.addWidget(self.poll,2,1)
 
     #Setup tools including transforms
+    self.toolsWidget = qt.QWidget()
+    toolsLayout = qt.QVBoxLayout(self.toolsWidget)
     self.tools = []
     self.toolCalibrateButtons = []
     self.toolStatusLabels = []
@@ -315,12 +307,13 @@ class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
       toolWidget = qt.QWidget(self.parent )
       toolWidget.setLayout(toolLayout)
-      self.layout.addWidget(toolWidget)
+      toolsLayout.addWidget(toolWidget)
+    self.layout.addWidget(self.toolsWidget)
 
     #Track slice view
-    trackCameraWidget = qt.QWidget(self.parent)
+    self.trackCameraWidget = qt.QWidget(self.parent)
     trackCameraLayout = qt.QHBoxLayout()
-    trackCameraWidget.setLayout( trackCameraLayout )
+    self.trackCameraWidget.setLayout( trackCameraLayout )
     trackCameraLabel = qt.QLabel( "Align Slice Views to: ")
     trackCameraLayout.addWidget( trackCameraLabel)
     
@@ -332,7 +325,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.cameraTool.currentIndexChanged.connect( 
             lambda index: self.resetSliceViews() if index == 0 else None )
     trackCameraLayout.addWidget( self.cameraTool)
-    self.layout.addWidget( trackCameraWidget )
+    self.layout.addWidget( self.trackCameraWidget )
 
 
     self.layout.addWidget(self.configurationFrame)
@@ -389,7 +382,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 # NDIVegaTrackerLogic
 #
 
-class NDIVegaTrackerLogic(ScriptedLoadableModuleLogic):
+class TrackingLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -417,9 +410,9 @@ class TrackingTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_NDIVegaTracker1()
+    self.test_Tracking1()
 
-  def test_TrackingTracker1(self):
+  def test_Tracking1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
