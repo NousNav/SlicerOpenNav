@@ -6,7 +6,7 @@ import logging
 import textwrap
 
 
-class Navigation(ScriptedLoadableModule):
+class Registration(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -18,7 +18,7 @@ class Navigation(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
-This is the Navigation main module for the NousNav application
+This is the Registration main module for the NousNav application
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -27,7 +27,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
   
-class NavigationWidget(ScriptedLoadableModuleWidget):
+class RegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -37,10 +37,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
 
   def nextStep(self):
-    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex + 1)
+    self.ui.RegistrationWidget.setCurrentIndex( self.ui.RegistrationWidget.currentIndex + 1)
 
   def previousStep(self):
-    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex - 1)
+    self.ui.RegistrationWidget.setCurrentIndex( self.ui.RegistrationWidget.currentIndex - 1)
 
   def createNextButton(self):
     btn = qt.QPushButton("Next Step")
@@ -67,48 +67,56 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
 
     # Load widget from .ui file (created by Qt Designer)
-    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Navigation.ui'))
+    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Registration.ui'))
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     #Create logic class
-    self.logic = NavigationLogic()   
+    self.logic = RegistrationLogic()   
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
 
     ###Stacked widgets navigation changes
-    self.CurrentNavigationIndex = -1
-    self.ui.NavigationWidget.currentChanged.connect( self.onNavigationChanged )
+    self.CurrentRegistrationIndex = -1
+    self.ui.RegistrationWidget.currentChanged.connect( self.onRegistrationChanged )
 
    
-    ### Navigation 
+    ### Registration 
     self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
-
     
-    #Step 1: Calibrate Tools
-    self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Calibrate Sterile Tools") )
-    self.ui.NavigationStep1.layout().addWidget(self.trackerWidget.toolsWidget)
-    self.ui.NavigationStep1.layout().addStretch(1)
-    self.ui.NavigationStep1.layout().addWidget( self.createStepWidget(False, True) )
+    #Step 1: Connect Tracker:
+    self.ui.RegistrationStep1.layout().addWidget( qt.QLabel("Step 1: Connect Tracker") )
+    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.connectButton)
+    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.configurationFrame)
+    self.ui.RegistrationStep1.layout().addStretch(1)
+    self.ui.RegistrationStep1.layout().addWidget( self.createStepWidget(False, True) )
 
-    #Step 2: Navigation 
-    self.ui.NavigationStep2.layout().addWidget( qt.QLabel("Step 2: Navigation") )
-    self.ui.NavigationStep2.layout().addWidget(self.trackerWidget.trackCameraWidget)
-    self.ui.NavigationStep2.layout().addStretch(1)
-    self.ui.NavigationStep2.layout().addWidget( self.createStepWidget(True, False) )
+    #Step 2: Calibrate Tools
+    self.ui.RegistrationStep2.layout().addWidget( qt.QLabel("Step 2: Calibrate Tools") )
+    self.ui.RegistrationStep2.layout().addWidget(self.trackerWidget.toolsWidget)
+    self.ui.RegistrationStep2.layout().addStretch(1)
+    self.ui.RegistrationStep2.layout().addWidget( self.createStepWidget(True, True) )
+    
+    #Step 3: Registration 
+    self.ui.RegistrationStep3.layout().addWidget( qt.QLabel("Step 3: Register Tracker to Data") )
+    self.ui.RegistrationStep3.layout().addWidget(self.trackerWidget.registerWidget)
+    self.ui.RegistrationStep3.layout().addStretch(1)
+    self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, False) )
+    
 
-  #TODO add enter to neceassry widget
-  def onNavigationChanged(self, tabIndex):
-    if tabIndex == self.CurrentNavigationIndex:
+
+  #TODO add enter to neceassary widgets
+  def onRegistrationChanged(self, tabIndex):
+    if tabIndex == self.CurrentRegistrationIndex:
       return
     #Enter New Tab
     #Update Current Tab
-    self.CurrentNavigationIndex = tabIndex
+    self.CurrentRegistrationIndex = tabIndex
 
 
-class NavigationLogic(ScriptedLoadableModuleLogic):
+class RegistrationLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -126,7 +134,7 @@ class NavigationLogic(ScriptedLoadableModuleLogic):
     pass
 
 
-class NavigationTest(ScriptedLoadableModuleTest):
+class RegistrationTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   Uses ScriptedLoadableModuleTest base class, available at:
@@ -143,9 +151,9 @@ class NavigationTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_Navigation1()
+    self.test_Registration1()
 
-  def test_Navigation1(self):
+  def test_Registration1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -162,7 +170,7 @@ class NavigationTest(ScriptedLoadableModuleTest):
     # first, get some data
     #
     
-    logic = NavigationLogic()
+    logic = RegistrationLogic()
     self.delayDisplay('Test passed!')
 
 
@@ -170,7 +178,7 @@ class NavigationTest(ScriptedLoadableModuleTest):
 # Class for avoiding python error that is caused by the method SegmentEditor::setup
 # http://issues.slicer.org/view.php?id=3871
 #
-class NavigationFileWriter(object):
+class RegistrationFileWriter(object):
   def __init__(self, parent):
     pass
 

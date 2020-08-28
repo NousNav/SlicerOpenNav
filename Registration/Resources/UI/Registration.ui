@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Home</class>
- <widget class="qSlicerWidget" name="Home">
+ <widget class="qSlicerWidget" name="Registration">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,28 +12,31 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
   <item>
-  <widget class="QTabWidget" name="HomeWidget">
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="PlanningTab">
-     <attribute name="title">
-       <string>Planning</string>
-     </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_1"/>
-    </widget>
-    <widget class="QWidget" name="RegistrationTab">
+    <widget class="QStackedWidget" name="RegistrationWidget">
      <attribute name="title">
        <string>Registration</string>
      </attribute>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="RegistrationStep1">
+      <attribute name="title">
+       <string>Step 1: Connect Tracker</string>
+      </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_1"/>
-    </widget>
-    <widget class="QWidget" name="NavigationTab">
-     <attribute name="title">
-       <string>Navigation</string>
-     </attribute>
+     </widget>
+     <widget class="QWidget" name="RegistrationStep2">
+      <attribute name="title">
+       <string>Step 2: Calibration</string>
+      </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
-    </widget>
+     </widget>
+     <widget class="QWidget" name="RegistrationStep3">
+      <attribute name="title">
+       <string>Step 3: Registration</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+     </widget>
     </widget>
    </item>
   </layout>

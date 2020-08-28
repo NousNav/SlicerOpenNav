@@ -67,9 +67,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
 
-    #The home module is a place holder for the planning and nvaigation moduel
+    #The home module is a place holder for the planning, registration and navigation modules
     self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
     self.ui.PlanningTab.layout().addWidget( self.planningWidget )
+
+    self.registrationWidget = slicer.modules.registration.createNewWidgetRepresentation()
+    self.ui.RegistrationTab.layout().addWidget( self.registrationWidget )
 
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)

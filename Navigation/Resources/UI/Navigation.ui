@@ -21,33 +21,15 @@
      </property>
      <widget class="QWidget" name="NavigationStep1">
       <attribute name="title">
-       <string>Step 1: Connect Tracker</string>
+       <string>Step 1: Calibration (Sterile) </string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_1"/>
      </widget>
      <widget class="QWidget" name="NavigationStep2">
       <attribute name="title">
-       <string>Step 2: Calibration</string>
+       <string>Step 1: Navigation</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
-     </widget>
-     <widget class="QWidget" name="NavigationStep3">
-      <attribute name="title">
-       <string>Step 3: Registration</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
-     </widget>
-     <widget class="QWidget" name="NavigationStep4">
-      <attribute name="title">
-       <string>Step 4: Calibration (Sterile) </string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4"/>
-     </widget>
-     <widget class="QWidget" name="NavigationStep5">
-      <attribute name="title">
-       <string>Step 5: Navigation</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5"/>
      </widget>
     </widget>
    </item>
