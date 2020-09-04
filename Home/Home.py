@@ -15,7 +15,7 @@ class Home(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Home" 
     self.parent.categories = [""]
-    self.parent.dependencies = ["Data", "SubjectHierarchy", "DICOM"]
+    self.parent.dependencies = ["Planning", "Registration", "Navigation", "VolumeRendering"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the Home module for the NousNav application
@@ -90,20 +90,16 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     stylesheetfile = self.resourcePath('Home.qss')
     with open(stylesheetfile,"r") as fh:
       slicer.app.styleSheet = fh.read()
-  
-
 
   def setupNodes(self):
     #Set up the layout / 3D View
     self.setup3DView()
     self.setupSliceViewers()
 
-
   def showAdvancedEffects(self, show):    
     for effect in self.effectsToHide:
       widget = slicer.util.findChild(self.segWidget, effect)
       widget.visible = show
-
 
   def onClose(self, unusedOne, unusedTwo):
     pass

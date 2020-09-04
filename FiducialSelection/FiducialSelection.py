@@ -5,9 +5,9 @@ from slicer.ScriptedLoadableModule import *
 import logging
 import textwrap
 import numpy as np
-#
-# FiducialSelection
-#
+import NNUtils
+
+
 class FiducialSelection(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -17,7 +17,7 @@ class FiducialSelection(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Fiducial Selection" 
     self.parent.categories = [""]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["TrackingInterface"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the FiducialSelection module for the NousNav application 
@@ -46,6 +46,8 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
+
     resourcePath = os.path.dirname(slicer.modules.fiducialselection.path) 
     trashIconPath = os.path.join(resourcePath, "Resources/Icons/trash.png")
     pixmap = qt.QPixmap(trashIconPath)
@@ -69,37 +71,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       points.InsertNextPoint(point[0], point[1], point[2])
     return points
  
-  #workaround to get active volume
-  def getActiveVolume(self):
-    lm = slicer.app.layoutManager()
-    sliceLogic = lm.sliceWidget('Red').sliceLogic()
-    compositeNode = sliceLogic.GetSliceCompositeNode()
-    return compositeNode.GetBackgroundVolumeID()
-
-  def centerOnActiveVolume(self):
-    nodeId = self.getActiveVolume()
-    node = slicer.mrmlScene.GetNodeByID(nodeId)
-    threedView = slicer.app.layoutManager().threeDWidget(0).threeDView()
-
-    # Get volume center
-    bounds=[0,0,0,0,0,0]
-    node.GetRASBounds(bounds)
-    nodeCenter = [(bounds[0]+bounds[1])/2, (bounds[2]+bounds[3])/2, (bounds[4]+bounds[5])/2]
-
-    # Shift camera to look at the new focal point
-    renderWindow = threedView.renderWindow()
-    renderer = renderWindow.GetRenderers().GetFirstRenderer()
-    camera = renderer.GetActiveCamera()
-    oldFocalPoint = camera.GetFocalPoint()
-    oldPosition = camera.GetPosition()
-    cameraOffset = [ nodeCenter[0]-oldFocalPoint[0], 
-                     nodeCenter[1]-oldFocalPoint[1], 
-                     nodeCenter[2]-oldFocalPoint[2]]
-    camera.SetFocalPoint(nodeCenter)
-    camera.SetPosition(oldPosition[0]+cameraOffset[0], 
-                      oldPosition[1]+cameraOffset[1], 
-                      oldPosition[2]+cameraOffset[2])
-
 
   def updateTransform(self):
     nfrom = self.FromNode.GetNumberOfFiducials()
@@ -135,7 +106,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.setText( self.statusTransformUpdated + str(rmse) )
     node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
     node.SetMatrixTransformToParent( transform.GetMatrix() )
-    self.centerOnActiveVolume()
+    NNUtils.centerOnActiveVolume()
 
   def onNumberOfPointsChanged(self, caller, event):
 
@@ -147,7 +118,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     nrows = max( nfrom, nto )
     self.table.setRowCount(nrows)
     for i in range(nfrom):
-      self.table.setItem( i, 1, qt.QTableWidgetItem( self.FromNode.GetNthFiducialLabel(i) ) )
+      self.table.setItem( i, 2, qt.QTableWidgetItem( self.FromNode.GetNthFiducialLabel(i) ) )
     for i in range(nto):
       self.table.setItem( i, 0, qt.QTableWidgetItem( self.currentTo.GetNthFiducialLabel(i) ) )
   
@@ -166,7 +137,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       pWidget = qt.QWidget();
       btn_edit = qt.QPushButton();
       btn_edit.setIcon(self.trashIcon);
-      btn_edit.setIconSize( qt.QSize(20,20) );
+      btn_edit.setIconSize( qt.QSize(16,16) );
       pLayout = qt.QHBoxLayout(pWidget);
       pLayout.addWidget(btn_edit);
       pLayout.setAlignment(qt.Qt.AlignCenter);
@@ -302,22 +273,15 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     buttonLayout.addWidget( self.trackerButton )
     
     self.tools = qt.QComboBox()
-    toolIndex = 0
-    while toolIndex >= 0:
-        toolname = "Tool_" + str(toolIndex)
-        node = slicer.mrmlScene.GetNodesByName( toolname ).GetItemAsObject(0)       
-        if node is None:
-          toolIndex=-1
-        else:
-          toolIndex = toolIndex + 1
-          self.tools.addItem(toolname)
+    for toolIndex in range( self.trackingLogic.getNumberOfTools() ):
+      toolname = "Tool_" + str(toolIndex)
+      self.tools.addItem(toolname)
     buttonLayout.addWidget( self.tools )
 
     def placeFromTool():
-        tip =  self.tools.currentText + "_tip"
-        node = slicer.mrmlScene.GetNodesByName( tip ).GetItemAsObject(0)
+        (tNodeBase, tNodeTip) =  self.trackingLogic.getTransformsForTool( self.tools.currentIndex )
         m = vtk.vtkMatrix4x4()
-        node.GetMatrixTransformToWorld(m)
+        tNodeTip.GetMatrixTransformToWorld(m)
         x1 = m.GetElement(0,3) 
         x2 = m.GetElement(1,3) 
         x3 = m.GetElement(2,3) 
@@ -356,7 +320,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget( qt.QLabel("Fiducial registration status:" ) )
     self.layout.addWidget( self.statusLabel )
     
-
     # compress the layout
     self.layout.addStretch(1) 
 
@@ -368,8 +331,8 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     pass
 
   def enter(self):
-    node = self.getActiveVolume()
-    self.volumeComboBox.setCurrentNodeID(node)
+    nodeID = NNUtils.getActiveVolume()
+    self.volumeComboBox.setCurrentNodeID( nodeID )
 
 
   

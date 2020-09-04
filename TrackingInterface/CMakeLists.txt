@@ -1,16 +1,16 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME Tracking)
+set(MODULE_NAME TrackingInterface)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  TrackingDevices/__init__.py
+  TrackingDevices/Interface.py
+  TrackingDevices/NDIDevices.py
   )
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
-  Resources/NDITools/8700338.rom
-  Resources/NDITools/8700339.rom
-  Resources/NDITools/8700340.rom
   )
 
 #-----------------------------------------------------------------------------

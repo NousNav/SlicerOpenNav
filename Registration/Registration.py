@@ -14,7 +14,7 @@ class Registration(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Home" 
-    self.parent.categories = [""]
+    self.parent.categories = ["Tracking"]
     self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
@@ -106,12 +106,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, False) )
     
 
-
   #TODO add enter to neceassary widgets
   def onRegistrationChanged(self, tabIndex):
     if tabIndex == self.CurrentRegistrationIndex:
       return
     #Enter New Tab
+    if tabIndex == self.ui.RegistrationWidget.indexOf( self.ui.RegistrationStep3 ):
+      self.trackerWidget.registerWidget.enter()
     #Update Current Tab
     self.CurrentRegistrationIndex = tabIndex
 

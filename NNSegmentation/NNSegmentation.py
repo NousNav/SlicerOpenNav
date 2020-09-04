@@ -3,12 +3,9 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
-from slicer.util import VTKObservationMixin
 import textwrap
+import NNUtils
 
-#
-# NNSegmentation
-#
 class NNSegmentation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -30,7 +27,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
   
-class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
+class NNSegmentationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -38,12 +35,12 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
-
-    #Create logic class
-    self.logic = NNSegmentationLogic()   
+    # Create logic class
+    self.logic = NNSegmentationLogic()
 
     #Segmentation Editor + automated segmentation buttons
     hlayout = qt.QHBoxLayout()
@@ -52,10 +49,10 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.segmentationWidget = slicer.modules.segmenteditor.createNewWidgetRepresentation()
     segmentButton = qt.QPushButton("Automatic Segmentation")
     def segmentActiveVolume():
-        nodeID = self.logic.getActiveVolume()
+        nodeID = NNUtils.getActiveVolume()
         if(nodeID is not None):
           node = slicer.mrmlScene.GetNodeByID( nodeID )
-          modality = self.logic.getModality(node)
+          modality = NNUtils.getModality(node)
           if modality == "CT":
             self.logic.createSkinSegmentationCT( node, self.segmentationWidget)
           else:
@@ -109,17 +106,8 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def getModality(self, node):
-    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    node_item = shNode.GetItemByDataNode(node)
-    return shNode.GetItemAttribute(node_item, 'DICOM.Modality')
-  
-  #workaround to get active volume
-  def getActiveVolume(self):
-    lm = slicer.app.layoutManager()
-    sliceLogic = lm.sliceWidget('Red').sliceLogic()
-    compositeNode = sliceLogic.GetSliceCompositeNode()
-    return compositeNode.GetBackgroundVolumeID()
+  def __init__(self):
+    ScriptedLoadableModuleLogic(self)
 
   def createSkinSegmentationMRI(self, masterVolumeNode, parentWidget):
     if not masterVolumeNode.IsTypeOf("vtkMRMLScalarVolumeNode"):

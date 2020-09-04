@@ -5,10 +5,6 @@ from slicer.ScriptedLoadableModule import *
 import logging
 import textwrap
 
-#
-# Home
-#
-
 class Planning(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -18,7 +14,7 @@ class Planning(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Home" 
     self.parent.categories = [""]
-    self.parent.dependencies = ["Data", "SubjectHierarchy", "DICOM"]
+    self.parent.dependencies = ["VolumeRendering","NNSegmentation", "DICOM"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
     self.parent.helpText = """
 This is the Home module for the NousNav application
