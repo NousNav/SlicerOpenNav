@@ -77,10 +77,15 @@ class NDIVegaTracker(TrackingDevice):
     matrices = frame[ transformMatricesIndex ]
     for i, m in enumerate( matrices ) :
       (transformNode, transformNodeTip) = self.getTransformsForTool(i)
-      self.isTrackingActive[i] = not np.isnan( np.sum( m ) )
+      self.isTrackingActive[i] = not np.isnan(np.sum(m))
       if self.isTrackingActive[i]:
-        vm = slicer.util.vtkMatrixFromArray( np.array( m ) )
-        transformNode.SetMatrixTransformToParent( vm )
+        vm = slicer.util.vtkMatrixFromArray(np.array(m))
+        transformNode.SetMatrixTransformToParent(vm)
+      else:
+        # Notify observers - TODO add status observation to interface?
+        m = vtk.vtkMatrix4x4()
+        transformNode.GetMatrixTransformToParent(m)
+        transformNode.SetMatrixTransformToParent(m)
 
   def startTracking(self):
     self.stopTracking()
@@ -99,7 +104,7 @@ class NDIVegaTracker(TrackingDevice):
         self.tracker.close()
         self.tracker = None
       except ValueError:
-        logging.warning("NDI Vega Tracker was already closed")
+        logging.warning("NDI Vega Tracker already closed")
 
   def getConfiguration(self):
     self.settings_vega = {

@@ -6,7 +6,7 @@ import logging
 import textwrap
 import NNUtils
 from vtk.util import numpy_support
-
+import numpy as np
 
 
 class NNICPRegistration(ScriptedLoadableModule):
@@ -47,31 +47,34 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     (tNode, tNodeTip) = self.trackingLogic.getTransformsForTool(self.tools.currentIndex)
     self.traceObserver = tNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
             self.doTracing )
-    self.samplingTimer.start(50)
     self.traceButton.setEnabled(False)
     self.tools.setEnabled(False)
+    qt.QTimer.singleShot( self.traceTime.value * 1000, self.stopTracing )
 
   def stopTracing(self):
     if self.traceObserver is not None:
       (tNode, tNodeTip) = self.trackingLogic.getTransformsForTool(self.tools.currentIndex)
       tNodeTip.RemoveObserver(self.traceObserver)
       self.traceObserver=None
-    self.samplingTimer.stop()
     self.traceButton.setEnabled(True)
     self.tools.setEnabled(True)
 
-    segmentation = self.segmentationComboBox.currentNode
+    segmentation = self.segmentationComboBox.currentNode()
     if segmentation is not None:
-      segmentIDs = []
-      segmentation.GetSegmentation().GetSegmentationIDs(segmentIDs)
       segmentationPointSets = []
-      for sid in segmentIDs:
+      segments = segmentation.GetSegmentation()
+      for i in range( segments.GetNumberOfSegments() ):
+        sid = segments.GetNthSegmentID(i)
         polyData = segmentation.GetClosedSurfaceInternalRepresentation(sid)
-        tmpPoints = ployData.GetPoints()
-        segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints))
+        tmpPoints = polyData.GetPoints()
+        segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
       segmentationPoints = np.concatenate(segmentationPointSets)
-      tracingPoints = np.concatenate(self.tracePoints)
-      transformMatrix = self.logic.run(segmentationPoints, tracingPoints)
+      tracingPoints = np.stack(self.tracePoints)
+
+      # TODO remove, just for testing
+      np.savez("icp.npz", segmentationPoints, tracingPoints)
+
+      transformMatrix = self.logic.runVTK(segmentationPoints, tracingPoints)
       node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
       node.SetMatrixTransformToParent( transformMatrix )
       NNUtils.centerOnActiveVolume()
@@ -105,21 +108,20 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     traceWidget.setLayout(traceLayout)
     self.traceButton = qt.QPushButton("Start Tracing")
     self.traceButton.setCheckable(False)
+    self.traceButton.clicked.connect(self.startTracing)
     traceLayout.addWidget(self.traceButton)
+
     self.tools = qt.QComboBox()
     for toolIndex in range( self.trackingLogic.getNumberOfTools() ):
       toolname = "Tool_" + str(toolIndex)
       self.tools.addItem(toolname)
     traceLayout.addWidget( self.tools )
+
     self.traceTime = qt.QSpinBox()
     self.traceTime.setMinimum(1)
     self.traceTime.setMaximum(20)
     traceLayout.addWidget(self.traceTime)
     self.layout.addWidget(traceWidget)
-
-    self.traceTimer = qt.QTimer()
-    self.traceTimer.timeout.connect(self.stopTracing)
-    traceButton.clicked.connect(self.startTracing)
 
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -140,19 +142,37 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def __init__(self):
     ScriptedLoadableModuleLogic(self)
-    slicer.utils.pip_install("pycpd")
+    slicer.util.pip_install("pycpd")
 
+  def ceatePolyData(self, X):
+    n = X.shape[0]
+    points = vtk.vtkPoints()
+    points.SetNumberOfPoints(n)
+    for i in range(n):
+      points.SetPoint(i, X[i, 0], X[i, 1], X[i, 2])
+    polyData = vtk.vtkPolyData()
+    polyData.SetPoints(points)
+    return polyData
 
-  def run(self, fixed, moving):
+  def runVTK(self, fixed, moving):
+    icp = vtk.vtkIterativeClosestPointTransform()
+    icp.SetMaximumNumberOfIterations(500)
+    icp.SetMaximumNumberOfLandmarks(1000)
+    icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.SetTarget(self.createPolyData(fixed))
+    icp.SetSource(self.createPolyData(moving))
+    icp.Update()
+    return icp.GetMatrix()
+
+  def runCPD(self, fixed, moving):
     """
     Run coherent point drift algorithm and return transfrom from moving to fixed point set
-    Fixed and moving point sets are two numpy arrays of 3 x number of points
+    Fixed and moving point sets are two numpy arrays of number of points x 3
     """
     import pycpd
 
-    rigidCPD = pycpd.RigidRegistration(**{'X': fixed, 'Y': moving})
-    moved, s, A, t = rigidCPD.register()
-
+    rigidCPD = pycpd.RigidRegistration(**{'X': moving, 'Y': fixed})
+    moved, (s, A, t) = rigidCPD.register()
     transform = vtk.vtkMatrix4x4()
     for i in range(3):
       for j in range(3):

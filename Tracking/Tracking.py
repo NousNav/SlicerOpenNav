@@ -17,10 +17,10 @@ class Tracking(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Tracking" 
+    self.parent.title = "Tracking"
     self.parent.categories = [""]
     self.parent.dependencies = ["TrackingInterface", "PivotCalibration", "FiducialSelection"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the tracking module for the NousNav application
 """
@@ -32,7 +32,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 
 
 class TrackedTool:
- 
+
   def updateModel(self, transformNode=None, unusedArg2=None, unusedArg3=None):
     if self.tubeModel is not  None:
         slicer.mrmlScene.RemoveNode( self.tubeModel )
@@ -47,7 +47,6 @@ class TrackedTool:
     if m.GetElement(0,3) + m.GetElement(1,3) + m.GetElement(2,3) == 0:
       points.SetPoint(1,0,0,1)
 
-    # Create a cell array to store the lines in and add the lines to it
     line = vtk.vtkCellArray()
     line.InsertNextCell(2)
     line.InsertCellPoint(0)
@@ -67,7 +66,7 @@ class TrackedTool:
     self.tubeModel.SetName( self.toolname )
     self.tubeModel.SetSaveWithScene(False)
     self.tubeModel.SetAndObserveTransformNodeID( self.transformNode.GetID() )
-    
+
 
     modelDisplay = self.tubeModel.GetDisplayNode()
     modelDisplay.SetColor(0.2,0.2,0.7)
@@ -80,14 +79,14 @@ class TrackedTool:
     modelDisplay.SetVisibility3D(True)
     modelDisplay.SetSliceIntersectionThickness(3)
 
-  def __init__(self, toolname, toolID, transformNode, transformNodeTip):
+  def __init__(self, toolname, transformNode, transformNodeTip):
     self.tubeModel = None
     self.toolname = toolname
     self.observers = []
     self.transformNode = transformNode
     self.transformNodeTip = transformNodeTip
 
-    transformNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
+    self.transformNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
             self.updateModel )
     self.updateModel()
 
@@ -131,20 +130,24 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-    
+
     self.logic = TrackingLogic()
     self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
 
     self.trackingNodeName = "TrackingToScene"
     # Setup tracking transform node
-    self.transformNode = slicer.vtkMRMLLinearTransformNode()
-    self.transformNode.SetSaveWithScene(False)
-    self.transformNode.SetSingletonTag("Tracking_" + self.trackingNodeName)
-    m = vtk.vtkMatrix4x4()
-    m.Identity()
-    self.transformNode.SetMatrixTransformToParent(m)
-    self.transformNode.SetName(self.trackingNodeName)
-    slicer.mrmlScene.AddNode(self.transformNode)
+    nodes = slicer.mrmlScene.GetNodesByName(self.trackingNodeName)
+    if nodes.GetNumberOfItems() > 0:
+      self.transformNode = nodes.GetItemAsObject(0)
+    else:
+      self.transformNode = slicer.vtkMRMLLinearTransformNode()
+      self.transformNode.SetSaveWithScene(False)
+      self.transformNode.SetSingletonTag("Tracking_" + self.trackingNodeName)
+      m = vtk.vtkMatrix4x4()
+      m.Identity()
+      self.transformNode.SetMatrixTransformToParent(m)
+      self.transformNode.SetName(self.trackingNodeName)
+      slicer.mrmlScene.AddNode(self.transformNode)
 
   def updateStatus(self, transformNode, unusedArg2=None, unusedArg3=None):
     for i, statusLabel in enumerate( self.toolStatusLabels ):
@@ -154,7 +157,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       else:
         statusLabel.setText(" Tracking Off ")
         statusLabel.setStyleSheet("background-color: red;")
-   
+
   def updateSliceViews(self, tool):
     pos = tool.getTranslation()
     rot = np.linalg.inv(tool.getRotation())
@@ -166,11 +169,11 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     tracker = self.logic.getTrackingDevice()
     self.trackingLogic.setTrackingDevice( tracker )
 
-    #Connect button
+    # Connect button
     self.connectButton = qt.QPushButton("Start Tracking")
     self.connectButton.setCheckable(True)
     self.layout.addWidget(self.connectButton)
-    # Tracking toogle button action
+    # Tracking toggle button action
     def toggleTracking(checked):
       if not checked:
         self.connectButton.setText("Start Tracking")
@@ -180,7 +183,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
           self.trackingLogic.startTracking()
           self.connectButton.setText("Stop Tracking")
         except OSError as err:
-          #TODO figure out error message handling
+          # TODO figure out error message handling
           slicer.util.errorDisplay( str(err) )
     self.connectButton.toggled.connect(toggleTracking)
 
@@ -195,11 +198,11 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       (tNode, tNodeTip)  = self.trackingLogic.getTransformsForTool(i)
       tNode.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
               self.updateStatus)
-      tool = TrackedTool(toolname, i, tNode, tNodeTip)
+      tool = TrackedTool(toolname, tNode, tNodeTip)
 
       # Add to tracking to scene transform
       tool.transformNode.SetAndObserveTransformNodeID( self.transformNode.GetID() )
-      
+
       # Create tool widget with calibrate button and status
       toolLayout = qt.QHBoxLayout()
       toolLayout.addWidget(qt.QLabel(toolname))
@@ -231,7 +234,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
           dlg.show()
         return showFunc
       calibrateButton.clicked.connect( showFunction(calibrationWidget, calibrationDialog, tool) )
-      
+
       statusLabel = qt.QLabel(" Tracking Off ")
       statusLabel.setStyleSheet("background-color: red;")
       toolLayout.addWidget(statusLabel)
@@ -241,10 +244,9 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       toolWidget.setLayout(toolLayout)
       toolsLayout.addWidget(toolWidget)
 
-
     self.layout.addWidget(self.toolsWidget)
 
-    #Track slice view
+    # Track slice view to tool
     self.trackCameraWidget = qt.QWidget(self.parent)
     trackCameraLayout = qt.QHBoxLayout()
     self.trackCameraWidget.setLayout(trackCameraLayout)
@@ -253,10 +255,10 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
 
     self.cameraTool = qt.QComboBox()
     self.cameraTool.addItem("None")
-    for i  in range(self.trackingLogic.getNumberOfTools()):
+    for i in range(self.trackingLogic.getNumberOfTools()):
       toolname = "Tool_%d" % i
       self.cameraTool.addItem(toolname)
-    self.cameraTool.currentIndexChanged.connect( 
+    self.cameraTool.currentIndexChanged.connect(
             lambda index: self.resetSliceViews() if index == 0 else None )
     trackCameraLayout.addWidget(self.cameraTool)
     self.layout.addWidget(self.trackCameraWidget)
@@ -265,7 +267,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.configurationFrame = tracker.getConfigurationWidget()
     self.layout.addWidget(self.configurationFrame)
 
-    #Fiducial registration
+    # Fiducial registration
     self.fiducialFrame = ctk.ctkCollapsibleGroupBox(self.parent)
     fiducialLayout = qt.QVBoxLayout(self.fiducialFrame)
     self.layout.addWidget(self.fiducialFrame)
@@ -276,12 +278,12 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.registerWidget = slicer.modules.fiducialselection.createNewWidgetRepresentation()
     fiducialLayout.addWidget(self.registerWidget)
 
-    # compress the layout
+    # Compress the layout
     self.layout.addStretch(1)
-  
+
   def enter(self):
-    self.registerWidget.enter() 
-    
+    self.registerWidget.enter()
+
 
 class TrackingLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
@@ -344,7 +346,7 @@ class TrackingTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = TrackingLogic()
     self.delayDisplay('Test passed!')
 

@@ -37,6 +37,12 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3"/>
      </widget>
+     <widget class="QWidget" name="RegistrationStep4">
+      <attribute name="title">
+       <string>Step 4: ICP Registration</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4"/>
+     </widget>
     </widget>
    </item>
   </layout>

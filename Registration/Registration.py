@@ -13,10 +13,10 @@ class Registration(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home" 
-    self.parent.categories = ["Tracking"]
-    self.parent.dependencies = []
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.title = "Home"
+    self.parent.categories = [""]
+    self.parent.dependencies = ["Tracking", "NNICPRegistration"]
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Registration main module for the NousNav application
 """
@@ -26,7 +26,7 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-  
+
 class RegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -62,7 +62,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
        l.addWidget(self.createNextButton(), 0, 1 )
      return w
 
-   
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -72,7 +72,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     #Create logic class
-    self.logic = RegistrationLogic()   
+    self.logic = RegistrationLogic()
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
@@ -82,10 +82,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.CurrentRegistrationIndex = -1
     self.ui.RegistrationWidget.currentChanged.connect( self.onRegistrationChanged )
 
-   
-    ### Registration 
+
+    ### Registration
     self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
-    
+
     #Step 1: Connect Tracker:
     self.ui.RegistrationStep1.layout().addWidget( qt.QLabel("Step 1: Connect Tracker") )
     self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.connectButton)
@@ -98,13 +98,19 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RegistrationStep2.layout().addWidget(self.trackerWidget.toolsWidget)
     self.ui.RegistrationStep2.layout().addStretch(1)
     self.ui.RegistrationStep2.layout().addWidget( self.createStepWidget(True, True) )
-    
-    #Step 3: Registration 
+
+    #Step 3: Registration
     self.ui.RegistrationStep3.layout().addWidget( qt.QLabel("Step 3: Register Tracker to Data") )
     self.ui.RegistrationStep3.layout().addWidget(self.trackerWidget.registerWidget)
     self.ui.RegistrationStep3.layout().addStretch(1)
-    self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, False) )
-    
+    self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, True) )
+
+    #Step 4: ICP Registration
+    self.ui.RegistrationStep4.layout().addWidget( qt.QLabel("Step 4: Register Tracker to Data") )
+    self.icpregistrationWidget = slicer.modules.nnicpregistration.createNewWidgetRepresentation()
+    self.ui.RegistrationStep4.layout().addWidget(self.icpregistrationWidget)
+    self.ui.RegistrationStep4.layout().addStretch(1)
+    self.ui.RegistrationStep4.layout().addWidget( self.createStepWidget(True, False) )
 
   #TODO add enter to neceassary widgets
   def onRegistrationChanged(self, tabIndex):
@@ -142,7 +148,7 @@ class RegistrationTest(ScriptedLoadableModuleTest):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  
+
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -170,7 +176,7 @@ class RegistrationTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = RegistrationLogic()
     self.delayDisplay('Test passed!')
 

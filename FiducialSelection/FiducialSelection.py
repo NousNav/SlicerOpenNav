@@ -12,28 +12,21 @@ class FiducialSelection(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Fiducial Selection" 
+    self.parent.title = "Fiducial Selection"
     self.parent.categories = [""]
     self.parent.dependencies = ["TrackingInterface"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
-    self.parent.helpText = """
-This is the FiducialSelection module for the NousNav application 
-"""
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
+    self.parent.helpText = """This is the FiducialSelection module for the NousNav application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """
-...
-""" # replace with organization, grant and thanks.
+    self.parent.acknowledgementText = """...""" # replace with organization, grant and thanks.
 
-  
+
 class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-
-  
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     self.statusLessThanThreePoints = "Less than three fiducials pairs"
@@ -48,16 +41,16 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
 
-    resourcePath = os.path.dirname(slicer.modules.fiducialselection.path) 
+    resourcePath = os.path.dirname(slicer.modules.fiducialselection.path)
     trashIconPath = os.path.join(resourcePath, "Resources/Icons/trash.png")
     pixmap = qt.QPixmap(trashIconPath)
     self.trashIcon = qt.QIcon(pixmap)
 
-    #Create logic class
-    self.logic = FiducialSelectionLogic()   
+    # Create logic class
+    self.logic = FiducialSelectionLogic()
     self.setupRegistrationWidget()
 
- 
+
   def createItem(self, text, row, col):
     item = qt.QTableWidgetItem()
     layout = qt.QHBoxLayout()
@@ -70,7 +63,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       n.GetMarkupPoint(i,0,point)
       points.InsertNextPoint(point[0], point[1], point[2])
     return points
- 
+
 
   def updateTransform(self):
     nfrom = self.FromNode.GetNumberOfFiducials()
@@ -85,12 +78,12 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       return
 
     transform = vtk.vtkLandmarkTransform();
- 
-    fromPoints = self.fiducialsToPoints(self.FromNode) 
-    toPoints = self.fiducialsToPoints(self.currentTo) 
+
+    fromPoints = self.fiducialsToPoints(self.FromNode)
+    toPoints = self.fiducialsToPoints(self.currentTo)
     transform.SetSourceLandmarks( fromPoints );
     transform.SetTargetLandmarks( toPoints );
-    #TODO what is the correct mode
+    # TODO what is the correct mode
     transform.SetModeToRigidBody();
     transform.Update()
 
@@ -109,8 +102,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerOnActiveVolume()
 
   def onNumberOfPointsChanged(self, caller, event):
-
-    #Update table
+    # Update table
     nfrom = self.FromNode.GetNumberOfFiducials()
     nto = 0
     if self.currentTo != None:
@@ -121,7 +113,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       self.table.setItem( i, 2, qt.QTableWidgetItem( self.FromNode.GetNthFiducialLabel(i) ) )
     for i in range(nto):
       self.table.setItem( i, 0, qt.QTableWidgetItem( self.currentTo.GetNthFiducialLabel(i) ) )
-  
+
     def removeFrom( row ):
       nfrom = self.FromNode.GetNumberOfFiducials()
       if nfrom > row:
@@ -132,7 +124,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         nto = self.currentTo.GetNumberOfFiducials();
       if nto > row:
         self.currentTo.RemoveNthControlPoint(row)
-    
+
     def addButtonWidget(row, col):
       pWidget = qt.QWidget();
       btn_edit = qt.QPushButton();
@@ -147,27 +139,24 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       return btn_edit
 
     for i in range(nrows):
-      fromButton = addButtonWidget(i, 3) 
+      fromButton = addButtonWidget(i, 3)
       fromButton.clicked.connect( (lambda row: lambda : removeFrom(row) )(i) )
-      toButton = addButtonWidget(i, 1) 
+      toButton = addButtonWidget(i, 1)
       toButton.clicked.connect( (lambda row: lambda : removeTo(row) )(i) )
 
     self.updateTransform()
 
-
   def onPointsChanged(self, caller, event):
     self.updateTransform()
 
-
   def changeCurrentVolume(self, node):
     fTo = self.logic.getFiducialToNode( node )
-    self.changeActiveFiducialNode( fTo) 
-
+    self.changeActiveFiducialNode( fTo)
 
   def changeActiveFiducialNode(self, node):
-    #Remove observers from current active fiducial node
+    # Remove observers from current active fiducial node
     if self.currentTo is not None:
-      if node is not None: 
+      if node is not None:
         if self.currentTo.GetID() == node.GetID():
           return
       self.currentTo.GetDisplayNode().VisibilityOff()
@@ -179,45 +168,45 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       return
     #Add observers to new fiducial node
     self.observerToTags.clear()
-    self.observerToTags.append( 
-      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent, 
+    self.observerToTags.append(
+      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent,
           self.onNumberOfPointsChanged) )
-    self.observerToTags.append( 
-      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent, 
+    self.observerToTags.append(
+      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
           self.onNumberOfPointsChanged) )
-    self.observerToTags.append( 
-      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, 
+    self.observerToTags.append(
+      self.currentTo.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
           self.onPointsChanged) )
-    
+
     self.currentTo.GetDisplayNode().VisibilityOn()
     selectionNode = slicer.app.applicationLogic().GetSelectionNode()
     selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
     selectionNode.SetActivePlaceNodeID( self.currentTo.GetID() )
 
-
-
-  #Registration Widget Function  
+  #Registration Widget Function
   def setupRegistrationWidget(self):
     node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
     FromName = "TrackerFiducial"
+    nodes = slicer.mrmlScene.GetNodesByName(FromName)
+    if nodes.GetNumberOfItems() > 0:
+      self.FromNode = nodes.GetItemAsObject(0)
+    else:
+      self.FromNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+      self.FromNode.SetName(FromName)
+      self.FromNode.CreateDefaultDisplayNodes()
+      self.FromNode.GetMarkupsDisplayNode().SetSelectedColor(0.94, 0.29, 0.06)
+      self.FromNode.GetMarkupsDisplayNode().VisibilityOff()
+      self.FromNode.SetAndObserveTransformNodeID( node.GetID() )
+      self.FromNode.SetSingletonTag("FiducialSelection_" + FromName)
+      self.FromNode.GetDisplayNode().VisibilityOn()
+      self.FromNode.SetSaveWithScene( False )
 
-    self.FromNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-    self.FromNode.SetName(FromName)
-    self.FromNode.CreateDefaultDisplayNodes()
-    self.FromNode.GetMarkupsDisplayNode().SetSelectedColor(0.94, 0.29, 0.06)
-    self.FromNode.GetMarkupsDisplayNode().VisibilityOff()
-    self.FromNode.SetAndObserveTransformNodeID( node.GetID() )
-    self.FromNode.SetSingletonTag("FiducialSelection_" + FromName)
-    self.FromNode.GetDisplayNode().VisibilityOn()
-    self.FromNode.SetSaveWithScene( False )
-
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent, 
+      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent,
             self.onNumberOfPointsChanged)
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent, 
+      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
             self.onNumberOfPointsChanged)
-    self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent, 
+      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
             self.onPointsChanged)
-
 
     volumeWidget = qt.QWidget(self.parent)
     volumeLayout = qt.QHBoxLayout()
@@ -234,9 +223,9 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget( volumeWidget )
 
     #Fiducial table
-    self.table = qt.QTableWidget() 
-    self.table.setColumnCount(4)   
-    self.table.setRowCount(0)  
+    self.table = qt.QTableWidget()
+    self.table.setColumnCount(4)
+    self.table.setRowCount(0)
     self.table.setHorizontalHeaderLabels(["Scene", "", "Tracker", ""])
     self.table.setSizePolicy( qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
 
@@ -245,7 +234,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     header.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
     header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
     header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
-    
+
 
     #Add fiducials buttons
     buttonLayout = qt.QHBoxLayout()
@@ -271,7 +260,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     self.trackerButton = qt.QPushButton("Place from Tool: ")
     buttonLayout.addWidget( self.trackerButton )
-    
+
     self.tools = qt.QComboBox()
     for toolIndex in range( self.trackingLogic.getNumberOfTools() ):
       toolname = "Tool_" + str(toolIndex)
@@ -282,9 +271,9 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         (tNodeBase, tNodeTip) =  self.trackingLogic.getTransformsForTool( self.tools.currentIndex )
         m = vtk.vtkMatrix4x4()
         tNodeTip.GetMatrixTransformToWorld(m)
-        x1 = m.GetElement(0,3) 
-        x2 = m.GetElement(1,3) 
-        x3 = m.GetElement(2,3) 
+        x1 = m.GetElement(0,3)
+        x2 = m.GetElement(1,3)
+        x3 = m.GetElement(2,3)
         if not np.isnan( x1+x2+x3):
           self.FromNode.AddFiducial(x1, x2, x3)
         else:
@@ -310,7 +299,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       else:
         self.FromNode.GetDisplayNode().VisibilityOn()
         if self.currentTo != None:
-          self.currentTo.GetDisplayNode().VisibilityOn()  
+          self.currentTo.GetDisplayNode().VisibilityOn()
         elf.fiducialsVisibilityButton.setText("Hide Fiducials")
     self.fiducialsVisibilityButton.toggled.connect(toggleVisibility)
     self.layout.addWidget( self.fiducialsVisibilityButton )
@@ -319,14 +308,13 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.statusLabel = qt.QLabel(self.statusLessThanThreePoints)
     self.layout.addWidget( qt.QLabel("Fiducial registration status:" ) )
     self.layout.addWidget( self.statusLabel )
-    
-    # compress the layout
-    self.layout.addStretch(1) 
 
+    # compress the layout
+    self.layout.addStretch(1)
 
   def onClose(self, unusedOne, unusedTwo):
-    pass  
-  
+    pass
+
   def cleanup(self):
     pass
 
@@ -334,8 +322,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     nodeID = NNUtils.getActiveVolume()
     self.volumeComboBox.setCurrentNodeID( nodeID )
 
-
-  
 
 class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
@@ -349,12 +335,11 @@ class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
 
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
-    #Fiducial lists  {transform : [FromFiducials, ToFiducials]}
 
   def getFiducialToNode(self, node):
     if node is None:
       return None
-    #add observers
+    # Add observers
     fiducialNodeID = node.GetNodeReferenceID("Fiducials")
     fiducialNode = None
     if fiducialNodeID is None:
@@ -367,13 +352,6 @@ class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
     else:
       fiducialNode = slicer.mrmlScene.GetNodeByID( fiducialNodeID )
     return fiducialNode
-    
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-    """
-    Run the actual algorithm
-    """
-
-    pass
 
 
 class FiducialSelectionTest(ScriptedLoadableModuleTest):
@@ -410,7 +388,7 @@ class FiducialSelectionTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = FiducialSelectionLogic()
     self.delayDisplay('Test passed!')
 
