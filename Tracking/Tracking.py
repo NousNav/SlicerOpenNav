@@ -131,9 +131,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-
     self.logic = TrackingLogic()
-
 
   def updateStatus(self, transformNode, unusedArg2=None, unusedArg3=None):
     for i, statusLabel in enumerate( self.toolStatusLabels ):
@@ -152,8 +150,10 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    # Setup tracking device and create tools
     tracker = self.logic.getTrackingDevice()
     TrackingInterface.setTrackingDevice( tracker )
+    self.logic.setupTools()
 
     # Connect button
     self.connectButton = qt.QPushButton("Start Tracking")
@@ -179,20 +179,14 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.tools = []
     self.toolCalibrateButtons = []
     self.toolStatusLabels = []
-    for i in range( TrackingInterface.getNumberOfTools() ):
-      toolname = "Tool_%d" % i
-      (tNode, tNodeTip)  = TrackingInterface.getTransformsForTool(i)
-      tNode.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
+    for i in range( self.logic.getNumberOfTools() ):
+      tool = self.logic.getTool(i)
+      tool.transformNode.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
               self.updateStatus)
-      tool = TrackedTool(toolname, tNode, tNodeTip)
-
-      # Add to tracking to scene transform
-      tool.transformNode.SetAndObserveTransformNodeID(
-              TrackingInterface.getTrackingToSceneTransform().GetID() )
 
       # Create tool widget with calibrate button and status
       toolLayout = qt.QHBoxLayout()
-      toolLayout.addWidget(qt.QLabel(toolname))
+      toolLayout.addWidget(qt.QLabel(tool.toolname))
       calibrateButton = qt.QPushButton("Calibrate")
       toolLayout.addWidget(calibrateButton)
 
@@ -281,13 +275,14 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-  tracker = None
+  _tracker = None
+  _tools = []
 
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
 
   def getTrackingDevice(self):
-    if TrackingLogic.tracker is None:
+    if TrackingLogic._tracker is None:
 
       # TODO needs to be adapted for Optitracker
       # Setup NDI Vega tracker
@@ -296,10 +291,34 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
       self.toolFiles = [os.path.join(self.toolsPath, f) for f in os.listdir(self.toolsPath)
                         if os.path.isfile(os.path.join(self.toolsPath, f))]
       # Use only one tool for now
-      toolIndex = 2 # NDI shipped tooll
+      toolIndex = 2 # NDI shipped tool
       self.toolFiles = [self.toolFiles[toolIndex]]
-      TrackingLogic.tracker = NDIVegaTracker(self.toolFiles)
-    return TrackingLogic.tracker
+      TrackingLogic._tracker = NDIVegaTracker(self.toolFiles)
+    return TrackingLogic._tracker
+
+  def setupTools(self):
+    if TrackingLogic._tracker is None:
+      return
+    if len(TrackingLogic._tools) > 0:
+      return
+
+    TrackingLogic._tools = []
+    for i in range( TrackingInterface.getNumberOfTools() ):
+      toolname = "Tool_%d" % i
+      (tNode, tNodeTip)  = TrackingInterface.getTransformsForTool(i)
+      tool = TrackedTool(toolname, tNode, tNodeTip)
+
+      # Add to tracking to scene transform
+      tool.transformNode.SetAndObserveTransformNodeID(
+              TrackingInterface.getTrackingToSceneTransform().GetID() )
+      TrackingLogic._tools.append(tool)
+
+  def getNumberOfTools(self):
+    return len(TrackingLogic._tools)
+
+  def getTool(self, idx):
+    return TrackingLogic._tools[idx]
+
 
 
 class TrackingTest(ScriptedLoadableModuleTest):
