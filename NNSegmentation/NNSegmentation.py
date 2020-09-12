@@ -13,10 +13,10 @@ class NNSegmentation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Segmentation" 
+    self.parent.title = "NousNav Segmentation"
     self.parent.categories = [""]
     self.parent.dependencies = ["SegmentEditor"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the segmentation module for the NousNav application
 """
@@ -26,7 +26,7 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-  
+
 class NNSegmentationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -34,7 +34,6 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -58,9 +57,9 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
           else:
             self.logic.createSkinSegmentationMRI( node, self.segmentationWidget )
 
-    segmentButton.clicked.connect( segmentActiveVolume ) 
+    segmentButton.clicked.connect( segmentActiveVolume )
     hlayout.addWidget(segmentButton)
-    
+
     self.editButton = qt.QPushButton("Edit Segmentation")
     editDialog = qt.QDialog(segWidget)
     editDialogLayout = qt.QVBoxLayout()
@@ -80,9 +79,9 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
     editDialogLayout.addWidget( self.editButton )
 
     hlayout.addWidget(self.editButton)
-    
+
     self.layout.addWidget( segWidget )
-      
+
   def onClose(self, unusedOne, unusedTwo):
     pass
 
@@ -90,7 +89,7 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
     pass
 
 
-  
+
 
 #
 # NNSegmentationLogic
@@ -119,7 +118,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     if not masterVolumeNode.IsTypeOf("vtkMRMLScalarVolumeNode"):
         pass
 
-    progress = slicer.util.createProgressDialog(parent=parentWidget, value=0, 
+    progress = slicer.util.createProgressDialog(parent=parentWidget, value=0,
             maximum=10, labelText="Creating Automatic Segmentation")
 
     # Create segmentation
@@ -137,7 +136,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     segmentEditorWidget.setMRMLSegmentEditorNode(segmentEditorNode)
     segmentEditorWidget.setSegmentationNode(segmentationNode)
     segmentEditorWidget.setMasterVolumeNode(masterVolumeNode)
-    
+
     progress.setValue(1)
     slicer.app.processEvents()
 
@@ -159,7 +158,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect = segmentEditorWidget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
-    
+
     progress.setValue(4)
     slicer.app.processEvents()
 
@@ -168,7 +167,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect = segmentEditorWidget.activeEffect()
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
-    
+
     progress.setValue(5)
     slicer.app.processEvents()
 
@@ -179,7 +178,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect = segmentEditorWidget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
-    
+
     progress.setValue(7)
     slicer.app.processEvents()
 
@@ -189,7 +188,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect = segmentEditorWidget.activeEffect()
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
-    
+
     progress.setValue(8)
     slicer.app.processEvents()
 
@@ -199,17 +198,17 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect = segmentEditorWidget.activeEffect()
     effect.setParameter("ShellMode","OUTSIDE_SURFACE")
     effect.self().onApply()
-    
+
     progress.setValue(9)
     slicer.app.processEvents()
-    
+
     # Clean up
     segmentEditorWidget = None
     slicer.mrmlScene.RemoveNode(segmentEditorNode)
 
     # Make segmentation results visible in 3D
     segmentationNode.CreateClosedSurfaceRepresentation()
-    
+
     progress.setValue(10)
     slicer.app.processEvents()
 
@@ -223,7 +222,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     #surfaceMesh = normals.GetOutput()
 
 
-  
+
   def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
     """
     Run the actual algorithm
@@ -266,7 +265,7 @@ class NNSegmentationTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = NNSegmentationLogic()
     self.delayDisplay('Test passed!')
 
