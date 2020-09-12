@@ -6,6 +6,7 @@ import logging
 import textwrap
 import numpy as np
 import NNUtils
+import TrackingDevices.Interface as TrackingInterface
 
 
 class FiducialSelection(ScriptedLoadableModule):
@@ -16,7 +17,7 @@ class FiducialSelection(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Fiducial Selection"
     self.parent.categories = [""]
-    self.parent.dependencies = ["TrackingInterface"]
+    self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """This is the FiducialSelection module for the NousNav application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
@@ -38,8 +39,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-
-    self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
 
     resourcePath = os.path.dirname(slicer.modules.fiducialselection.path)
     trashIconPath = os.path.join(resourcePath, "Resources/Icons/trash.png")
@@ -83,7 +82,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     toPoints = self.fiducialsToPoints(self.currentTo)
     transform.SetSourceLandmarks( fromPoints );
     transform.SetTargetLandmarks( toPoints );
-    # TODO what is the correct mode
     transform.SetModeToRigidBody();
     transform.Update()
 
@@ -262,13 +260,13 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     buttonLayout.addWidget( self.trackerButton )
 
     self.tools = qt.QComboBox()
-    for toolIndex in range( self.trackingLogic.getNumberOfTools() ):
+    for toolIndex in range( TrackingInterface.getNumberOfTools() ):
       toolname = "Tool_" + str(toolIndex)
       self.tools.addItem(toolname)
     buttonLayout.addWidget( self.tools )
 
     def placeFromTool():
-        (tNodeBase, tNodeTip) =  self.trackingLogic.getTransformsForTool( self.tools.currentIndex )
+        (tNodeBase, tNodeTip) =  TrackingInterface.getTransformsForTool( self.tools.currentIndex )
         m = vtk.vtkMatrix4x4()
         tNodeTip.GetMatrixTransformToWorld(m)
         x1 = m.GetElement(0,3)

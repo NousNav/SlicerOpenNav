@@ -3,7 +3,6 @@ set(MODULE_NAME TrackingInterface)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
-  ${MODULE_NAME}.py
   TrackingDevices/__init__.py
   TrackingDevices/Interface.py
   TrackingDevices/NDIDevices.py

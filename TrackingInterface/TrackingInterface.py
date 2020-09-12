@@ -92,6 +92,27 @@ class TrackingInterfaceLogic(ScriptedLoadableModuleLogic):
       return False
     return self.trackingDevice.isTracking(index)
 
+  def getTrackingToSceneTransform(self):
+    """Return tracking to scene transform for access from different modules.
+    Note, needs to be connected to transforms from tacking device seperately.
+    """
+    # Ensure only one transform exists and create and add if needed
+    self.trackingNodeName = "TrackingToScene"
+    nodes = slicer.mrmlScene.GetNodesByName(self.trackingNodeName)
+    transformNode = None
+    if nodes.GetNumberOfItems() > 0:
+      transformNode = nodes.GetItemAsObject(0)
+    else:
+      transformNode = slicer.vtkMRMLLinearTransformNode()
+      transformNode.SetSaveWithScene(False)
+      transformNode.SetSingletonTag("Tracking_" + self.trackingNodeName)
+      m = vtk.vtkMatrix4x4()
+      m.Identity()
+      transformNode.SetMatrixTransformToParent(m)
+      transformNode.SetName(self.trackingNodeName)
+      slicer.mrmlScene.AddNode(transformNode)
+    return transformNode
+
 
 class TrackingInterfaceTest(ScriptedLoadableModuleTest):
   """

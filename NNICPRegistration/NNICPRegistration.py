@@ -7,6 +7,7 @@ import textwrap
 import NNUtils
 from vtk.util import numpy_support
 import numpy as np
+import TrackingDevices.Interface as TrackingInterface
 
 
 class NNICPRegistration(ScriptedLoadableModule):
@@ -18,7 +19,7 @@ class NNICPRegistration(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav ICP Registration"
     self.parent.categories = [""]
-    self.parent.dependencies = ["TrackingInterface"]
+    self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the ICP registration module for the NousNav application
@@ -38,13 +39,12 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     self.logic = NNICPRegistrationLogic()
-    self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
     self.traceObserver = None
     self.tracePoints = []
 
   def startTracing(self):
     self.tracePoints.clear()
-    (tNode, tNodeTip) = self.trackingLogic.getTransformsForTool(self.tools.currentIndex)
+    (tNode, tNodeTip) = TrackingInterface.getTransformsForTool(self.tools.currentIndex)
     self.traceObserver = tNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
             self.doTracing )
     self.traceButton.setEnabled(False)
@@ -53,7 +53,7 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
 
   def stopTracing(self):
     if self.traceObserver is not None:
-      (tNode, tNodeTip) = self.trackingLogic.getTransformsForTool(self.tools.currentIndex)
+      (tNode, tNodeTip) = TrackingInterface.getTransformsForTool(self.tools.currentIndex)
       tNodeTip.RemoveObserver(self.traceObserver)
       self.traceObserver=None
     self.traceButton.setEnabled(True)
@@ -112,7 +112,7 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     traceLayout.addWidget(self.traceButton)
 
     self.tools = qt.QComboBox()
-    for toolIndex in range( self.trackingLogic.getNumberOfTools() ):
+    for toolIndex in range( TrackingInterface.getNumberOfTools() ):
       toolname = "Tool_" + str(toolIndex)
       self.tools.addItem(toolname)
     traceLayout.addWidget( self.tools )

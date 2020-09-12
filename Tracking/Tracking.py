@@ -8,6 +8,7 @@ import numpy as np
 
 import NNUtils
 from TrackingDevices.NDIDevices import NDIVegaTracker
+import TrackingDevices.Interface as TrackingInterface
 
 
 class Tracking(ScriptedLoadableModule):
@@ -19,7 +20,7 @@ class Tracking(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Tracking"
     self.parent.categories = [""]
-    self.parent.dependencies = ["TrackingInterface", "PivotCalibration", "FiducialSelection"]
+    self.parent.dependencies = ["PivotCalibration", "FiducialSelection"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the tracking module for the NousNav application
@@ -132,26 +133,11 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
     self.logic = TrackingLogic()
-    self.trackingLogic = slicer.modules.trackinginterface.widgetRepresentation().self().logic
 
-    self.trackingNodeName = "TrackingToScene"
-    # Setup tracking transform node
-    nodes = slicer.mrmlScene.GetNodesByName(self.trackingNodeName)
-    if nodes.GetNumberOfItems() > 0:
-      self.transformNode = nodes.GetItemAsObject(0)
-    else:
-      self.transformNode = slicer.vtkMRMLLinearTransformNode()
-      self.transformNode.SetSaveWithScene(False)
-      self.transformNode.SetSingletonTag("Tracking_" + self.trackingNodeName)
-      m = vtk.vtkMatrix4x4()
-      m.Identity()
-      self.transformNode.SetMatrixTransformToParent(m)
-      self.transformNode.SetName(self.trackingNodeName)
-      slicer.mrmlScene.AddNode(self.transformNode)
 
   def updateStatus(self, transformNode, unusedArg2=None, unusedArg3=None):
     for i, statusLabel in enumerate( self.toolStatusLabels ):
-      if self.trackingLogic.isTracking(i):
+      if TrackingInterface.isTracking(i):
         statusLabel.setText(" Tracking On ")
         statusLabel.setStyleSheet("background-color: green;")
       else:
@@ -167,7 +153,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
 
     tracker = self.logic.getTrackingDevice()
-    self.trackingLogic.setTrackingDevice( tracker )
+    TrackingInterface.setTrackingDevice( tracker )
 
     # Connect button
     self.connectButton = qt.QPushButton("Start Tracking")
@@ -177,10 +163,10 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     def toggleTracking(checked):
       if not checked:
         self.connectButton.setText("Start Tracking")
-        self.trackingLogic.stopTracking()
+        TrackingInterface.stopTracking()
       else:
         try:
-          self.trackingLogic.startTracking()
+          TrackingInterface.startTracking()
           self.connectButton.setText("Stop Tracking")
         except OSError as err:
           # TODO figure out error message handling
@@ -193,15 +179,16 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.tools = []
     self.toolCalibrateButtons = []
     self.toolStatusLabels = []
-    for i in range( self.trackingLogic.getNumberOfTools() ):
+    for i in range( TrackingInterface.getNumberOfTools() ):
       toolname = "Tool_%d" % i
-      (tNode, tNodeTip)  = self.trackingLogic.getTransformsForTool(i)
+      (tNode, tNodeTip)  = TrackingInterface.getTransformsForTool(i)
       tNode.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
               self.updateStatus)
       tool = TrackedTool(toolname, tNode, tNodeTip)
 
       # Add to tracking to scene transform
-      tool.transformNode.SetAndObserveTransformNodeID( self.transformNode.GetID() )
+      tool.transformNode.SetAndObserveTransformNodeID(
+              TrackingInterface.getTrackingToSceneTransform().GetID() )
 
       # Create tool widget with calibrate button and status
       toolLayout = qt.QHBoxLayout()
@@ -255,7 +242,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
 
     self.cameraTool = qt.QComboBox()
     self.cameraTool.addItem("None")
-    for i in range(self.trackingLogic.getNumberOfTools()):
+    for i in range(TrackingInterface.getNumberOfTools()):
       toolname = "Tool_%d" % i
       self.cameraTool.addItem(toolname)
     self.cameraTool.currentIndexChanged.connect(
@@ -308,6 +295,9 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
       self.toolsPath = os.path.join( self.toolsPath, "Resources/NDITools" )
       self.toolFiles = [os.path.join(self.toolsPath, f) for f in os.listdir(self.toolsPath)
                         if os.path.isfile(os.path.join(self.toolsPath, f))]
+      # Use only one tool for now
+      toolIndex = 2 # NDI shipped tooll
+      self.toolFiles = [self.toolFiles[toolIndex]]
       TrackingLogic.tracker = NDIVegaTracker(self.toolFiles)
     return TrackingLogic.tracker
 
