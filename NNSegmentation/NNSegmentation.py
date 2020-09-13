@@ -89,12 +89,6 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
     pass
 
 
-
-
-#
-# NNSegmentationLogic
-#
-
 class NNSegmentationLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
@@ -128,7 +122,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     addedSegmentID = segmentationNode.GetSegmentation().AddEmptySegment("skin")
     segmentationNode.GetDisplayNode().SetOpacity(0.4)
 
-
     # Create segment editor to get access to effects
     segmentEditorWidget = slicer.qMRMLSegmentEditorWidget()
     segmentEditorWidget.setMRMLScene(slicer.mrmlScene)
@@ -150,8 +143,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     progress.setValue(2)
     slicer.app.processEvents()
 
-
-
     # Find largest component
     slicer.app.processEvents()
     segmentEditorWidget.setActiveEffectByName("Islands")
@@ -170,7 +161,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
 
     progress.setValue(5)
     slicer.app.processEvents()
-
 
     #Find largest component
     slicer.app.processEvents()
@@ -191,7 +181,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
 
     progress.setValue(8)
     slicer.app.processEvents()
-
 
     slicer.app.processEvents()
     segmentEditorWidget.setActiveEffectByName("Hollow")
@@ -220,15 +209,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     #normals.SetInputData(surfaceMesh)
     #normals.Update()
     #surfaceMesh = normals.GetOutput()
-
-
-
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-    """
-    Run the actual algorithm
-    """
-
-    pass
 
 
 class NNSegmentationTest(ScriptedLoadableModuleTest):
@@ -268,7 +248,6 @@ class NNSegmentationTest(ScriptedLoadableModuleTest):
 
     logic = NNSegmentationLogic()
     self.delayDisplay('Test passed!')
-
 
 #
 # Class for avoiding python error that is caused by the method SegmentEditor::setup

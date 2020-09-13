@@ -73,7 +73,6 @@ class NDIVegaTracker(TrackingDevice):
 
   def tracking(self):
     frame = self.tracker.get_frame()
-    print(frame)
     transformMatricesIndex = 3
     matrices = frame[ transformMatricesIndex ]
     for i, m in enumerate( matrices ) :

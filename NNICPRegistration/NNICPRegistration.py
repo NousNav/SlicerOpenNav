@@ -70,13 +70,20 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
         segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
       segmentationPoints = np.concatenate(segmentationPointSets)
       tracingPoints = np.stack(self.tracePoints)
+      maxPoints = 10000
+      if segmentationPoints.shape[0] > maxPoints:
+        pind = np.random.permutation(segmetationPoints.shape[0])
+        segmetationPoints = segmentationPoints[pind[1:maxPoints], :]
 
       # TODO remove, just for testing
       np.savez("icp.npz", segmentationPoints, tracingPoints)
 
       transformMatrix = self.logic.runVTK(segmentationPoints, tracingPoints)
-      node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
-      node.SetMatrixTransformToParent( transformMatrix )
+      node = TrackingInterface.getTrackingToSceneTransform()
+      finalMatrix = vtk.vtkMatrix4x4()
+      currentMatrix = node.GetMatrixTransformToParent()
+      vtkMatrix.Multiply4x4(currentMatrix, transformMatrix, finalMatrix)
+      node.SetMatrixTransformToParent(finalMatrix)
       NNUtils.centerOnActiveVolume()
 
   def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):
@@ -144,7 +151,7 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     ScriptedLoadableModuleLogic(self)
     slicer.util.pip_install("pycpd")
 
-  def ceatePolyData(self, X):
+  def createPolyData(self, X):
     n = X.shape[0]
     points = vtk.vtkPoints()
     points.SetNumberOfPoints(n)
@@ -152,6 +159,13 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
       points.SetPoint(i, X[i, 0], X[i, 1], X[i, 2])
     polyData = vtk.vtkPolyData()
     polyData.SetPoints(points)
+
+    cloudCells = vtk.vtkCellArray()
+    cloudCells.InsertNextCell(n)
+    for i in range(n):
+      cloudCells.InsertCellPoint(i)
+    polyData.SetLines(cloudCells);
+
     return polyData
 
   def runVTK(self, fixed, moving):

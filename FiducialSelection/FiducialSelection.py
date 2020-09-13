@@ -95,7 +95,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       rmse = np.mean( rmse )
       rmse = np.sqrt( rmse )
     self.statusLabel.setText( self.statusTransformUpdated + str(rmse) )
-    node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
+    node = TrackingInterface.getTrackingToSceneTransform()
     node.SetMatrixTransformToParent( transform.GetMatrix() )
     NNUtils.centerOnActiveVolume()
 
