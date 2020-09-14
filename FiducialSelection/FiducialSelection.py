@@ -106,6 +106,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     if self.currentTo != None:
       nto = self.currentTo.GetNumberOfFiducials()
     nrows = max( nfrom, nto )
+    self.table.clear()
     self.table.setRowCount(nrows)
     for i in range(nfrom):
       self.table.setItem( i, 2, qt.QTableWidgetItem( self.FromNode.GetNthFiducialLabel(i) ) )
@@ -181,9 +182,8 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
     selectionNode.SetActivePlaceNodeID( self.currentTo.GetID() )
 
-  #Registration Widget Function
   def setupRegistrationWidget(self):
-    node = slicer.mrmlScene.GetNodesByName("TrackingToScene").GetItemAsObject(0)
+    node = TrackingInterface.getTrackingToSceneTransform()
     FromName = "TrackerFiducial"
     nodes = slicer.mrmlScene.GetNodesByName(FromName)
     if nodes.GetNumberOfItems() > 0:
@@ -194,7 +194,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       self.FromNode.CreateDefaultDisplayNodes()
       self.FromNode.GetMarkupsDisplayNode().SetSelectedColor(0.94, 0.29, 0.06)
       self.FromNode.GetMarkupsDisplayNode().VisibilityOff()
-      self.FromNode.SetAndObserveTransformNodeID( node.GetID() )
       self.FromNode.SetSingletonTag("FiducialSelection_" + FromName)
       self.FromNode.GetDisplayNode().VisibilityOn()
       self.FromNode.SetSaveWithScene( False )
@@ -220,7 +219,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     volumeWidget.setLayout( volumeLayout )
     self.layout.addWidget( volumeWidget )
 
-    #Fiducial table
+    # Fiducial table
     self.table = qt.QTableWidget()
     self.table.setColumnCount(4)
     self.table.setRowCount(0)
@@ -283,7 +282,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.fiducialWidget.setLayout( buttonLayout )
     self.layout.addWidget( self.fiducialWidget )
 
-    #Add table below buttons
+    # Add table below buttons
     self.layout.addWidget( self.table )
 
     self.fiducialsVisibilityButton = qt.QPushButton("Hide Fiducials")

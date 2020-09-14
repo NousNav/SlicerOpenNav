@@ -13,10 +13,10 @@ class Navigation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home" 
+    self.parent.title = "Home"
     self.parent.categories = [""]
     self.parent.dependencies = []
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Navigation main module for the NousNav application
 """
@@ -26,7 +26,7 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-  
+
 class NavigationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -62,7 +62,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
        l.addWidget(self.createNextButton(), 0, 1 )
      return w
 
-   
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -72,7 +72,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     #Create logic class
-    self.logic = NavigationLogic()   
+    self.logic = NavigationLogic()
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
@@ -82,18 +82,18 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.CurrentNavigationIndex = -1
     self.ui.NavigationWidget.currentChanged.connect( self.onNavigationChanged )
 
-   
-    ### Navigation 
+
+    ### Navigation
     self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
 
-    
+
     #Step 1: Calibrate Tools
-    self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Calibrate Sterile Tools") )
+    self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Calibrate Sterile Tool") )
     self.ui.NavigationStep1.layout().addWidget(self.trackerWidget.toolsWidget)
     self.ui.NavigationStep1.layout().addStretch(1)
     self.ui.NavigationStep1.layout().addWidget( self.createStepWidget(False, True) )
 
-    #Step 2: Navigation 
+    #Step 2: Navigation
     self.ui.NavigationStep2.layout().addWidget( qt.QLabel("Step 2: Navigation") )
     self.ui.NavigationStep2.layout().addWidget(self.trackerWidget.trackCameraWidget)
     self.ui.NavigationStep2.layout().addStretch(1)
@@ -133,7 +133,7 @@ class NavigationTest(ScriptedLoadableModuleTest):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  
+
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -161,7 +161,7 @@ class NavigationTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = NavigationLogic()
     self.delayDisplay('Test passed!')
 

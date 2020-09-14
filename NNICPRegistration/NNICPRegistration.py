@@ -75,15 +75,9 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
         pind = np.random.permutation(segmetationPoints.shape[0])
         segmetationPoints = segmentationPoints[pind[1:maxPoints], :]
 
-      # TODO remove, just for testing
-      np.savez("icp.npz", segmentationPoints, tracingPoints)
-
       transformMatrix = self.logic.runVTK(segmentationPoints, tracingPoints)
       node = TrackingInterface.getTrackingToSceneTransform()
-      finalMatrix = vtk.vtkMatrix4x4()
-      currentMatrix = node.GetMatrixTransformToParent()
-      vtkMatrix.Multiply4x4(currentMatrix, transformMatrix, finalMatrix)
-      node.SetMatrixTransformToParent(finalMatrix)
+      node.SetMatrixTransformToParent(transformMatrix)
       NNUtils.centerOnActiveVolume()
 
   def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):

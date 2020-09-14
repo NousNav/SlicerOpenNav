@@ -94,19 +94,19 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RegistrationStep1.layout().addWidget( self.createStepWidget(False, True) )
 
     #Step 2: Calibrate Tools
-    self.ui.RegistrationStep2.layout().addWidget( qt.QLabel("Step 2: Calibrate Tools") )
+    self.ui.RegistrationStep2.layout().addWidget( qt.QLabel("Step 2: Calibrate Non-Sterile Tool") )
     self.ui.RegistrationStep2.layout().addWidget(self.trackerWidget.toolsWidget)
     self.ui.RegistrationStep2.layout().addStretch(1)
     self.ui.RegistrationStep2.layout().addWidget( self.createStepWidget(True, True) )
 
     #Step 3: Registration
-    self.ui.RegistrationStep3.layout().addWidget( qt.QLabel("Step 3: Register Tracker to Data") )
+    self.ui.RegistrationStep3.layout().addWidget( qt.QLabel("Step 3: Register Patient to Image") )
     self.ui.RegistrationStep3.layout().addWidget(self.trackerWidget.registerWidget)
     self.ui.RegistrationStep3.layout().addStretch(1)
     self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, True) )
 
     #Step 4: ICP Registration
-    self.ui.RegistrationStep4.layout().addWidget( qt.QLabel("Step 4: Register Tracker to Data") )
+    self.ui.RegistrationStep4.layout().addWidget( qt.QLabel("Step 4: Register Patient to Image") )
     self.icpregistrationWidget = slicer.modules.nnicpregistration.createNewWidgetRepresentation()
     self.ui.RegistrationStep4.layout().addWidget(self.icpregistrationWidget)
     self.ui.RegistrationStep4.layout().addStretch(1)
