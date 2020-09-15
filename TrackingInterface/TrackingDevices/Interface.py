@@ -75,7 +75,7 @@ def isTracking(index):
 
 def getTrackingToSceneTransform():
   """Return tracking to scene transform for access from different modules.
-  Note, needs to be connected to transforms from tacking device seperately.
+  Note, needs to be connected to transforms from tracking device seperately.
   """
   # Ensure only one transform exists; create and add if needed
   trackingNodeName = "TrackingToScene"

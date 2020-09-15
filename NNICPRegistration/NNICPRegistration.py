@@ -60,22 +60,9 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.setEnabled(True)
 
     segmentation = self.segmentationComboBox.currentNode()
-    if segmentation is not None:
-      segmentationPointSets = []
-      segments = segmentation.GetSegmentation()
-      for i in range( segments.GetNumberOfSegments() ):
-        sid = segments.GetNthSegmentID(i)
-        polyData = segmentation.GetClosedSurfaceInternalRepresentation(sid)
-        tmpPoints = polyData.GetPoints()
-        segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
-      segmentationPoints = np.concatenate(segmentationPointSets)
-      tracingPoints = np.stack(self.tracePoints)
-      maxPoints = 10000
-      if segmentationPoints.shape[0] > maxPoints:
-        pind = np.random.permutation(segmetationPoints.shape[0])
-        segmetationPoints = segmentationPoints[pind[1:maxPoints], :]
-
-      transformMatrix = self.logic.runVTK(segmentationPoints, tracingPoints)
+    tracingPoints = np.stack(self.tracePoints)
+    transformMatrix = self.logic.runICP(segmentation, tracingPoints)
+    if transformMatrix is not None:
       node = TrackingInterface.getTrackingToSceneTransform()
       node.SetMatrixTransformToParent(transformMatrix)
       NNUtils.centerOnActiveVolume()
@@ -144,6 +131,26 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     ScriptedLoadableModuleLogic(self)
     slicer.util.pip_install("pycpd")
+
+  def runICP(self, segmentation, tracePoints, useVTK=True):
+    if segmentation is None:
+      return
+    segmentationPointSets = []
+    segments = segmentation.GetSegmentation()
+    for i in range( segments.GetNumberOfSegments() ):
+      sid = segments.GetNthSegmentID(i)
+      polyData = segmentation.GetClosedSurfaceInternalRepresentation(sid)
+      tmpPoints = polyData.GetPoints()
+      segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
+    segmentationPoints = np.concatenate(segmentationPointSets)
+    maxPoints = 10000
+    if segmentationPoints.shape[0] > maxPoints:
+      pind = np.random.permutation(segmentationPoints.shape[0])
+      segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
+
+    if useVTK:
+      return self.runVTK(segmentationPoints, tracePoints)
+    return self.runCPD(segmentationPoints, tracePoints)
 
   def createPolyData(self, X):
     n = X.shape[0]

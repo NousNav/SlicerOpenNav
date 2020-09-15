@@ -32,7 +32,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     self.statusLessThanThreePoints = "Less than three fiducials pairs"
     self.statusTransformUpdated = "Transform updated. Average mismatch: "
-    self.statusNumberOfPointsUnequal = "Unequal number of Fiducials"
+    self.statusNumberOfPointsUnequal = "Unequal number of fiducials"
     self.statusToolNotTracked = "Tool not tracked for placement"
     self.observerToTags = []
     self.currentTo = None
@@ -49,7 +49,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.logic = FiducialSelectionLogic()
     self.setupRegistrationWidget()
 
-
   def createItem(self, text, row, col):
     item = qt.QTableWidgetItem()
     layout = qt.QHBoxLayout()
@@ -62,7 +61,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       n.GetMarkupPoint(i,0,point)
       points.InsertNextPoint(point[0], point[1], point[2])
     return points
-
 
   def updateTransform(self):
     nfrom = self.FromNode.GetNumberOfFiducials()
@@ -232,8 +230,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
     header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
 
-
-    #Add fiducials buttons
+    # Add fiducials buttons
     buttonLayout = qt.QHBoxLayout()
     self.sceneButton = qt.QPushButton("Start Place in Scene")
     self.sceneButton.setCheckable(True)
@@ -277,7 +274,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
           self.statusLabel.setText( self.statusToolNotTracked )
     self.trackerButton.clicked.connect( placeFromTool )
 
-
     self.fiducialWidget = qt.QWidget(self.parent)
     self.fiducialWidget.setLayout( buttonLayout )
     self.layout.addWidget( self.fiducialWidget )
@@ -301,7 +297,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.fiducialsVisibilityButton.toggled.connect(toggleVisibility)
     self.layout.addWidget( self.fiducialsVisibilityButton )
 
-    #Status message
+    # Status message
     self.statusLabel = qt.QLabel(self.statusLessThanThreePoints)
     self.layout.addWidget( qt.QLabel("Fiducial registration status:" ) )
     self.layout.addWidget( self.statusLabel )
