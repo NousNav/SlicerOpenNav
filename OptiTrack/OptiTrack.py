@@ -55,7 +55,13 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     # Layout within the dummy collapsible button
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
-    
+    self.launcherPathEdit = ctk.ctkPathLineEdit()
+    self.launcherPathEdit.currentPath = 'C:/Users/Sam/PlusApp-2.8.0.20191105-Win64/bin/PlusServer.exe'
+    parametersFormLayout.addRow('Launcher Path:', self.launcherPathEdit)
+
+    self.configPathEdit = ctk.ctkPathLineEdit()
+    self.configPathEdit.currentPath = 'E:/NousNav/Modules/Scripted/OptiTrack/Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml'
+    parametersFormLayout.addRow('Config File Path:', self.configPathEdit)
 
     #
     # Apply Button
@@ -88,7 +94,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = False
     self.applyButton.text = 'OptiTrack is starting...'
     slicer.app.processEvents()
-    self.logic.start()   
+    self.logic.start(self.launcherPathEdit.currentPath, self.configPathEdit.currentPath)   
     self.applyButton.enabled = True
     if self.logic.isRunning:
       self.applyButton.text = 'Stop OptiTrack'
@@ -111,9 +117,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
 
   def setup(self):
     self.connector = None
-    self.isRunning = False
-    self.plusLauncherPath = 'C:/Users/Sam/PlusApp-2.8.0.20191105-Win64/bin/PlusServer.exe'
-    self.plusConfigPath = 'E:/NousNav/Modules/Scripted/OptiTrack/Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml'
+    self.isRunning = False    
   
   def shutdown(self):
     if self.isRunning:
@@ -121,7 +125,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
       self.p.terminate()
       self.isRunning = False 
   
-  def start(self):
+  def start(self, plusLauncherPath, plusConfigPath):
     """
     Run the actual algorithm
     """
@@ -132,7 +136,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
       info = subprocess.STARTUPINFO()
       info.dwFlags = 1
       info.wShowWindow = 0
-      self.p = subprocess.Popen([self.plusLauncherPath, '--config-file='+self.plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+      self.p = subprocess.Popen([plusLauncherPath, '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
       time.sleep(5)
       if not self.connector:
         self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
@@ -156,8 +160,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         node.GetDisplayNode().SetEditorVisibility(True)
       except:
         print('WARNING: Could not find probe')
-    else:
-      self.shutdown()   
+    
 
 
 
@@ -191,19 +194,4 @@ class OptiTrackTest(ScriptedLoadableModuleTest):
     your test should break so they know that the feature is needed.
     """
 
-    self.delayDisplay("Starting the test")
-    #
-    # first, get some data
-    #
-    import SampleData
-    SampleData.downloadFromURL(
-      nodeNames='FA',
-      fileNames='FA.nrrd',
-      uris='http://slicer.kitware.com/midas3/download?items=5767',
-      checksums='SHA256:12d17fba4f2e1f1a843f0757366f28c3f3e1a8bb38836f0de2a32bb1cd476560')
-    self.delayDisplay('Finished with download and loading')
-
-    volumeNode = slicer.util.getNode(pattern="FA")
-    logic = OptiTrackLogic()
-    self.assertIsNotNone( logic.hasImageData(volumeNode) )
-    self.delayDisplay('Test passed!')
+    pass
