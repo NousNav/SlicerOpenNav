@@ -94,7 +94,15 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       rmse = np.sqrt( rmse )
     self.statusLabel.setText( self.statusTransformUpdated + str(rmse) )
     node = TrackingInterface.getTrackingToSceneTransform()
-    node.SetMatrixTransformToParent( transform.GetMatrix() )
+    transformMatrix = transform.GetMatrix()
+    currentMatrix = vtk.vtkMatrix4x4()
+    node.GetMatrixTransformToParent(currentMatrix)
+    resultMatrix = vtk.vtkMatrix4x4()
+    vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
+    print(transformMatrix)
+    print(currentMatrix)
+    print(resultMatrix)
+    node.SetMatrixTransformToParent(resultMatrix)
     NNUtils.centerOnActiveVolume()
 
   def onNumberOfPointsChanged(self, caller, event):
@@ -140,8 +148,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       fromButton.clicked.connect( (lambda row: lambda : removeFrom(row) )(i) )
       toButton = addButtonWidget(i, 1)
       toButton.clicked.connect( (lambda row: lambda : removeTo(row) )(i) )
-
-    self.updateTransform()
 
   def onPointsChanged(self, caller, event):
     self.updateTransform()
@@ -268,7 +274,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         x1 = m.GetElement(0,3)
         x2 = m.GetElement(1,3)
         x3 = m.GetElement(2,3)
-        if not np.isnan( x1+x2+x3):
+        if not np.isnan(x1+x2+x3):
           self.FromNode.AddFiducial(x1, x2, x3)
         else:
           self.statusLabel.setText( self.statusToolNotTracked )

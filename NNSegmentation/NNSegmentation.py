@@ -105,6 +105,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
   def createSkinSegmentationMRI(self, masterVolumeNode, parentWidget):
     if not masterVolumeNode.IsTypeOf("vtkMRMLScalarVolumeNode"):
         pass
+    self.createSkinSegmentationCT(masterVolumeNode, parentWidget)
     #TODO implment segmentation steps
     pass
 

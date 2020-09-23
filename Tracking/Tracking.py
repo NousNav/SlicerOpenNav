@@ -58,7 +58,7 @@ class TrackedTool:
 
     tubeSegmentFilter = vtk.vtkTubeFilter();
     tubeSegmentFilter.SetInputData( linesPolyData );
-    tubeSegmentFilter.SetRadius( 4 );
+    tubeSegmentFilter.SetRadius( 1 );
     tubeSegmentFilter.SetNumberOfSides( 30 );
     tubeSegmentFilter.CappingOn();
     tubeSegmentFilter.Update();
@@ -75,7 +75,7 @@ class TrackedTool:
     modelDisplay.SetAmbient(0.10)
     modelDisplay.SetSpecular(0.20)
     modelDisplay.SetPower(10.0)
-    modelDisplay.SetOpacity(0.5)
+    modelDisplay.SetOpacity(1)
     modelDisplay.SetVisibility2D(True)
     modelDisplay.SetVisibility3D(True)
     modelDisplay.SetSliceIntersectionThickness(3)

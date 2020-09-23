@@ -12,7 +12,7 @@ class NDIVegaTracker(TrackingDevice):
 
     self.settings_vega = {
           "tracker type": "vega",
-          "ip address": "192.168.1.9",
+          "ip address": "192.168.1.3",
           "port": 8765,
           "romfiles": toolFiles,
         }
@@ -33,7 +33,7 @@ class NDIVegaTracker(TrackingDevice):
     self.configurationFrame.setChecked( False )
 
     configurationLayout.addWidget( qt.QLabel("IP Address:"), 0, 0 )
-    self.ipaddress = qt.QLineEdit("192.168.1.9")
+    self.ipaddress = qt.QLineEdit("192.168.1.3")
     configurationLayout.addWidget(self.ipaddress, 0, 1)
 
     configurationLayout.addWidget( qt.QLabel("Port:"), 1, 0 )

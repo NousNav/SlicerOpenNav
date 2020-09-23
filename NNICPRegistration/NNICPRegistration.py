@@ -64,7 +64,11 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     transformMatrix = self.logic.runICP(segmentation, tracingPoints)
     if transformMatrix is not None:
       node = TrackingInterface.getTrackingToSceneTransform()
-      node.SetMatrixTransformToParent(transformMatrix)
+      currentMatrix = vtk.vtkMatrix4x4()
+      node.GetMatrixTransformToParent(currentMatrix)
+      resultMatrix = vtk.vtkMatrix4x4()
+      vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
+      node.SetMatrixTransformToParent(resultMatrix)
       NNUtils.centerOnActiveVolume()
 
   def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):
@@ -107,7 +111,8 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.traceTime = qt.QSpinBox()
     self.traceTime.setMinimum(1)
-    self.traceTime.setMaximum(20)
+    self.traceTime.setMaximum(180)
+    self.traceTime.setValue(90)
     traceLayout.addWidget(self.traceTime)
     self.layout.addWidget(traceWidget)
 
@@ -130,7 +135,9 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def __init__(self):
     ScriptedLoadableModuleLogic(self)
+    # TODO include install in build process
     slicer.util.pip_install("pycpd")
+    slicer.util.pip_install("sklearn")
 
   def runICP(self, segmentation, tracePoints, useVTK=True):
     if segmentation is None:
@@ -140,17 +147,40 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     for i in range( segments.GetNumberOfSegments() ):
       sid = segments.GetNthSegmentID(i)
       polyData = segmentation.GetClosedSurfaceInternalRepresentation(sid)
+      # TODO for testing only
+      #writer = vtk.vtkXMLPolyDataWriter();
+      #writer.SetFileName("segmentation.vtp");
+      #if vtk.VTK_MAJOR_VERSION <= 5:
+      #  writer.SetInput(polyData)
+      #else:
+      #  writer.SetInputData(polyData)
+      #writer.Write()
+      # end TODO
       tmpPoints = polyData.GetPoints()
       segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
     segmentationPoints = np.concatenate(segmentationPointSets)
-    maxPoints = 10000
-    if segmentationPoints.shape[0] > maxPoints:
-      pind = np.random.permutation(segmentationPoints.shape[0])
-      segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
 
+    #maxPoints = 50000
+    #if segmentationPoints.shape[0] > maxPoints:
+    #  pind = np.random.permutation(segmentationPoints.shape[0])
+    #  segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
+
+    #Only use k-Nearest Neighbor within traced points
+    knn = 100
+    radius = 10
+    from sklearn.neighbors import NearestNeighbors
+    neigh = NearestNeighbors(n_neighbors=knn, radius=radius)
+    neigh.fit(segmentationPoints)
+    #ind = neigh.kneighbors(tracePoints, return_distance=False)
+    ind = neigh.radius_neighbors(tracePoints, return_distance=False)
+    ind = np.concatenate(ind)
+    ind = np.unique(ind.flatten())
+    # TODO for testing only
+    #np.savez("icp.npz", segP=segmentationPoints, trP=tracePoints, ind=ind)
+    # end TODO
     if useVTK:
-      return self.runVTK(segmentationPoints, tracePoints)
-    return self.runCPD(segmentationPoints, tracePoints)
+      return self.runVTK(segmentationPoints[ind,:], tracePoints)
+    return self.runCPD(segmentationPoints[ind,:], tracePoints)
 
   def createPolyData(self, X):
     n = X.shape[0]
