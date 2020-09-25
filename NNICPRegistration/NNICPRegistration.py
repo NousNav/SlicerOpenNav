@@ -68,6 +68,7 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
       node.GetMatrixTransformToParent(currentMatrix)
       resultMatrix = vtk.vtkMatrix4x4()
       vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
+      #vtk.vtkMatrix4x4.Multiply4x4(currentMatrix, transformMatrix, resultMatrix)
       node.SetMatrixTransformToParent(resultMatrix)
       NNUtils.centerOnActiveVolume()
 
@@ -160,12 +161,13 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
       segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
     segmentationPoints = np.concatenate(segmentationPointSets)
 
-    #maxPoints = 50000
-    #if segmentationPoints.shape[0] > maxPoints:
-    #  pind = np.random.permutation(segmentationPoints.shape[0])
-    #  segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
+    # Reduce number of sgementation points
+    maxPoints = 100000
+    if segmentationPoints.shape[0] > maxPoints:
+      pind = np.random.permutation(segmentationPoints.shape[0])
+      segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
 
-    #Only use k-Nearest Neighbor within traced points
+    # Only use k-Nearest Neighbor within traced points
     knn = 100
     radius = 10
     from sklearn.neighbors import NearestNeighbors

@@ -105,7 +105,7 @@ class TrackedTool:
     self.transformNodeTip.TransformPointToWorld(baseLocal, baseWorld)
     return baseWorld
 
-  def getRotation(self, tool):
+  def getRotation(self):
     mat = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToWorld(mat)
     npmat = np.zeros( [3,3] )
@@ -115,7 +115,7 @@ class TrackedTool:
 
     return np.linalg.inv( npmat )
 
-  def getTranslation(self, tool):
+  def getTranslation(self):
     mat = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToWorld(mat)
     npmat = np.zeros(3)
@@ -138,14 +138,20 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       if TrackingInterface.isTracking(i):
         statusLabel.setText(" Tracking On ")
         statusLabel.setStyleSheet("background-color: green;")
+        if i == self.cameraTool.currentIndex-1:
+          self.updateSliceViews(self.logic.getTool(i))
       else:
         statusLabel.setText(" Tracking Off ")
         statusLabel.setStyleSheet("background-color: red;")
 
   def updateSliceViews(self, tool):
     pos = tool.getTranslation()
-    rot = np.linalg.inv(tool.getRotation())
-    NNUtils.updateSliceViews(pos, rot)
+    if self.cameraAlignButton.checked:
+      rot = np.linalg.inv(tool.getRotation())
+      NNUtils.updateSliceViews(pos, rot)
+    else:
+      NNUtils.setSliceViewsPosition(pos)
+
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -176,7 +182,6 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     # Setup tool calibrations
     self.toolsWidget = qt.QWidget()
     toolsLayout = qt.QVBoxLayout(self.toolsWidget)
-    self.tools = []
     self.toolCalibrateButtons = []
     self.toolStatusLabels = []
     for i in range( self.logic.getNumberOfTools() ):
@@ -239,9 +244,22 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     for i in range(TrackingInterface.getNumberOfTools()):
       toolname = "Tool_%d" % i
       self.cameraTool.addItem(toolname)
-    self.cameraTool.currentIndexChanged.connect(
-            lambda index: self.resetSliceViews() if index == 0 else None )
+    def indexChanged(index):
+      if index == 0:
+        self.utilLogic.resetSliceViews()
+        self.utilLogic.centerOnActiveVolume()
+    self.cameraTool.currentIndexChanged.connect(indexChanged)
     trackCameraLayout.addWidget(self.cameraTool)
+    self.cameraAlignButton = qt.QPushButton("Orient to Volume")
+    self.cameraAlignButton.setCheckable(True)
+    def toggleCamera( checked ):
+      if checked:
+        self.cameraAlignButton.setText("Orient to Tool")
+      else:
+        self.cameraAlignButton.setText("Orient to Volume")
+        NNUtils.resetSliceViews()
+    self.cameraAlignButton.toggled.connect(toggleCamera)
+    trackCameraLayout.addWidget(self.cameraAlignButton)
     self.layout.addWidget(self.trackCameraWidget)
 
     # Configuration

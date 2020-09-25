@@ -32,15 +32,15 @@ class NDIVegaTracker(TrackingDevice):
     self.configurationFrame.title = "Tracking Setup"
     self.configurationFrame.setChecked( False )
 
-    configurationLayout.addWidget( qt.QLabel("IP Address:"), 0, 0 )
+    configurationLayout.addWidget(qt.QLabel("IP Address:"), 0, 0)
     self.ipaddress = qt.QLineEdit("192.168.1.3")
     configurationLayout.addWidget(self.ipaddress, 0, 1)
 
-    configurationLayout.addWidget( qt.QLabel("Port:"), 1, 0 )
+    configurationLayout.addWidget(qt.QLabel("Port:"), 1, 0)
     self.port = qt.QLineEdit("8765")
     configurationLayout.addWidget(self.port, 1, 1)
 
-    configurationLayout.addWidget( qt.QLabel("Poll (ms):"), 2, 0 )
+    configurationLayout.addWidget(qt.QLabel("Poll (ms):"), 2, 0)
     self.poll = qt.QSpinBox()
     self.poll.setMinimum(10)
     self.poll.setMaximum(500)
@@ -52,23 +52,23 @@ class NDIVegaTracker(TrackingDevice):
     transformNode = slicer.vtkMRMLLinearTransformNode()
     m = vtk.vtkMatrix4x4()
     m.Identity()
-    transformNode.SetMatrixTransformToParent( m )
-    transformNode.SetName( toolname )
+    transformNode.SetMatrixTransformToParent(m)
+    transformNode.SetName(toolname)
     transformNode.SetSaveWithScene(False)
-    slicer.mrmlScene.AddNode( transformNode )
+    slicer.mrmlScene.AddNode(transformNode)
 
     # Tool tip relative to tool location
     transformNodeTip = slicer.vtkMRMLLinearTransformNode()
     m = vtk.vtkMatrix4x4()
     m.Identity()
-    transformNodeTip.SetMatrixTransformToParent( m )
-    transformNodeTip.SetName( toolname + "_tip" )
+    transformNodeTip.SetMatrixTransformToParent(m)
+    transformNodeTip.SetName(toolname + "_tip")
     transformNodeTip.SetSaveWithScene(False)
 
-    slicer.mrmlScene.AddNode( transformNodeTip )
-    transformNodeTip.SetAndObserveTransformNodeID( transformNode.GetID() )
+    slicer.mrmlScene.AddNode(transformNodeTip)
+    transformNodeTip.SetAndObserveTransformNodeID(transformNode.GetID())
 
-    self.tools.append( (transformNode, transformNodeTip) )
+    self.tools.append((transformNode, transformNodeTip))
     self.isTrackingActive.append(False)
 
   def tracking(self):
