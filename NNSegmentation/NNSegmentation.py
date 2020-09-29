@@ -209,10 +209,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     #decimate.Update()
     #decPoly = decimate.GetOutput()
 
-    #slicer.mrmlScene.RemoveNode(segmentationNode)
-    progress.setValue(11)
-    slicer.app.processEvents()
-
     #node = slicer.modules.models.logic().AddModel(decPoly)
     #modelDisplay = node.GetDisplayNode()
     #modelDisplay.SetColor(0.9,0.8,0.2)
@@ -223,6 +219,11 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     #modelDisplay.SetOpacity(0.5)
     #modelDisplay.SetVisibility2D(True)
     #modelDisplay.SetVisibility3D(True)
+
+    #slicer.mrmlScene.RemoveNode(segmentationNode)
+    progress.setValue(11)
+    slicer.app.processEvents()
+
 
 
 class NNSegmentationTest(ScriptedLoadableModuleTest):
