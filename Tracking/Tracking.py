@@ -246,8 +246,8 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       self.cameraTool.addItem(toolname)
     def indexChanged(index):
       if index == 0:
-        self.utilLogic.resetSliceViews()
-        self.utilLogic.centerOnActiveVolume()
+        NNUtils.resetSliceViews()
+        NNUtils.centerOnActiveVolume()
     self.cameraTool.currentIndexChanged.connect(indexChanged)
     trackCameraLayout.addWidget(self.cameraTool)
     self.cameraAlignButton = qt.QPushButton("Orient to Volume")

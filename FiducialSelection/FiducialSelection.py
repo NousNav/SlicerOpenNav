@@ -224,7 +224,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       self.FromNode.SetSingletonTag("FiducialSelection_" + FromName)
       self.FromNode.GetDisplayNode().VisibilityOn()
       self.FromNode.SetSaveWithScene(False)
-      #self.FromNode.SetAndObserveTransformNodeID(node.GetID())
       self.addFromObservers()
 
     volumeWidget = qt.QWidget(self.parent)

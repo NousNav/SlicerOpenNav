@@ -61,14 +61,14 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
 
     segmentation = self.segmentationComboBox.currentNode()
     tracingPoints = np.stack(self.tracePoints)
-    transformMatrix = self.logic.runICP(segmentation, tracingPoints)
+    useVTK = False
+    transformMatrix = self.logic.runICP(segmentation, tracingPoints, useVTK)
     if transformMatrix is not None:
       node = TrackingInterface.getTrackingToSceneTransform()
       currentMatrix = vtk.vtkMatrix4x4()
       node.GetMatrixTransformToParent(currentMatrix)
       resultMatrix = vtk.vtkMatrix4x4()
       vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
-      #vtk.vtkMatrix4x4.Multiply4x4(currentMatrix, transformMatrix, resultMatrix)
       node.SetMatrixTransformToParent(resultMatrix)
       NNUtils.centerOnActiveVolume()
 
@@ -117,6 +117,10 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     traceLayout.addWidget(self.traceTime)
     self.layout.addWidget(traceWidget)
 
+  def onEnter(self):
+    volumeNode = NNUtils.getActiveVolume()
+    # TODO get segmentation from active volume
+
   def onClose(self, unusedOne, unusedTwo):
     pass
 
@@ -148,24 +152,9 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     for i in range( segments.GetNumberOfSegments() ):
       sid = segments.GetNthSegmentID(i)
       polyData = segmentation.GetClosedSurfaceInternalRepresentation(sid)
-      # TODO for testing only
-      #writer = vtk.vtkXMLPolyDataWriter();
-      #writer.SetFileName("segmentation.vtp");
-      #if vtk.VTK_MAJOR_VERSION <= 5:
-      #  writer.SetInput(polyData)
-      #else:
-      #  writer.SetInputData(polyData)
-      #writer.Write()
-      # end TODO
       tmpPoints = polyData.GetPoints()
       segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
     segmentationPoints = np.concatenate(segmentationPointSets)
-
-    # Reduce number of sgementation points
-    maxPoints = 100000
-    if segmentationPoints.shape[0] > maxPoints:
-      pind = np.random.permutation(segmentationPoints.shape[0])
-      segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
 
     # Only use k-Nearest Neighbor within traced points
     knn = 100
@@ -205,7 +194,7 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     icp = vtk.vtkIterativeClosestPointTransform()
     icp.SetMaximumNumberOfIterations(500)
     icp.SetMaximumNumberOfLandmarks(1000)
-    icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.GetLandmarkTransform().SetModeToSimilarity()#RigidBody()
     icp.SetTarget(self.createPolyData(fixed))
     icp.SetSource(self.createPolyData(moving))
     icp.Update()
@@ -220,12 +209,14 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
 
     rigidCPD = pycpd.RigidRegistration(**{'X': moving, 'Y': fixed})
     moved, (s, A, t) = rigidCPD.register()
+    print(s)
     transform = vtk.vtkMatrix4x4()
     for i in range(3):
       for j in range(3):
-        transform.SetElement(i, j, A[i,j] * s)
+        transform.SetElement(i, j, A[j,i] * s)
       transform.SetElement(i, 3, t[i])
-
+    transform.Invert()
+    print(transform)
     return transform
 
 

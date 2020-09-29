@@ -114,13 +114,14 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
         pass
 
     progress = slicer.util.createProgressDialog(parent=parentWidget, value=0,
-            maximum=10, labelText="Creating Automatic Segmentation")
+            maximum=11, labelText="Creating Automatic Segmentation")
 
     # Create segmentation
+    segmentName = "skin"
     segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
     segmentationNode.CreateDefaultDisplayNodes() # only needed for display
     segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(masterVolumeNode)
-    addedSegmentID = segmentationNode.GetSegmentation().AddEmptySegment("skin")
+    addedSegmentID = segmentationNode.GetSegmentation().AddEmptySegment(segmentName)
     segmentationNode.GetDisplayNode().SetOpacity(0.4)
 
     # Create segment editor to get access to effects
@@ -145,7 +146,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     slicer.app.processEvents()
 
     # Find largest component
-    slicer.app.processEvents()
     segmentEditorWidget.setActiveEffectByName("Islands")
     effect = segmentEditorWidget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
@@ -164,7 +164,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     slicer.app.processEvents()
 
     #Find largest component
-    slicer.app.processEvents()
     segmentEditorWidget.setActiveEffectByName("Islands")
     effect = segmentEditorWidget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
@@ -174,7 +173,6 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     slicer.app.processEvents()
 
     # Invert
-    slicer.app.processEvents()
     segmentEditorWidget.setActiveEffectByName("Logical operators")
     effect = segmentEditorWidget.activeEffect()
     effect.setParameter("Operation", "INVERT")
@@ -183,11 +181,10 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     progress.setValue(8)
     slicer.app.processEvents()
 
-    slicer.app.processEvents()
-    segmentEditorWidget.setActiveEffectByName("Hollow")
-    effect = segmentEditorWidget.activeEffect()
-    effect.setParameter("ShellMode","OUTSIDE_SURFACE")
-    effect.self().onApply()
+    #segmentEditorWidget.setActiveEffectByName("Hollow")
+    #effect = segmentEditorWidget.activeEffect()
+    #effect.setParameter("ShellMode","OUTSIDE_SURFACE")
+    #effect.self().onApply()
 
     progress.setValue(9)
     slicer.app.processEvents()
@@ -202,14 +199,30 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     progress.setValue(10)
     slicer.app.processEvents()
 
-    # Make sure surface mesh cells are consistently oriented
-    #surfaceMesh = segmentationNode.GetClosedSurfaceRepresentation(addedSegmentID)
-    #normals = vtk.vtkPolyDataNormals()
-    #normals.AutoOrientNormalsOn()
-    #normals.ConsistencyOn()
-    #normals.SetInputData(surfaceMesh)
-    #normals.Update()
-    #surfaceMesh = normals.GetOutput()
+    # Segmentation results in large mesh reduce to max number of triangles
+    #maxNumberOfTri = 500000
+    #polyData = vtk.vtkPolyData()
+    #segmentationNode.GetClosedSurfaceRepresentation(segmentName, polyData)
+    #decimate = vtk.vtkDecimatePro()
+    #decimate.SetInputData(polyData)
+    #decimate.SetTargetReduction( 1 - maxNumberOfTri / polyData.GetNumberOfPolys() )
+    #decimate.Update()
+    #decPoly = decimate.GetOutput()
+
+    #slicer.mrmlScene.RemoveNode(segmentationNode)
+    progress.setValue(11)
+    slicer.app.processEvents()
+
+    #node = slicer.modules.models.logic().AddModel(decPoly)
+    #modelDisplay = node.GetDisplayNode()
+    #modelDisplay.SetColor(0.9,0.8,0.2)
+    #modelDisplay.SetDiffuse(0.90)
+    #modelDisplay.SetAmbient(0.10)
+    #modelDisplay.SetSpecular(0.20)
+    #modelDisplay.SetPower(10.0)
+    #modelDisplay.SetOpacity(0.5)
+    #modelDisplay.SetVisibility2D(True)
+    #modelDisplay.SetVisibility3D(True)
 
 
 class NNSegmentationTest(ScriptedLoadableModuleTest):
