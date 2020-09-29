@@ -17,6 +17,8 @@ def getActiveVolume():
 
 def centerOnActiveVolume():
   nodeId = getActiveVolume()
+  if nodeId is None:
+    return
   node = slicer.mrmlScene.GetNodeByID(nodeId)
   # Get volume center
   bounds = [0, 0, 0, 0, 0, 0]
