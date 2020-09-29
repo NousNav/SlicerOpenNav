@@ -114,7 +114,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
         pass
 
     progress = slicer.util.createProgressDialog(parent=parentWidget, value=0,
-            maximum=11, labelText="Creating Automatic Segmentation")
+            maximum=6, labelText="Creating Automatic Segmentation")
 
     # Create segmentation
     segmentName = "skin"
@@ -151,7 +151,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
 
-    progress.setValue(4)
+    progress.setValue(3)
     slicer.app.processEvents()
 
     # Invert
@@ -160,7 +160,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
 
-    progress.setValue(5)
+    progress.setValue(4)
     slicer.app.processEvents()
 
     #Find largest component
@@ -169,7 +169,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
 
-    progress.setValue(7)
+    progress.setValue(5)
     slicer.app.processEvents()
 
     # Invert
@@ -178,15 +178,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
 
-    progress.setValue(8)
-    slicer.app.processEvents()
-
-    #segmentEditorWidget.setActiveEffectByName("Hollow")
-    #effect = segmentEditorWidget.activeEffect()
-    #effect.setParameter("ShellMode","OUTSIDE_SURFACE")
-    #effect.self().onApply()
-
-    progress.setValue(9)
+    progress.setValue(6)
     slicer.app.processEvents()
 
     # Clean up
@@ -196,7 +188,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     # Make segmentation results visible in 3D
     segmentationNode.CreateClosedSurfaceRepresentation()
 
-    progress.setValue(10)
+    progress.setValue(7)
     slicer.app.processEvents()
 
     # Segmentation results in large mesh reduce to max number of triangles
@@ -220,10 +212,8 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     #modelDisplay.SetVisibility2D(True)
     #modelDisplay.SetVisibility3D(True)
 
-    #slicer.mrmlScene.RemoveNode(segmentationNode)
-    progress.setValue(11)
-    slicer.app.processEvents()
-
+    #progress.setValue(9)
+    #slicer.app.processEvents()
 
 
 class NNSegmentationTest(ScriptedLoadableModuleTest):

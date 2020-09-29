@@ -59,6 +59,10 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     self.traceButton.setEnabled(True)
     self.tools.setEnabled(True)
 
+    progress = slicer.util.createProgressDialog(parent=self.parent, value=0,
+            maximum=2, labelText="Computing Registration")
+    progress.setValue(1)
+    slicer.app.processEvents()
     segmentation = self.segmentationComboBox.currentNode()
     tracingPoints = np.stack(self.tracePoints)
     useVTK = False
@@ -71,6 +75,7 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
       vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
       node.SetMatrixTransformToParent(resultMatrix)
       NNUtils.centerOnActiveVolume()
+    progress.setValue(2)
 
   def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):
     m = vtk.vtkMatrix4x4()
@@ -206,13 +211,12 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     Fixed and moving point sets are two numpy arrays of number of points x 3
     """
     import pycpd
-
     rigidCPD = pycpd.RigidRegistration(**{'X': moving, 'Y': fixed})
     moved, (s, A, t) = rigidCPD.register()
-    print(s)
     transform = vtk.vtkMatrix4x4()
     for i in range(3):
       for j in range(3):
+        # pycpd stores transpose
         transform.SetElement(i, j, A[j,i] * s)
       transform.SetElement(i, 3, t[i])
     transform.Invert()

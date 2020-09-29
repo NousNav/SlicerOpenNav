@@ -22,29 +22,24 @@ class Tracking(ScriptedLoadableModule):
     self.parent.categories = [""]
     self.parent.dependencies = ["PivotCalibration", "FiducialSelection"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
-    self.parent.helpText = """
-This is the tracking module for the NousNav application
-"""
+    self.parent.helpText = """This is the tracking module for the NousNav application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-""" # replace with organization, grant and thanks.
+    self.parent.acknowledgementText = """...""" # replace with organization, grant and thanks.
 
 
 class TrackedTool:
 
   def updateModel(self, transformNode=None, unusedArg2=None, unusedArg3=None):
     if self.tubeModel is not  None:
-        slicer.mrmlScene.RemoveNode( self.tubeModel )
+        slicer.mrmlScene.RemoveNode(self.tubeModel)
 
     points = vtk.vtkPoints()
     points.SetNumberOfPoints(2)
-    points.SetPoint(0, 0, 0, 0 )
+    points.SetPoint(0, 0, 0, 0)
 
     m = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToParent(m)
-    points.SetPoint(1, m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3) )
+    points.SetPoint(1, m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3))
     if m.GetElement(0,3) + m.GetElement(1,3) + m.GetElement(2,3) == 0:
       points.SetPoint(1,0,0,1)
 
@@ -57,17 +52,16 @@ class TrackedTool:
     linesPolyData.SetLines(line)
 
     tubeSegmentFilter = vtk.vtkTubeFilter();
-    tubeSegmentFilter.SetInputData( linesPolyData );
-    tubeSegmentFilter.SetRadius( 1 );
-    tubeSegmentFilter.SetNumberOfSides( 30 );
-    tubeSegmentFilter.CappingOn();
-    tubeSegmentFilter.Update();
+    tubeSegmentFilter.SetInputData(linesPolyData);
+    tubeSegmentFilter.SetRadius(1)
+    tubeSegmentFilter.SetNumberOfSides(30)
+    tubeSegmentFilter.CappingOn()
+    tubeSegmentFilter.Update()
     tubePolyData = tubeSegmentFilter.GetOutput();
-    self.tubeModel = slicer.modules.models.logic().AddModel( tubePolyData )
-    self.tubeModel.SetName( self.toolname )
+    self.tubeModel = slicer.modules.models.logic().AddModel(tubePolyData)
+    self.tubeModel.SetName(self.toolname)
     self.tubeModel.SetSaveWithScene(False)
-    self.tubeModel.SetAndObserveTransformNodeID( self.transformNode.GetID() )
-
+    self.tubeModel.SetAndObserveTransformNodeID(self.transformNode.GetID())
 
     modelDisplay = self.tubeModel.GetDisplayNode()
     modelDisplay.SetColor(0.2,0.2,0.7)
@@ -87,14 +81,14 @@ class TrackedTool:
     self.transformNode = transformNode
     self.transformNodeTip = transformNodeTip
 
-    self.transformNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
-            self.updateModel )
+    self.transformNodeTip.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
+            self.updateModel)
     self.updateModel()
 
   def getTipWorld(self):
     m = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToParent(m)
-    tipLocal = np.array( [m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3)] )
+    tipLocal = np.array([m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3)])
     tipWorld = np.empty(3)
     self.transformNodeTip.TransformPointToWorld(tipLocal, tipWorld)
     return tipWorld
@@ -151,7 +145,6 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       NNUtils.updateSliceViews(pos, rot)
     else:
       NNUtils.setSliceViewsPosition(pos)
-
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -336,7 +329,6 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
 
   def getTool(self, idx):
     return TrackingLogic._tools[idx]
-
 
 
 class TrackingTest(ScriptedLoadableModuleTest):
