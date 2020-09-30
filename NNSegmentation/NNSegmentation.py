@@ -53,34 +53,33 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
           node = slicer.mrmlScene.GetNodeByID( nodeID )
           modality = NNUtils.getModality(node)
           if modality == "CT":
-            self.logic.createSkinSegmentationCT( node, self.segmentationWidget)
+            self.logic.createSkinSegmentationCT(node, self.segmentationWidget)
           else:
-            self.logic.createSkinSegmentationMRI( node, self.segmentationWidget )
+            self.logic.createSkinSegmentationMRI(node, self.segmentationWidget)
 
-    segmentButton.clicked.connect( segmentActiveVolume )
+    segmentButton.clicked.connect(segmentActiveVolume)
     hlayout.addWidget(segmentButton)
 
     self.editButton = qt.QPushButton("Edit Segmentation")
-    editDialog = qt.QDialog(segWidget)
+    editDialog = qt.QDialog()
+    editDialog.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
     editDialogLayout = qt.QVBoxLayout()
-    editDialogLayout.addWidget (self.segmentationWidget )
+    editDialogLayout.addWidget(self.segmentationWidget)
     editCloseButton = qt.QPushButton("Close")
     editCloseButton.setDefault(True)
-    editCloseButton.clicked.connect(lambda : editDialogLayout.setVisible(False) )
+    editCloseButton.clicked.connect(lambda : editDialog.setVisible(False))
     editDialogLayout.addWidget(editCloseButton)
     editDialogLayout.stretch(1)
-    editDialog.setLayout( editDialogLayout )
+    editDialog.setLayout(editDialogLayout)
     def editSegmentation():
+        print("edit")
         editDialog.show()
         editDialog.activateWindow()
-
-    editDialog.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
-    self.editButton.clicked.connect( editSegmentation )
-    editDialogLayout.addWidget( self.editButton )
-
+    self.editButton.clicked.connect(editSegmentation)
+    editDialogLayout.addWidget(self.editButton)
     hlayout.addWidget(self.editButton)
 
-    self.layout.addWidget( segWidget )
+    self.layout.addWidget(segWidget)
 
   def onClose(self, unusedOne, unusedTwo):
     pass
