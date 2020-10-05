@@ -17,8 +17,9 @@ def getActiveVolume():
 
 def centerOnActiveVolume():
   nodeId = getActiveVolume()
+  if nodeId is None:
+    return
   node = slicer.mrmlScene.GetNodeByID(nodeId)
-
   # Get volume center
   bounds = [0, 0, 0, 0, 0, 0]
   node.GetRASBounds(bounds)
@@ -44,7 +45,7 @@ def center3DView(center):
                      oldPosition[2]+cameraOffset[2])
 
 
-def updateSliceViews( pos, rot):
+def updateSliceViews(pos, rot):
   sliceNode = slicer.app.layoutManager().sliceWidget('Yellow').mrmlSliceNode()
   sliceNode.SetSliceToRASByNTP( rot[0, 0], rot[1, 0], rot[2, 0],
                                 rot[0, 1], rot[1, 1], rot[2, 1],
@@ -73,3 +74,8 @@ def resetSliceViews():
   for sliceID in ['Yellow', 'Green', 'Red']:
     sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
     sliceNode.RotateToVolumePlane(volumeNode)
+
+def setSliceViewsPosition(pos):
+  for sliceID in ['Yellow', 'Green', 'Red']:
+    sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
+    sliceNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])

@@ -35,6 +35,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.statusNumberOfPointsUnequal = "Unequal number of fiducials"
     self.statusToolNotTracked = "Tool not tracked for placement"
     self.observerToTags = []
+    self.fromObservers = []
     self.currentTo = None
 
   def setup(self):
@@ -58,11 +59,12 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     points = vtk.vtkPoints()
     for i in range(0, n.GetNumberOfFiducials()):
       point = [0,0,0]
-      n.GetMarkupPoint(i,0,point)
+      n.GetNthControlPointPositionWorld(i,point)
       points.InsertNextPoint(point[0], point[1], point[2])
     return points
 
   def updateTransform(self):
+
     nfrom = self.FromNode.GetNumberOfFiducials()
     nto = 0
     if self.currentTo != None:
@@ -94,8 +96,37 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       rmse = np.sqrt( rmse )
     self.statusLabel.setText( self.statusTransformUpdated + str(rmse) )
     node = TrackingInterface.getTrackingToSceneTransform()
-    node.SetMatrixTransformToParent( transform.GetMatrix() )
+    transformMatrix = transform.GetMatrix()
+    currentMatrix = vtk.vtkMatrix4x4()
+    node.GetMatrixTransformToParent(currentMatrix)
+    resultMatrix = vtk.vtkMatrix4x4()
+    vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
+
+    # Avoid from node updates due to transform update
+    self.removeFromObservers()
+    node.SetMatrixTransformToParent(resultMatrix)
+    for i in range(fromPointsTf.GetNumberOfPoints()):
+      p = fromPointsTf.GetPoint(i)
+      self.FromNode.SetNthControlPointPositionWorld(i, p[0], p[1], p[2])
+    self.addFromObservers()
+
     NNUtils.centerOnActiveVolume()
+
+  def removeFromObservers(self):
+    for tag in self.fromObservers:
+      self.FromNode.RemoveObserver(tag)
+    self.fromObservers.clear()
+
+  def addFromObservers(self):
+    self.fromObservers.append(
+            self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent,
+            self.onNumberOfPointsChanged))
+    self.fromObservers.append(
+            self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
+            self.onNumberOfPointsChanged))
+    self.fromObservers.append(
+            self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
+            self.onPointsChanged))
 
   def onNumberOfPointsChanged(self, caller, event):
     # Update table
@@ -140,8 +171,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       fromButton.clicked.connect( (lambda row: lambda : removeFrom(row) )(i) )
       toButton = addButtonWidget(i, 1)
       toButton.clicked.connect( (lambda row: lambda : removeTo(row) )(i) )
-
-    self.updateTransform()
 
   def onPointsChanged(self, caller, event):
     self.updateTransform()
@@ -194,14 +223,8 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       self.FromNode.GetMarkupsDisplayNode().VisibilityOff()
       self.FromNode.SetSingletonTag("FiducialSelection_" + FromName)
       self.FromNode.GetDisplayNode().VisibilityOn()
-      self.FromNode.SetSaveWithScene( False )
-
-      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointAddedEvent,
-            self.onNumberOfPointsChanged)
-      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
-            self.onNumberOfPointsChanged)
-      self.FromNode.AddObserver(slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
-            self.onPointsChanged)
+      self.FromNode.SetSaveWithScene(False)
+      self.addFromObservers()
 
     volumeWidget = qt.QWidget(self.parent)
     volumeLayout = qt.QHBoxLayout()
@@ -268,18 +291,18 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         x1 = m.GetElement(0,3)
         x2 = m.GetElement(1,3)
         x3 = m.GetElement(2,3)
-        if not np.isnan( x1+x2+x3):
+        if not np.isnan(x1+x2+x3):
           self.FromNode.AddFiducial(x1, x2, x3)
         else:
-          self.statusLabel.setText( self.statusToolNotTracked )
-    self.trackerButton.clicked.connect( placeFromTool )
+          self.statusLabel.setText(self.statusToolNotTracked)
+    self.trackerButton.clicked.connect(placeFromTool)
 
     self.fiducialWidget = qt.QWidget(self.parent)
-    self.fiducialWidget.setLayout( buttonLayout )
-    self.layout.addWidget( self.fiducialWidget )
+    self.fiducialWidget.setLayout(buttonLayout)
+    self.layout.addWidget(self.fiducialWidget)
 
     # Add table below buttons
-    self.layout.addWidget( self.table )
+    self.layout.addWidget(self.table)
 
     self.fiducialsVisibilityButton = qt.QPushButton("Hide Fiducials")
     self.fiducialsVisibilityButton.setCheckable(True)

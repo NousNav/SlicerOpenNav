@@ -59,13 +59,23 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
     self.traceButton.setEnabled(True)
     self.tools.setEnabled(True)
 
+    progress = slicer.util.createProgressDialog(parent=self.parent, value=0,
+            maximum=2, labelText="Computing Registration")
+    progress.setValue(1)
+    slicer.app.processEvents()
     segmentation = self.segmentationComboBox.currentNode()
     tracingPoints = np.stack(self.tracePoints)
-    transformMatrix = self.logic.runICP(segmentation, tracingPoints)
+    useVTK = False
+    transformMatrix = self.logic.runICP(segmentation, tracingPoints, useVTK)
     if transformMatrix is not None:
       node = TrackingInterface.getTrackingToSceneTransform()
-      node.SetMatrixTransformToParent(transformMatrix)
+      currentMatrix = vtk.vtkMatrix4x4()
+      node.GetMatrixTransformToParent(currentMatrix)
+      resultMatrix = vtk.vtkMatrix4x4()
+      vtk.vtkMatrix4x4.Multiply4x4(transformMatrix, currentMatrix, resultMatrix)
+      node.SetMatrixTransformToParent(resultMatrix)
       NNUtils.centerOnActiveVolume()
+    progress.setValue(2)
 
   def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):
     m = vtk.vtkMatrix4x4()
@@ -107,9 +117,14 @@ class NNICPRegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.traceTime = qt.QSpinBox()
     self.traceTime.setMinimum(1)
-    self.traceTime.setMaximum(20)
+    self.traceTime.setMaximum(180)
+    self.traceTime.setValue(90)
     traceLayout.addWidget(self.traceTime)
     self.layout.addWidget(traceWidget)
+
+  def onEnter(self):
+    volumeNode = NNUtils.getActiveVolume()
+    # TODO get segmentation from active volume
 
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -130,7 +145,9 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
 
   def __init__(self):
     ScriptedLoadableModuleLogic(self)
+    # TODO include install in build process
     slicer.util.pip_install("pycpd")
+    slicer.util.pip_install("sklearn")
 
   def runICP(self, segmentation, tracePoints, useVTK=True):
     if segmentation is None:
@@ -143,14 +160,23 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
       tmpPoints = polyData.GetPoints()
       segmentationPointSets.append(numpy_support.vtk_to_numpy(tmpPoints.GetData()))
     segmentationPoints = np.concatenate(segmentationPointSets)
-    maxPoints = 10000
-    if segmentationPoints.shape[0] > maxPoints:
-      pind = np.random.permutation(segmentationPoints.shape[0])
-      segmentationPoints = segmentationPoints[pind[1:maxPoints], :]
 
+    # Only use k-Nearest Neighbor within traced points
+    knn = 100
+    radius = 10
+    from sklearn.neighbors import NearestNeighbors
+    neigh = NearestNeighbors(n_neighbors=knn, radius=radius)
+    neigh.fit(segmentationPoints)
+    #ind = neigh.kneighbors(tracePoints, return_distance=False)
+    ind = neigh.radius_neighbors(tracePoints, return_distance=False)
+    ind = np.concatenate(ind)
+    ind = np.unique(ind.flatten())
+    # TODO for testing only
+    #np.savez("icp.npz", segP=segmentationPoints, trP=tracePoints, ind=ind)
+    # end TODO
     if useVTK:
-      return self.runVTK(segmentationPoints, tracePoints)
-    return self.runCPD(segmentationPoints, tracePoints)
+      return self.runVTK(segmentationPoints[ind,:], tracePoints)
+    return self.runCPD(segmentationPoints[ind,:], tracePoints)
 
   def createPolyData(self, X):
     n = X.shape[0]
@@ -173,7 +199,7 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     icp = vtk.vtkIterativeClosestPointTransform()
     icp.SetMaximumNumberOfIterations(500)
     icp.SetMaximumNumberOfLandmarks(1000)
-    icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.GetLandmarkTransform().SetModeToSimilarity()#RigidBody()
     icp.SetTarget(self.createPolyData(fixed))
     icp.SetSource(self.createPolyData(moving))
     icp.Update()
@@ -185,15 +211,16 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
     Fixed and moving point sets are two numpy arrays of number of points x 3
     """
     import pycpd
-
     rigidCPD = pycpd.RigidRegistration(**{'X': moving, 'Y': fixed})
     moved, (s, A, t) = rigidCPD.register()
     transform = vtk.vtkMatrix4x4()
     for i in range(3):
       for j in range(3):
-        transform.SetElement(i, j, A[i,j] * s)
+        # pycpd stores transpose
+        transform.SetElement(i, j, A[j,i] * s)
       transform.SetElement(i, 3, t[i])
-
+    transform.Invert()
+    print(transform)
     return transform
 
 

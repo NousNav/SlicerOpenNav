@@ -22,29 +22,24 @@ class Tracking(ScriptedLoadableModule):
     self.parent.categories = [""]
     self.parent.dependencies = ["PivotCalibration", "FiducialSelection"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
-    self.parent.helpText = """
-This is the tracking module for the NousNav application
-"""
+    self.parent.helpText = """This is the tracking module for the NousNav application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-""" # replace with organization, grant and thanks.
+    self.parent.acknowledgementText = """...""" # replace with organization, grant and thanks.
 
 
 class TrackedTool:
 
   def updateModel(self, transformNode=None, unusedArg2=None, unusedArg3=None):
     if self.tubeModel is not  None:
-        slicer.mrmlScene.RemoveNode( self.tubeModel )
+        slicer.mrmlScene.RemoveNode(self.tubeModel)
 
     points = vtk.vtkPoints()
     points.SetNumberOfPoints(2)
-    points.SetPoint(0, 0, 0, 0 )
+    points.SetPoint(0, 0, 0, 0)
 
     m = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToParent(m)
-    points.SetPoint(1, m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3) )
+    points.SetPoint(1, m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3))
     if m.GetElement(0,3) + m.GetElement(1,3) + m.GetElement(2,3) == 0:
       points.SetPoint(1,0,0,1)
 
@@ -57,17 +52,16 @@ class TrackedTool:
     linesPolyData.SetLines(line)
 
     tubeSegmentFilter = vtk.vtkTubeFilter();
-    tubeSegmentFilter.SetInputData( linesPolyData );
-    tubeSegmentFilter.SetRadius( 4 );
-    tubeSegmentFilter.SetNumberOfSides( 30 );
-    tubeSegmentFilter.CappingOn();
-    tubeSegmentFilter.Update();
+    tubeSegmentFilter.SetInputData(linesPolyData);
+    tubeSegmentFilter.SetRadius(1)
+    tubeSegmentFilter.SetNumberOfSides(30)
+    tubeSegmentFilter.CappingOn()
+    tubeSegmentFilter.Update()
     tubePolyData = tubeSegmentFilter.GetOutput();
-    self.tubeModel = slicer.modules.models.logic().AddModel( tubePolyData )
-    self.tubeModel.SetName( self.toolname )
+    self.tubeModel = slicer.modules.models.logic().AddModel(tubePolyData)
+    self.tubeModel.SetName(self.toolname)
     self.tubeModel.SetSaveWithScene(False)
-    self.tubeModel.SetAndObserveTransformNodeID( self.transformNode.GetID() )
-
+    self.tubeModel.SetAndObserveTransformNodeID(self.transformNode.GetID())
 
     modelDisplay = self.tubeModel.GetDisplayNode()
     modelDisplay.SetColor(0.2,0.2,0.7)
@@ -75,7 +69,7 @@ class TrackedTool:
     modelDisplay.SetAmbient(0.10)
     modelDisplay.SetSpecular(0.20)
     modelDisplay.SetPower(10.0)
-    modelDisplay.SetOpacity(0.5)
+    modelDisplay.SetOpacity(1)
     modelDisplay.SetVisibility2D(True)
     modelDisplay.SetVisibility3D(True)
     modelDisplay.SetSliceIntersectionThickness(3)
@@ -87,14 +81,14 @@ class TrackedTool:
     self.transformNode = transformNode
     self.transformNodeTip = transformNodeTip
 
-    self.transformNodeTip.AddObserver( slicer.vtkMRMLTransformNode.TransformModifiedEvent,
-            self.updateModel )
+    self.transformNodeTip.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
+            self.updateModel)
     self.updateModel()
 
   def getTipWorld(self):
     m = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToParent(m)
-    tipLocal = np.array( [m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3)] )
+    tipLocal = np.array([m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3)])
     tipWorld = np.empty(3)
     self.transformNodeTip.TransformPointToWorld(tipLocal, tipWorld)
     return tipWorld
@@ -105,7 +99,7 @@ class TrackedTool:
     self.transformNodeTip.TransformPointToWorld(baseLocal, baseWorld)
     return baseWorld
 
-  def getRotation(self, tool):
+  def getRotation(self):
     mat = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToWorld(mat)
     npmat = np.zeros( [3,3] )
@@ -115,7 +109,7 @@ class TrackedTool:
 
     return np.linalg.inv( npmat )
 
-  def getTranslation(self, tool):
+  def getTranslation(self):
     mat = vtk.vtkMatrix4x4()
     self.transformNodeTip.GetMatrixTransformToWorld(mat)
     npmat = np.zeros(3)
@@ -138,14 +132,19 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
       if TrackingInterface.isTracking(i):
         statusLabel.setText(" Tracking On ")
         statusLabel.setStyleSheet("background-color: green;")
+        if i == self.cameraTool.currentIndex-1:
+          self.updateSliceViews(self.logic.getTool(i))
       else:
         statusLabel.setText(" Tracking Off ")
         statusLabel.setStyleSheet("background-color: red;")
 
   def updateSliceViews(self, tool):
     pos = tool.getTranslation()
-    rot = np.linalg.inv(tool.getRotation())
-    NNUtils.updateSliceViews(pos, rot)
+    if self.cameraAlignButton.checked:
+      rot = np.linalg.inv(tool.getRotation())
+      NNUtils.updateSliceViews(pos, rot)
+    else:
+      NNUtils.setSliceViewsPosition(pos)
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -176,7 +175,6 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     # Setup tool calibrations
     self.toolsWidget = qt.QWidget()
     toolsLayout = qt.QVBoxLayout(self.toolsWidget)
-    self.tools = []
     self.toolCalibrateButtons = []
     self.toolStatusLabels = []
     for i in range( self.logic.getNumberOfTools() ):
@@ -239,9 +237,22 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     for i in range(TrackingInterface.getNumberOfTools()):
       toolname = "Tool_%d" % i
       self.cameraTool.addItem(toolname)
-    self.cameraTool.currentIndexChanged.connect(
-            lambda index: self.resetSliceViews() if index == 0 else None )
+    def indexChanged(index):
+      if index == 0:
+        NNUtils.resetSliceViews()
+        NNUtils.centerOnActiveVolume()
+    self.cameraTool.currentIndexChanged.connect(indexChanged)
     trackCameraLayout.addWidget(self.cameraTool)
+    self.cameraAlignButton = qt.QPushButton("Orient to Volume")
+    self.cameraAlignButton.setCheckable(True)
+    def toggleCamera( checked ):
+      if checked:
+        self.cameraAlignButton.setText("Orient to Tool")
+      else:
+        self.cameraAlignButton.setText("Orient to Volume")
+        NNUtils.resetSliceViews()
+    self.cameraAlignButton.toggled.connect(toggleCamera)
+    trackCameraLayout.addWidget(self.cameraAlignButton)
     self.layout.addWidget(self.trackCameraWidget)
 
     # Configuration
@@ -318,7 +329,6 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
 
   def getTool(self, idx):
     return TrackingLogic._tools[idx]
-
 
 
 class TrackingTest(ScriptedLoadableModuleTest):
