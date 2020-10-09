@@ -131,7 +131,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     slicer.util.setDataProbeVisible(False)
-    slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
+    #slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
     slicer.util.setModuleHelpSectionVisible(False)
     slicer.util.setModulePanelTitleVisible(False)
     slicer.util.setPythonConsoleVisible(False)
@@ -140,8 +140,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     keepToolbars = [
       slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar'),
       slicer.util.findChild(slicer.util.mainWindow(), 'ViewToolBar'),
-      #slicer.util.findChild(slicer.util.mainWindow(), 'ModuleSelectorToolBar'),
-      #slicer.util.findChild(slicer.util.mainWindow(), 'MouseModeToolBar')
+      slicer.util.findChild(slicer.util.mainWindow(), 'ModuleSelectorToolBar'),
+      slicer.util.findChild(slicer.util.mainWindow(), 'MouseModeToolBar')
       ]
     slicer.util.setToolbarsVisible(False, keepToolbars)
     
