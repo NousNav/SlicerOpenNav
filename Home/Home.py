@@ -163,12 +163,38 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.hideAction.setObjectName("HideToolBar")
     self.hideAction.setCheckable( True )
     self.hideAction.toggled.connect( toggleHide )
-    
-    
+
+    rulerToolBar = qt.QToolBar("RulerToolBar")
+    rulerToolBar.name = "rulerToolBar"
+    slicer.util.mainWindow().addToolBar(rulerToolBar)
+
+    logoIcon = qt.QIcon(':/Icons/Ruler.png')
+    self.rulerAction = rulerToolBar.addAction(logoIcon, "")
+    self.rulerAction.setObjectName("RulerToolBar")
+    self.rulerAction.setCheckable( True )
+    self.rulerAction.toggled.connect( self.toggleRuler )
 
     central = slicer.util.findChild(slicer.util.mainWindow(), name='CentralWidget')
     central.setStyleSheet("background-color: #464449")
 
+  def toggleRuler(self, checked):
+    selectionNode = slicer.app.applicationLogic().GetSelectionNode()
+    interactionNode = slicer.app.applicationLogic().GetInteractionNode()
+
+    # clsName = 'vtkMRMLAnnotationRulerNode'
+    clsName = 'vtkMRMLMarkupsLineNode'
+
+    if checked:
+      selectionNode.SetReferenceActivePlaceNodeClassName(clsName)
+      interactionNode.SwitchToPersistentPlaceMode()
+
+    else:
+      rulers = slicer.mrmlScene.GetNodesByClass(clsName)
+
+      for ruler in rulers:
+        slicer.mrmlScene.RemoveNode(ruler)
+
+      interactionNode.SwitchToViewTransformMode()
 
   def setLabelMapVolumeDefaults(self):
     defaultNode = slicer.vtkMRMLVolumeArchetypeStorageNode()
