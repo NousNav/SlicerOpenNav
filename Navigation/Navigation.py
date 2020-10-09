@@ -13,7 +13,7 @@ class Navigation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home"
+    self.parent.title = "Nav"
     self.parent.categories = [""]
     self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]

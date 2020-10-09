@@ -12,7 +12,7 @@ class Planning(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home" 
+    self.parent.title = "Plan" 
     self.parent.categories = [""]
     self.parent.dependencies = ["VolumeRendering","NNSegmentation", "DICOM"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 

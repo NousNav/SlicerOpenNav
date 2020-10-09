@@ -79,8 +79,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     #Begin listening for new volumes
-    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
-            self.onNodeAdded)
+    # self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
+    #         self.onNodeAdded)
 
     #Apply style
     self.applyStyle()
