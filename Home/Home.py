@@ -79,11 +79,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     #Begin listening for new volumes
-    # self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
-    #         self.onNodeAdded)
+    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
+            self.onNodeAdded)
 
     #Apply style
-    self.applyStyle()
+    #self.applyStyle()
 
   def applyStyle(self):
     # Style
@@ -245,6 +245,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
+    
+    
 
     if self.sceneDataIs2DOnly():
       self.setup2DViewForNode(node)     
@@ -281,6 +283,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   
   def displayCTImage(self, node):
     self.setup3DView()
+    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
     volumeComboBox = slicer.util.findChild(self.planningWidget.self().volumerenderWidget, "VolumeNodeComboBox")
     volumeComboBox.setCurrentNode( node )
     volRenLogic = slicer.modules.volumerendering.logic()
