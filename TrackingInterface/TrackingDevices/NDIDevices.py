@@ -8,7 +8,11 @@ class NDIVegaTracker(TrackingDevice):
   def __init__(self, toolFiles):
     # Tracking toggle button action
     # TODO add to build process instead of installing here
-    slicer.util.pip_install("scikit-surgerynditracker")
+    try:
+      import sksurgerynditracker.nditracker
+    except:
+      slicer.util.pip_install("scikit-surgerynditracker")
+      
 
     self.settings_vega = {
           "tracker type": "vega",

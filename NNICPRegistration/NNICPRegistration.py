@@ -146,8 +146,14 @@ class NNICPRegistrationLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     ScriptedLoadableModuleLogic(self)
     # TODO include install in build process
-    slicer.util.pip_install("pycpd")
-    slicer.util.pip_install("sklearn")
+    try:
+      import sklearn
+    except:
+      slicer.util.pip_install("sklearn")
+    try:
+      import pycpd
+    except:
+      slicer.util.pip_install("pycpd")
 
   def runICP(self, segmentation, tracePoints, useVTK=True):
     if segmentation is None:
