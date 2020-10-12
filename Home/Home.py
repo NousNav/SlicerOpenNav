@@ -77,6 +77,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
 
+    self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
+    self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
     #Begin listening for new volumes
     self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 

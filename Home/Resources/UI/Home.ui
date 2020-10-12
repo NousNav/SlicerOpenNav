@@ -36,6 +36,10 @@
     </widget>
     </widget>
    </item>
+    <item>
+      <widget class="qMRMLSubjectHierarchyTreeView" name="TreeView">
+      </widget>
+    </item>
   </layout>
  </widget>
  <customwidgets>
@@ -44,6 +48,10 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSubjectHierarchyTreeView</class>
+   <header>qMRMLSubjectHierarchyTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
