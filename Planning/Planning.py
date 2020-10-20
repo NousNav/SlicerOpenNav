@@ -4,6 +4,7 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 import textwrap
+import NNUtils
 
 class Planning(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -12,10 +13,10 @@ class Planning(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Plan" 
+    self.parent.title = "NousNav Planning"
     self.parent.categories = [""]
     self.parent.dependencies = ["VolumeRendering","NNSegmentation", "DICOM"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the NousNav application
 """
@@ -25,7 +26,7 @@ This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
 
-  
+
 class PlanningWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -61,7 +62,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
        l.addWidget(self.createNextPlanningButton(), 0, 1 )
      return w
 
-   
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -70,18 +71,16 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    
+
     #Create logic class
-    self.logic = PlanningLogic()   
+    self.logic = PlanningLogic()
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
-    
-    ###Stacked widgtes navigation changes
+
+    ###Stacked widgets navigation changes
     self.CurrentPlanningIndex = -1
     self.ui.PlanningWidget.currentChanged.connect( self.onPlanningChanged )
-
-    ####Planning
 
     #Step 1: Data Loading
     self.ui.PlanningStep1.layout().addWidget( qt.QLabel("Step 1: Load Data") )
@@ -90,7 +89,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.PlanningStep1.layout().addStretch(1)
     self.ui.PlanningStep1.layout().addWidget( self.createPlanningStepWidget(False, True) )
 
-
     #Volume Rendering
     self.ui.PlanningStep2.layout().addWidget( qt.QLabel("Step 2: Adjust Volume Rendering") )
     self.renderFrame = qt.QWidget()
@@ -98,60 +96,67 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.renderFrame.setLayout( renderLayout )
 
     self.volumerenderWidget = slicer.modules.volumerendering.createNewWidgetRepresentation()
-    #self.presets = slicer.qSlicerVolumeRenderingPresetComboBox(self.renderFrame)
-    self.presets = slicer.util.findChild( self.volumerenderWidget, "PresetComboBox" )
-    self.presets.setParent( None )
+    self.presets = slicer.util.findChild(self.volumerenderWidget, "PresetComboBox")
+    self.presets.setVisible(True)
     renderLayout.addWidget(self.presets)
     self.ui.PlanningStep2.layout().addWidget(self.renderFrame)
 
     self.renderFrameAdvanced = ctk.ctkCollapsibleGroupBox(self.ui.PlanningStep2)
     self.renderFrameAdvanced.name = "AdvancedVolume"
     self.renderFrameAdvanced.title = "Advanced"
-    self.renderFrameAdvanced.setChecked( False )
+    self.renderFrameAdvanced.setChecked(False)
     self.renderFrameAdvanced.setLayout(qt.QVBoxLayout())
     self.renderFrameAdvanced.layout().addWidget(self.volumerenderWidget)
     self.ui.PlanningStep2.layout().addWidget(self.renderFrameAdvanced)
-    
+
     self.ui.PlanningStep2.layout().addStretch(1)
     self.ui.PlanningStep2.layout().addWidget( self.createPlanningStepWidget(True, True) )
 
-    
     #Segmentation
     self.ui.PlanningStep3.layout().addWidget( qt.QLabel("Step 3: Create Segmentation") )
     self.segmentationWidget = slicer.modules.nnsegmentation.createNewWidgetRepresentation()
     self.ui.PlanningStep3.layout().addWidget(self.segmentationWidget)
     self.ui.PlanningStep3.layout().addStretch(1)
     self.ui.PlanningStep3.layout().addWidget( self.createPlanningStepWidget(True, False) )
-    
-    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
+    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
   def setupDICOMBrowser(self):
     #Make sure that the DICOM widget exists
     slicer.modules.dicom.widgetRepresentation()
     self.dicomButton.setCheckable(True)
     self.dicomButton.toggled.connect(self.toggleDICOMBrowser)
-    
+
     #For some reason, the browser is instantiated as not hidden. Close
     #so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
-  
+
   def toggleDICOMBrowser(self, checked):
-    if checked:  
+    if checked:
       slicer.modules.DICOMWidget.onOpenBrowserWidget()
-      self.dicomButton = qt.QPushButton('Hide DICOM Browser') 
+      self.dicomButton = qt.QPushButton('Hide DICOM Browser')
     else:
       slicer.modules.DICOMWidget.browserWidget.close()
-      self.dicomButton = qt.QPushButton('Show DICOM Browser') 
+      self.dicomButton = qt.QPushButton('Show DICOM Browser')
 
-  #TODO
   def onPlanningChanged(self, tabIndex):
     if tabIndex == self.CurrentPlanningIndex:
       return
-    #Enter New Tab
+    if tabIndex == self.ui.PlanningWidget.indexOf(self.ui.PlanningStep2):
+      nodeID = NNUtils.getActiveVolume()
+      if nodeID is not None:
+        node = slicer.mrmlScene.GetNodeByID(nodeID)
+        volumeComboBox = slicer.util.findChild(self.volumerenderWidget, "VolumeNodeComboBox")
+        volumeComboBox.setCurrentNode(node)
+        volRenLogic = slicer.modules.volumerendering.logic()
+        displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(node)
+        displayNode.SetVisibility(True)
+        displayNode.GetVolumePropertyNode().Copy(volRenLogic.GetPresetByName('CT-Bones'))
+        controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
+        controller.resetFocalPoint()
+
     #Update Current Tab
     self.CurrentPlanningIndex = tabIndex
-
 
 
 class PlanningLogic(ScriptedLoadableModuleLogic):
@@ -179,7 +184,6 @@ class PlanningTest(ScriptedLoadableModuleTest):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -207,7 +211,7 @@ class PlanningTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = PlanningLogic()
     self.delayDisplay('Test passed!')
 

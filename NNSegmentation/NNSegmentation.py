@@ -112,6 +112,7 @@ class NNSegmentationLogic(ScriptedLoadableModuleLogic):
     if not masterVolumeNode.IsTypeOf("vtkMRMLScalarVolumeNode"):
         pass
 
+    print(masterVolumeNode)
     progress = slicer.util.createProgressDialog(parent=parentWidget, value=0,
             maximum=6, labelText="Creating Automatic Segmentation")
 

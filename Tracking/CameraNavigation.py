@@ -1,94 +1,89 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+import numpy as np
+import NNUtils
 
-import TrackingDevices.Interface as TrackingInterface
-
-
-class Tracking(ScriptedLoadableModule):
+class CameraNavigation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Tracking"
+    self.parent.title = "CameraNavigation"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Tools", "FiducialSelection", "CameraNavigation"]
+    self.parent.dependencies = ["Tools"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """Module for tracking device handling and setup"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """...""" # replace with organization, grant and thanks.
 
 
-class TrackingWidget(ScriptedLoadableModuleWidget):
+class CameraNavigationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-    self.logic = TrackingLogic()
+    self.logic = CameraNavigationLogic()
+    self.toolsLogic = slicer.modules.tools.widgetRepresentation().self().logic
+
+  def updateSliceViews(self, index):
+    if self.cameraTool.currentIndex - 1 == index:
+      tool = self.toolsLogic.getTool(index)
+      pos = tool.getTranslation()
+      if self.cameraAlignButton.checked:
+        rot = np.linalg.inv(tool.getRotation())
+        NNUtils.updateSliceViews(pos, rot)
+      else:
+        NNUtils.setSliceViewsPosition(pos)
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
-    # Connect button
-    self.connectButton = qt.QPushButton("Start Tracking")
-    self.connectButton.setCheckable(True)
-    self.layout.addWidget(self.connectButton)
-    # Tracking toggle button action
-    def toggleTracking(checked):
-      if not checked:
-        self.connectButton.setText("Start Tracking")
-        TrackingInterface.stopTracking()
-      else:
-        try:
-          TrackingInterface.startTracking()
-          self.connectButton.setText("Stop Tracking")
-        except OSError as err:
-          # TODO figure out error message handling
-          slicer.util.errorDisplay( str(err) )
-    self.connectButton.toggled.connect(toggleTracking)
-
-    # Configuration
-    self.toolsWidget = slicer.modules.tools.createNewWidgetRepresentation()
-    self.configurationFrame = TrackingInterface.getTrackingDevice().getConfigurationWidget()
-    self.configurationFrame.setChecked(False)
-    self.layout.addWidget(self.configurationFrame)
-
-    # Setup tool calibrations
-    self.layout.addWidget(self.toolsWidget)
-
     # Track slice view to tool
-    self.trackCameraWidget = slicer.modules.cameranavigation.createNewWidgetRepresentation()
-    self.cameraFrame = ctk.ctkCollapsibleGroupBox(self.parent)
-    cameraLayout = qt.QVBoxLayout(self.cameraFrame)
-    self.layout.addWidget(self.cameraFrame)
-    self.cameraFrame.name = "Tool Tracking"
-    self.cameraFrame.title = "Tool Tracking"
-    self.cameraFrame.setChecked(True)
-    cameraLayout.addWidget(self.trackCameraWidget)
-    self.layout.addWidget(self.cameraFrame)
+    self.trackCameraWidget = qt.QWidget(self.parent)
+    trackCameraLayout = qt.QHBoxLayout()
+    self.trackCameraWidget.setLayout(trackCameraLayout)
+    trackCameraLabel = qt.QLabel("Align Slice Views To: ")
+    trackCameraLayout.addWidget(trackCameraLabel)
 
-    # Fiducial registration
-    self.fiducialFrame = ctk.ctkCollapsibleGroupBox(self.parent)
-    fiducialLayout = qt.QVBoxLayout(self.fiducialFrame)
-    self.layout.addWidget(self.fiducialFrame)
-    self.fiducialFrame.name = "Register Tracking to Scene"
-    self.fiducialFrame.title = "Register Tracking to Scene"
-    self.fiducialFrame.setChecked( True )
-    self.registerWidget = slicer.modules.fiducialselection.createNewWidgetRepresentation()
-    fiducialLayout.addWidget(self.registerWidget)
+    self.cameraTool = qt.QComboBox()
+    self.cameraTool.addItem("None")
+    for i in range(self.toolsLogic.getNumberOfTools()):
+      self.cameraTool.addItem(self.toolsLogic.getTool(i).getName())
+    def indexChanged(index):
+      if index == 0:
+        NNUtils.resetSliceViews()
+        NNUtils.centerOnActiveVolume()
+    self.cameraTool.currentIndexChanged.connect(indexChanged)
+    trackCameraLayout.addWidget(self.cameraTool)
+    self.cameraAlignButton = qt.QPushButton("Orient to Volume")
+    self.cameraAlignButton.setCheckable(True)
+    def toggleCamera( checked ):
+      if checked:
+        self.cameraAlignButton.setText("Orient to Tool")
+      else:
+        self.cameraAlignButton.setText("Orient to Volume")
+        NNUtils.resetSliceViews()
+    self.cameraAlignButton.toggled.connect(toggleCamera)
+    trackCameraLayout.addWidget(self.cameraAlignButton)
+    self.layout.addWidget(self.trackCameraWidget)
+
+    for i in range(self.toolsLogic.getNumberOfTools()):
+      tool = self.toolsLogic.getTool(i)
+      tool.transformNode.AddObserver(slicer.vtkMRMLTransformNode.TransformModifiedEvent,
+              (lambda index: lambda x, y: self.updateSliceViews(index) )(i) )
 
     # Compress the layout
     self.layout.addStretch(1)
 
   def enter(self):
     self.registerWidget.enter()
-    self.screwGuidance.enter()
 
 
-class TrackingLogic(ScriptedLoadableModuleLogic):
+class CameraNavigationLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -97,10 +92,12 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
+
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
 
-class TrackingTest(ScriptedLoadableModuleTest):
+
+class CameraNavigationTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   Uses ScriptedLoadableModuleTest base class, available at:
@@ -116,9 +113,9 @@ class TrackingTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_Tracking1()
+    self.test_CameraNavigation1()
 
-  def test_Tracking1(self):
+  def test_CameraNavigation1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -135,7 +132,7 @@ class TrackingTest(ScriptedLoadableModuleTest):
     # first, get some data
     #
 
-    logic = TrackingLogic()
+    logic = CameraNavigationLogic()
     self.delayDisplay('Test passed!')
 
 
@@ -143,6 +140,6 @@ class TrackingTest(ScriptedLoadableModuleTest):
 # Class for avoiding python error that is caused by the method SegmentEditor::setup
 # http://issues.slicer.org/view.php?id=3871
 #
-class TrackingFileWriter(object):
+class CameraNavigationFileWriter(object):
   def __init__(self, parent):
     pass

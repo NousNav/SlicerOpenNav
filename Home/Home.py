@@ -13,10 +13,10 @@ class Home(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Home" 
+    self.parent.title = "NousNav Home"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Planning", "Registration", "Navigation", "VolumeRendering"]
-    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"] 
+    self.parent.dependencies = ["Planning", "Registration", "Navigation"]
+    self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the NousNav application
 """
@@ -44,7 +44,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
 
-   
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -53,19 +52,17 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    
     #Remove uneeded UI elements
     self.modifyWindowUI()
 
     #Create logic class
-    self.logic = HomeLogic()   
+    self.logic = HomeLogic()
 
     #setup scene
     self.setupNodes()
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
-
 
     #The home module is a place holder for the planning, registration and navigation modules
     self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
@@ -81,7 +78,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
     #Begin listening for new volumes
-    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, 
+    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent,
             self.onNodeAdded)
 
     #Apply style
@@ -98,17 +95,17 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setup3DView()
     self.setupSliceViewers()
 
-  def showAdvancedEffects(self, show):    
+  def showAdvancedEffects(self, show):
     for effect in self.effectsToHide:
       widget = slicer.util.findChild(self.segWidget, effect)
       widget.visible = show
 
   def onClose(self, unusedOne, unusedTwo):
     pass
-  
+
   def cleanup(self):
     pass
-        
+
   def modifyWindowUI(self):
     slicer.util.setModuleHelpSectionVisible(False)
 
@@ -131,7 +128,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Filtering')
     #slicer.util.mainWindow().moduleSelector().modulesMenu().allModulesCategoryVisible= False
 
-
     slicer.util.setDataProbeVisible(False)
     #slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
     slicer.util.setModuleHelpSectionVisible(False)
@@ -146,7 +142,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.findChild(slicer.util.mainWindow(), 'MouseModeToolBar')
       ]
     slicer.util.setToolbarsVisible(False, keepToolbars)
-    
+
     hideToolBar = qt.QToolBar("HideToolBar")
     hideToolBar.name = "hideToolBar"
     slicer.util.mainWindow().insertToolBar(mainToolBar, hideToolBar)
@@ -204,8 +200,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setTablesDefaults(self):
     defaultNode = slicer.vtkMRMLTableStorageNode()
     defaultNode.SetDefaultWriteFileExtension('csv')
-    slicer.mrmlScene.AddDefaultNode(defaultNode)    
-  
+    slicer.mrmlScene.AddDefaultNode(defaultNode)
+
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
@@ -214,7 +210,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     controller.set3DAxisVisible(False)
     controller.set3DAxisLabelVisible(False)
     controller.setOrientationMarkerType(3)  #Axis marker
-    #controller.setStyleSheet("background-color: #222222")    
+    #controller.setStyleSheet("background-color: #222222")
 
   def setup2DViewForNode(self, node):
     layoutManager = slicer.app.layoutManager()
@@ -225,9 +221,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpGreenSliceView)
     elif sliceColor == 'Yellow':
       layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpYellowSliceView)
-  
-  
-  def getSliceViewFor2DNode(self, node):    
+
+  def getSliceViewFor2DNode(self, node):
     ijk2ras = vtk.vtkMatrix4x4()
     node.GetIJKToRASMatrix(ijk2ras)
     scanOrder = slicer.vtkMRMLVolumeNode.ComputeScanOrderFromIJKToRAS(ijk2ras)
@@ -247,7 +242,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     name = node.GetName()
     hasText = name.lower().find(text) != -1
     return hasText
-  
+
   def determineImageType(self, node):
     dimension = 3
     modality = 'None'
@@ -260,34 +255,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     node_item = shNode.GetItemByDataNode(node)
     sh_modality = shNode.GetItemAttribute(node_item, 'DICOM.Modality')
 
-    #Then, check modality in MRML Node    
+    #Then, check modality in MRML Node
     mrml_modality = node.GetAttribute('DICOM.Modality')
-    
 
     #Could not find modality
     return dimension, modality
-  
-  def processIncomingVolumeNode(self, node):
-   
-    dimension, modality = self.determineImageType(node)    
 
+  def processIncomingVolumeNode(self, node):
+    dimension, modality = self.determineImageType(node)
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
-    
-    
-
     if self.sceneDataIs2DOnly():
-      self.setup2DViewForNode(node)     
+      self.setup2DViewForNode(node)
     else:
       self.setup3DView()
-
     # Copy over modality tag for all images
     if modality != '':
       node.SetAttribute('DICOM.Modality', modality)
-
-    #Display CT image
-    self.displayCTImage(node)
-  
 
   def sceneDataIs2DOnly(self):
     volumesList = slicer.util.getNodesByClass('vtkMRMLVolumeNode')
@@ -304,22 +288,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             return False  #multiple 2D images in different slice planes exist
       else:
         return False
-    
+
     #No 3D images found
     return True
-  
-  
-  def displayCTImage(self, node):
-    self.setup3DView()
-    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
-    volumeComboBox = slicer.util.findChild(self.planningWidget.self().volumerenderWidget, "VolumeNodeComboBox")
-    volumeComboBox.setCurrentNode( node )
-    volRenLogic = slicer.modules.volumerendering.logic()
-    displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(node)
-    displayNode.SetVisibility(True)
-    displayNode.GetVolumePropertyNode().Copy(volRenLogic.GetPresetByName('CT-Bones'))
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.resetFocalPoint() 
 
   @vtk.calldata_type(vtk.VTK_OBJECT)
   def onNodeAdded(self, caller, event, calldata):
@@ -350,13 +321,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     sliceNode.SetSliceVisible(True)
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
     controller.resetFocalPoint()
-  
+
   def loadDICOM(self, dicomData):
 
     print("Loading DICOM from command line")
     #dicomDataDir = "c:/my/folder/with/dicom-files"  # input folder with DICOM files
     loadedNodeIDs = []  # this list will contain the list of all loaded node IDs
-    
+
     from DICOMLib import DICOMUtils
     with DICOMUtils.TemporaryDICOMDatabase() as db:
       self.importDicom(dicomData, db)
@@ -386,7 +357,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.error('Failed to import DICOM folder/file ' + dicomDataItem)
       return False
     return True
-  
+
 
 class HomeLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
@@ -413,7 +384,7 @@ class HomeTest(ScriptedLoadableModuleTest):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  
+
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -441,7 +412,7 @@ class HomeTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     logic = HomeLogic()
     self.delayDisplay('Test passed!')
 

@@ -15,7 +15,7 @@ class Navigation(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Nav"
     self.parent.categories = [""]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["CameraNavigation", "Tools"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Navigation main module for the NousNav application
@@ -77,25 +77,21 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
-
     ###Stacked widgets navigation changes
     self.CurrentNavigationIndex = -1
     self.ui.NavigationWidget.currentChanged.connect( self.onNavigationChanged )
 
-
-    ### Navigation
-    self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
-
-
     #Step 1: Calibrate Tools
     self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Calibrate Sterile Tool") )
-    self.ui.NavigationStep1.layout().addWidget(self.trackerWidget.toolsWidget)
+    self.toolsWidget = slicer.modules.tools.createNewWidgetRepresentation()
+    self.ui.NavigationStep1.layout().addWidget(self.toolsWidget)
     self.ui.NavigationStep1.layout().addStretch(1)
     self.ui.NavigationStep1.layout().addWidget( self.createStepWidget(False, True) )
 
     #Step 2: Navigation
     self.ui.NavigationStep2.layout().addWidget( qt.QLabel("Step 2: Navigation") )
-    self.ui.NavigationStep2.layout().addWidget(self.trackerWidget.trackCameraWidget)
+    self.trackCameraWidget = slicer.modules.cameranavigation.createNewWidgetRepresentation()
+    self.ui.NavigationStep2.layout().addWidget(self.trackCameraWidget)
     self.ui.NavigationStep2.layout().addStretch(1)
     self.ui.NavigationStep2.layout().addWidget( self.createStepWidget(True, False) )
 

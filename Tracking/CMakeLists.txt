@@ -4,6 +4,8 @@ set(MODULE_NAME Tracking)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  CameraNavigation.py
+  Tools.py
   )
 
 set(MODULE_PYTHON_RESOURCES

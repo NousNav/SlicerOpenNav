@@ -39,6 +39,9 @@ def setTrackingDevice(device):
     this._trackingDevice.stopTracking()
   this._trackingDevice = device
 
+def getTrackingDevice():
+  return this._trackingDevice
+
 def getNumberOfTools():
   if this._trackingDevice is None:
     return 0

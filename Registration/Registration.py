@@ -13,7 +13,7 @@ class Registration(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Reg"
+    self.parent.title = "NousNav Registration"
     self.parent.categories = [""]
     self.parent.dependencies = ["Tracking", "NNICPRegistration"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
