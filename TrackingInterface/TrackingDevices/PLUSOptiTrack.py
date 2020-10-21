@@ -154,8 +154,10 @@ class PLUSOptiTrack(TrackingDevice):
 
   def getTransformsForTool(self, index):
     try:
-      return self.tools[index]
-    except IndexError:
+      (toolname, transformNodeTip)  = self.tools[index]
+      transformNode = slicer.util.getNode(toolname)
+      return (transformNode, transformNodeTip)
+    except:
       return None
 
   def getConfigurationWidget(self):
