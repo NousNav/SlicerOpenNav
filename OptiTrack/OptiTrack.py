@@ -56,12 +56,22 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     self.launcherPathEdit = ctk.ctkPathLineEdit()
-    self.launcherPathEdit.currentPath = 'C:/Users/Sam/PlusApp-2.8.0.20191105-Win64/bin/PlusServer.exe'
+    basepath = ''
+    for item in os.listdir(os.path.expanduser('~')):
+      if item.startswith('PlusApp'):
+        basepath = os.path.join(os.path.expanduser('~'), item)
+        break
+
+    self.launcherPathEdit.currentPath = os.path.join(basepath, 'bin/PlusServer.exe')
     parametersFormLayout.addRow('Launcher Path:', self.launcherPathEdit)
 
     self.configPathEdit = ctk.ctkPathLineEdit()
-    self.configPathEdit.currentPath = 'E:/NousNav/Modules/Scripted/OptiTrack/Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml'
-    parametersFormLayout.addRow('Config File Path:', self.configPathEdit)
+    self.configPathEdit.currentPath = self.resourcePath('ReplayOptiTrack.xml.in')
+    parametersFormLayout.addRow('Config File Path (template):', self.configPathEdit)
+
+    self.dataPathEdit = ctk.ctkPathLineEdit()
+    self.dataPathEdit.currentPath = self.resourcePath('Ellipse.mha')
+    parametersFormLayout.addRow('Data file path for replay:', self.dataPathEdit)
 
     #
     # Apply Button
@@ -94,7 +104,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = False
     self.applyButton.text = 'OptiTrack is starting...'
     slicer.app.processEvents()
-    self.logic.start(self.launcherPathEdit.currentPath, self.configPathEdit.currentPath)   
+    self.logic.start(self.launcherPathEdit.currentPath, self.configPathEdit.currentPath, self.dataPathEdit.currentPath)   
     self.applyButton.enabled = True
     if self.logic.isRunning:
       self.applyButton.text = 'Stop OptiTrack'
@@ -117,20 +127,55 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
 
   def setup(self):
     self.connector = None
-    self.isRunning = False    
+    self.isRunning = False   
   
   def shutdown(self):
     if self.isRunning:
       self.connector.Stop()
       self.p.terminate()
       self.isRunning = False 
+      import shutil
+      shutil.rmtree(self.tempDirectory)
+      print('Shutdown')
   
-  def start(self, plusLauncherPath, plusConfigPath):
+  def writeConfigFile(self, configTemplateFileName, dataFileName):
+    template = ''
+    with open(configTemplateFileName,"r") as fh:
+      template = fh.read()
+
+    configData = template.format(dataFileName)
+    configDataFileName = os.path.join(self.tempDirectory, 'Temp.xml')
+    with open(configDataFileName,"w") as fh:
+      fh.write(configData)
+    print(configDataFileName)
+    return configDataFileName
+
+
+  
+  def getTempDirectoryBase(self):
+    tempDir = qt.QDir(slicer.app.temporaryPath)
+    fileInfo = qt.QFileInfo(qt.QDir(tempDir), "OptiTrack")
+    dirPath = fileInfo.absoluteFilePath()
+    qt.QDir().mkpath(dirPath)
+    return dirPath
+
+  def createTempDirectory(self):
+    import qt, slicer
+    tempDir = qt.QDir(self.getTempDirectoryBase())
+    tempDirName = qt.QDateTime().currentDateTime().toString("yyyyMMdd_hhmmss_zzz")
+    fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
+    dirPath = fileInfo.absoluteFilePath()
+    qt.QDir().mkpath(dirPath)
+    return dirPath
+  
+  def start(self, plusLauncherPath, plusConfigTemplatePath, plusDataPath):
     """
     Run the actual algorithm
     """
     import time
 
+    self.tempDirectory = self.createTempDirectory()
+    plusConfigPath = self.writeConfigFile(plusConfigTemplatePath, plusDataPath)
     if not self.isRunning:
       self.isRunning = True
       info = subprocess.STARTUPINFO()
@@ -160,6 +205,8 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         node.GetDisplayNode().SetEditorVisibility(True)
       except:
         print('WARNING: Could not find probe')
+    else:
+      self.shutdown()
     
 
 
