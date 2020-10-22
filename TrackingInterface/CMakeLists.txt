@@ -6,6 +6,7 @@ set(MODULE_PYTHON_SCRIPTS
   TrackingDevices/__init__.py
   TrackingDevices/Interface.py
   TrackingDevices/NDIDevices.py
+  TrackingDevices/PLUSOptiTrack.py
   )
 
 set(MODULE_PYTHON_RESOURCES

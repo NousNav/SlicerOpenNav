@@ -9,9 +9,9 @@ from TrackingDevices.Interface import TrackingDevice
 
 def setupPLUSOptiTrackTrackingDevice(templatePath, dataPath):
   if TrackingInterface.getTrackingDevice() is None:
-        TrackingInterface.setTrackingDevice(PLUSOptiTrack(templatePath, dataPath))
+        TrackingInterface.setTrackingDevice(PLUSOptiTrackTracker(templatePath, dataPath))
 
-class PLUSOptiTrack(TrackingDevice):
+class PLUSOptiTrackTracker(TrackingDevice):
 
   def __init__(self, templatePath, dataPath):
     # Tracking toggle button action
@@ -30,9 +30,15 @@ class PLUSOptiTrack(TrackingDevice):
           "dataPath": dataPath,
         }
     self.connector = None
+    self.tempDirectory = None
+    self.p = None
     self.tools = []
+    self.toolSources = []
     self.isTrackingActive = []
-    self.addTool( 'ProbeToTracker' )
+    self.addTool( 'Tool_0', 'ProbeToTracker' )
+
+    self.tracker_timer = qt.QTimer()
+    self.tracker_timer.timeout.connect( self.tracking )
 
     # default configuration widget
     self.configurationFrame = ctk.ctkCollapsibleGroupBox()
@@ -53,7 +59,23 @@ class PLUSOptiTrack(TrackingDevice):
     self.dataPathEdit.currentPath = self.settings_optitrack["dataPath"]
     configurationLayout.addRow('Data file path for replay:', self.dataPathEdit)
 
-  def addTool(self, toolname):
+    self.poll = qt.QSpinBox()
+    self.poll.setMinimum(10)
+    self.poll.setMaximum(500)
+    self.poll.setValue(100)
+    
+    configurationLayout.addRow('Poll (ms)', self.poll)
+
+  def addTool(self, toolname, toolsource):
+    
+    # Tool location
+    transformNode = slicer.vtkMRMLLinearTransformNode()
+    m = vtk.vtkMatrix4x4()
+    m.Identity()
+    transformNode.SetMatrixTransformToParent(m)
+    transformNode.SetName(toolname)
+    transformNode.SetSaveWithScene(False)
+    slicer.mrmlScene.AddNode(transformNode)
     
     # Tool tip relative to tool location
     transformNodeTip = slicer.vtkMRMLLinearTransformNode()
@@ -64,40 +86,48 @@ class PLUSOptiTrack(TrackingDevice):
     transformNodeTip.SetSaveWithScene(False)
 
     slicer.mrmlScene.AddNode(transformNodeTip)
+    transformNodeTip.SetAndObserveTransformNodeID(transformNode.GetID())
 
-    self.tools.append((toolname, transformNodeTip))
+    self.tools.append((transformNode, transformNodeTip))
     self.isTrackingActive.append(False)
+    self.toolSources.append(toolsource)
 
-  def tracking(self):
-    pass
+  def tracking(self):    
+    for i in range(self.getNumberOfTools()):
+      (transformNode, transformNodeTip) = self.getTransformsForTool(i)
+      if self.isTrackingActive[i]:
+        sourceNode = slicer.util.getNode(self.toolSources[i])
+        m = vtk.vtkMatrix4x4()
+        sourceNode.GetMatrixTransformToParent(m)
+        transformNode.SetMatrixTransformToParent(m)
+      else:
+        # Notify observers - TODO add status observation to interface?
+        m = vtk.vtkMatrix4x4()
+        transformNode.GetMatrixTransformToParent(m)
+        transformNode.SetMatrixTransformToParent(m)
 
   def startTracking(self):
+    print('Start tracking')
     self.stopTracking()
     self.settings_optitrack["launcherPath"] = self.launcherPathEdit.currentPath
     self.settings_optitrack["templatePath"] = self.configPathEdit.currentPath
     self.settings_optitrack["dataPath"] = self.dataPathEdit.currentPath
+    print('Launch plus')
     self.launchPLUS(self.settings_optitrack)
     self.checkIncomingTransforms()
+    self.tracker_timer.start( self.poll.value )
 
   def checkIncomingTransforms(self):
 
-    for index, data_tuple in enumerate(self.tools):
-      transformNodeName = data_tuple[0]
-      transformNodeTip = data_tuple[1]
+    for i in range(self.getNumberOfTools()):
       try:
-        transformNode = slicer.util.getNode(transformNodeName)
-        print('Found {}'.format(transformNodeName))
-        transformNodeTip.SetAndObserveTransformNodeID(transformNode.GetID())
-        self.isTrackingActive[index] = True
+        sourceNode = slicer.util.getNode(self.toolSources[i])        
+        self.isTrackingActive[i] = True
       except:
-        print('WARNING: Could not find {}'.format(transformNodeName))
+        print('WARNING: Could not find {}'.format(self.toolSources[i]))
   
   def launchPLUS(self, settings):
-    import time
-
-    if not self.connector:
-      self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
-      self.connector.SetTypeClient("localhost", 18944)
+    import time   
 
     self.tempDirectory = self.createTempDirectory()
     plusConfigPath = self.writeConfigFile(settings["templatePath"], settings["dataPath"])    
@@ -126,14 +156,21 @@ class PLUSOptiTrack(TrackingDevice):
   
   def stopTracking(self):
     if self.connector is not None:
+      self.tracker_timer.stop()
       self.connector.Stop()
-      slicer.mrmlScene.RemoveNode(self.connector)
-      self.connector = None
-      self.p.terminate()
+    else:
+      logging.warning("OptiTrack Tracker already closed")      
+
+    if self.tempDirectory is not None:
+      print('delete old temp directory')
       import shutil
       shutil.rmtree(self.tempDirectory)
-    else:
-      logging.warning("OptiTrack Tracker already closed")
+      self.tempDirectory = None
+    
+    if self.p is not None:
+      self.p.terminate()  
+      self.p = None    
+
 
   def getConfiguration(self):
     self.settings_optitrack = {
@@ -154,10 +191,8 @@ class PLUSOptiTrack(TrackingDevice):
 
   def getTransformsForTool(self, index):
     try:
-      (toolname, transformNodeTip)  = self.tools[index]
-      transformNode = slicer.util.getNode(toolname)
-      return (transformNode, transformNodeTip)
-    except:
+      return self.tools[index]
+    except IndexError:
       return None
 
   def getConfigurationWidget(self):
