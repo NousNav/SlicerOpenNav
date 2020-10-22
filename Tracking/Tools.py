@@ -129,11 +129,15 @@ class ToolsWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     self.logic = ToolsLogic()
     # Setup tracking device and create tools
+    templatePath = self.resourcePath('OptiTrack/ReplayOptiTrack.xml.in')
+    dataPath = self.resourcePath('OptiTrack/Ellipse.mha')
     toolsPath = os.path.dirname(slicer.modules.tools.path)
     toolsPath = os.path.join( toolsPath, "Resources/NDITools" )
     toolFiles = [os.path.join(toolsPath, f) for f in os.listdir(toolsPath)
                         if os.path.isfile(os.path.join(toolsPath, f))]
+    
     NDIDevices.setupNDIVegaTrackingDevice(toolFiles)
+    #PLUSOptiTrack.setupPLUSOptiTrackTrackingDevice(templatePath, dataPath)
     self.logic.setupTools()
 
   def updateStatus(self, transformNode, unusedArg2=None, unusedArg3=None):

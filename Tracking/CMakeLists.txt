@@ -13,6 +13,10 @@ set(MODULE_PYTHON_RESOURCES
   Resources/NDITools/8700338.rom
   Resources/NDITools/8700339.rom
   Resources/NDITools/8700340.rom
+  Resources/OptiTrack/PlusDeviceSet_Server_OptiTrack_Profile.xml.in
+  Resources/OptiTrack/ReplayOptiTrack.xml.in
+  Resources/OptiTrack/Ellipse.mha
+  Resources/OptiTrack/Probe.xml
   )
 
 #-----------------------------------------------------------------------------
