@@ -88,6 +88,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     #Step 1: Connect Tracker:
     self.ui.RegistrationStep1.layout().addWidget( qt.QLabel("Step 1: Connect Tracker") )
+    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.typeWidget)
     self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.connectButton)
     self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.configurationFrame)
     self.ui.RegistrationStep1.layout().addStretch(1)

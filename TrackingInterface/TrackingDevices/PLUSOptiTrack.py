@@ -53,11 +53,11 @@ class PLUSOptiTrackTracker(TrackingDevice):
 
     self.configPathEdit = ctk.ctkPathLineEdit()
     self.configPathEdit.currentPath = self.settings_optitrack["templatePath"]
-    configurationLayout.addRow('Config File Path (template):', self.configPathEdit)
+    configurationLayout.addRow('PLUS Config File Path (template):', self.configPathEdit)
 
     self.dataPathEdit = ctk.ctkPathLineEdit()
     self.dataPathEdit.currentPath = self.settings_optitrack["dataPath"]
-    configurationLayout.addRow('Data file path for replay:', self.dataPathEdit)
+    configurationLayout.addRow('Data/Motive file path:', self.dataPathEdit)
 
     self.poll = qt.QSpinBox()
     self.poll.setMinimum(10)

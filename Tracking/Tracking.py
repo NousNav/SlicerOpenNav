@@ -50,6 +50,19 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
           slicer.util.errorDisplay( str(err) )
     self.connectButton.toggled.connect(toggleTracking)
 
+    self.typeWidget = qt.QWidget()
+    typeLayout = qt.QFormLayout(self.typeWidget)
+    self.typeSelector = qt.QComboBox()
+    self.typeSelector.addItem('NDI')
+    self.typeSelector.addItem('OptiTrack')
+    self.typeSelector.setCurrentText(slicer.util.settingsValue('NousNav/Tracker', 'OptiTrack'))
+    typeLayout.addRow('Tracker type (restart needed for change to take effect):', self.typeSelector)
+    self.layout.addWidget(self.typeWidget)
+    def textChanged(text):
+      qt.QSettings().setValue('NousNav/Tracker', text)
+    self.typeSelector.currentTextChanged.connect(textChanged)
+
+    
     # Configuration
     self.toolsWidget = slicer.modules.tools.createNewWidgetRepresentation()
     self.configurationFrame = TrackingInterface.getTrackingDevice().getConfigurationWidget()
