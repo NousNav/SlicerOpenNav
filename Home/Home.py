@@ -265,6 +265,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dimension, modality = self.determineImageType(node)
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
+    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
     if self.sceneDataIs2DOnly():
       self.setup2DViewForNode(node)
     else:
