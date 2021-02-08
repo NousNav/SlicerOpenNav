@@ -107,41 +107,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     pass
 
   def modifyWindowUI(self):
-    slicer.util.setModuleHelpSectionVisible(False)
-
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeModule('Annotations', False)
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeModule('Markups', False)
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeModule('Transforms', False)
-    #slicer.util.mainWindow().moduleSelector().modulesMenu().removeModule('Data', False)
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeModule('SegmentEditor', False)
-
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Informatics')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Registration')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Segmentation')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Quantification')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Diffusion')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Converters')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Utilities')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Developer Tools')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Legacy')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('IGT')
-    slicer.util.mainWindow().moduleSelector().modulesMenu().removeCategory('Filtering')
-    #slicer.util.mainWindow().moduleSelector().modulesMenu().allModulesCategoryVisible= False
-
-    slicer.util.setDataProbeVisible(False)
-    #slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
-    slicer.util.setModuleHelpSectionVisible(False)
-    slicer.util.setModulePanelTitleVisible(False)
-    slicer.util.setPythonConsoleVisible(False)
-    slicer.util.setToolbarsVisible(True)
+    
     mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
-    keepToolbars = [
-      slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'ViewToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'ModuleSelectorToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'MouseModeToolBar')
-      ]
-    slicer.util.setToolbarsVisible(False, keepToolbars)
+    
 
     hideToolBar = qt.QToolBar("HideToolBar")
     hideToolBar.name = "hideToolBar"
@@ -173,6 +141,62 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     central = slicer.util.findChild(slicer.util.mainWindow(), name='CentralWidget')
     central.setStyleSheet("background-color: #464449")
 
+    slicer.util.mainWindow().addToolBarBreak()
+    navToolBar = qt.QToolBar("NavToolBar")
+    navToolBar.setObjectName("NavToolBar")
+    slicer.util.mainWindow().addToolBar(navToolBar)
+
+    self.customUIOn()
+
+    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
+    self.settingsAction = navToolBar.addAction(gearIcon, "")
+
+    self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
+    self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
+
+    self.settingsUI.CustomUICheckBox.toggled.connect(self.toggleUI)
+    self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
+
+    self.settingsAction.triggered.connect(self.raiseSettings)
+    
+  def toggleStyle(self,visible):
+    if visible:
+      self.applyStyle()
+    else:
+      slicer.app.styleSheet = ''
+  
+  def toggleUI(self, visible):
+
+    if visible:
+      self.customUIOn()
+    else:
+      self.customUIOff()
+  
+  def raiseSettings(self, unused):
+    self.settingsDialog.exec()
+
+
+  def customUIOn(self):
+    slicer.util.setDataProbeVisible(False)
+    slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
+    slicer.util.setModuleHelpSectionVisible(False)
+    slicer.util.setModulePanelTitleVisible(False)
+    slicer.util.setPythonConsoleVisible(False)
+    slicer.util.setToolbarsVisible(True)
+    mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
+    keepToolbars = [
+      slicer.util.findChild(slicer.util.mainWindow(), 'NavToolBar'),      
+      ]
+    slicer.util.setToolbarsVisible(False, keepToolbars)
+  
+  def customUIOff(self):
+    slicer.util.setDataProbeVisible(True)
+    slicer.util.setMenuBarsVisible(True)
+    slicer.util.setModuleHelpSectionVisible(True)
+    slicer.util.setModulePanelTitleVisible(True)
+    slicer.util.setPythonConsoleVisible(True)
+    slicer.util.setToolbarsVisible(True)
+  
   def toggleRuler(self, checked):
     selectionNode = slicer.app.applicationLogic().GetSelectionNode()
     interactionNode = slicer.app.applicationLogic().GetInteractionNode()

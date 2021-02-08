@@ -8,7 +8,9 @@ set(MODULE_PYTHON_SCRIPTS
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
+  Resources/Icons/Gears.png
   Resources/UI/${MODULE_NAME}.ui
+  Resources/UI/Settings.ui
   Resources/${MODULE_NAME}.qss
   )
 
