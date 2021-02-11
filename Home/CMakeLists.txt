@@ -11,6 +11,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Icons/Gears.png
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Settings.ui
+  Resources/UI/CenteredWidget.ui
   Resources/${MODULE_NAME}.qss
   )
 

@@ -11,35 +11,22 @@
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-  <item>
-  <widget class="QTabWidget" name="HomeWidget">
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="PlanningTab">
-     <attribute name="title">
-       <string>Planning</string>
-     </attribute>
+   <item>
+    <widget class="QStackedWidget" name="HomeWidget">
+     <widget class="QWidget" name="PlanningTab" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_1"/>
-    </widget>
-    <widget class="QWidget" name="RegistrationTab">
-     <attribute name="title">
-       <string>Registration</string>
-     </attribute>
+     </widget>
+     <widget class="QWidget" name="RegistrationTab" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_1"/>
-    </widget>
-    <widget class="QWidget" name="NavigationTab">
-     <attribute name="title">
-       <string>Navigation</string>
-     </attribute>
+     </widget>
+     <widget class="QWidget" name="PatientsTab">
+      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+     </widget>
+     <widget class="QWidget" name="NavigationTab" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
-    </widget>
+     </widget>
     </widget>
    </item>
-    <item>
-      <widget class="qMRMLSubjectHierarchyTreeView" name="TreeView">
-      </widget>
-    </item>
   </layout>
  </widget>
  <customwidgets>
@@ -48,10 +35,6 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSubjectHierarchyTreeView</class>
-   <header>qMRMLSubjectHierarchyTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

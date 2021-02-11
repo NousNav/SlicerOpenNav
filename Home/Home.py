@@ -52,7 +52,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    #Remove uneeded UI elements
+    #Apply style
+    self.applyStyle()
+    
+    #Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
 
     #Create logic class
@@ -74,15 +77,17 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
 
-    self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
-    self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
+    self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
+    self.onPrimaryTabChanged(self.patientsTabIndex)
+
+    # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
+    # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
     #Begin listening for new volumes
     self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent,
             self.onNodeAdded)
 
-    #Apply style
-    #self.applyStyle()
+    
 
   def applyStyle(self):
     # Style
@@ -108,56 +113,120 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def modifyWindowUI(self):
     
-    mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
+
     
-
-    hideToolBar = qt.QToolBar("HideToolBar")
-    hideToolBar.name = "hideToolBar"
-    slicer.util.mainWindow().insertToolBar(mainToolBar, hideToolBar)
-    def toggleHide():
-        panel = slicer.util.findChild(slicer.util.mainWindow(), "PanelDockWidget")
-        if self.hideAction.isChecked():
-            panel.hide()
-        else:
-            panel.show()
-
-    logo =qt.QPixmap(self.resourcePath('Icons/Home.png') )
-    logoIcon = qt.QIcon(logo)
-    self.hideAction = hideToolBar.addAction(logoIcon, "")
-    self.hideAction.setObjectName("HideToolBar")
-    self.hideAction.setCheckable( True )
-    self.hideAction.toggled.connect( toggleHide )
-
-    rulerToolBar = qt.QToolBar("RulerToolBar")
-    rulerToolBar.name = "rulerToolBar"
-    slicer.util.mainWindow().addToolBar(rulerToolBar)
-
-    logoIcon = qt.QIcon(':/Icons/Ruler.png')
-    self.rulerAction = rulerToolBar.addAction(logoIcon, "")
-    self.rulerAction.setObjectName("RulerToolBar")
-    self.rulerAction.setCheckable( True )
-    self.rulerAction.toggled.connect( self.toggleRuler )
-
-    central = slicer.util.findChild(slicer.util.mainWindow(), name='CentralWidget')
-    central.setStyleSheet("background-color: #464449")
-
+    #Create primary toolbar
     slicer.util.mainWindow().addToolBarBreak()
-    navToolBar = qt.QToolBar("NavToolBar")
-    navToolBar.setObjectName("NavToolBar")
-    slicer.util.mainWindow().addToolBar(navToolBar)
+    self.primaryToolBar = qt.QToolBar("PrimaryToolBar")
+    self.primaryToolBar.setObjectName("PrimaryToolBar")
+    self.primaryToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(self.primaryToolBar)
 
-    self.customUIOn()
+    #create secondary toolbar
+    slicer.util.mainWindow().addToolBarBreak()
+    self.secondaryToolBar = qt.QToolBar("SecondaryToolBar")
+    self.secondaryToolBar.setObjectName("SecondaryToolBar")
+    self.secondaryToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(self.secondaryToolBar)
 
+    # Centering widget for primary toolbar
+    self.primaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
+    self.primaryTabWidget.setObjectName("PrimaryCenteredWidget")
+    self.primaryTabWidgetUI = slicer.util.childWidgetVariables(self.primaryTabWidget)
+
+    #Tabs for primary toolbar
+    self.primaryTabBar = qt.QTabBar()
+    self.primaryTabBar.setObjectName("PrimaryTabBar")
+    self.patientsTabIndex = self.primaryTabBar.addTab("Patients")
+    self.planningTabIndex = self.primaryTabBar.addTab("Planning")
+    self.registrationTabIndex = self.primaryTabBar.addTab("Registration")
+    self.navigationTabIndex = self.primaryTabBar.addTab("Navigation")
+    self.primaryTabWidgetUI.CenterArea.layout().addWidget(self.primaryTabBar)
+    self.primaryTabBar.currentChanged.connect(self.onPrimaryTabChanged)
+    
+    #Assemble primary bar
+    nousNavLabel = qt.QLabel('NousNav')
+    nousNavLabel.setObjectName("NousNavLabel")
+    self.primaryToolBar.addWidget(nousNavLabel)
+    self.primaryToolBar.addWidget(self.primaryTabWidget)
+    
+    #Settings dialog
     gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
-    self.settingsAction = navToolBar.addAction(gearIcon, "")
-
+    self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
-
     self.settingsUI.CustomUICheckBox.toggled.connect(self.toggleUI)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
-
     self.settingsAction.triggered.connect(self.raiseSettings)
+
+    #Tabs for secondary toolbar
+    self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
+    self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
+    self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
+    self.secondaryTabBar = qt.QTabBar()
+    self.secondaryTabBar.setObjectName("SecondaryTabBar")
+    self.patientsTabIndex = self.secondaryTabBar.addTab("Section One")
+    self.planningTabIndex = self.secondaryTabBar.addTab("Section Two")
+    self.registrationTabIndex = self.secondaryTabBar.addTab("Section Three")
+    self.navigationTabIndex = self.secondaryTabBar.addTab("Section Four")
+    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.secondaryTabBar)
+    self.secondaryToolBar.addWidget(self.secondaryTabWidget)
+
+    #Bottom toolbar
+    self.bottomToolBar = qt.QToolBar("BottomToolBar")
+    self.bottomToolBar.setObjectName("BottomToolBar")
+    self.bottomToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
+    backButton = qt.QPushButton("Back")
+    backButton.name = 'BackButton'
+    self.bottomToolBar.addWidget(backButton)
+    spacer = qt.QWidget()
+    policy = spacer.sizePolicy
+    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+    spacer.setSizePolicy(policy)
+    self.bottomToolBar.addWidget(spacer)
+    advanceButton = qt.QPushButton("Advance")
+    advanceButton.name = 'AdvanceButton'
+    self.bottomToolBar.addWidget(advanceButton)
+
+
+    #Side Widget
+    dockWidget = qt.QDockWidget(slicer.util.mainWindow())
+    dockWidget.name = 'SidePanelDockWidget'
+    self.SidePanelWidget = qt.QWidget(dockWidget)
+    self.SidePanelWidget.name = 'SidePanelWidget'
+    dockWidget.setWidget(self.SidePanelWidget)
+    dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)
+    slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea , dockWidget)
+    
+
+
+    self.hideSlicerUI()
+
+  def onPrimaryTabChanged(self, index):
+
+    if index == self.patientsTabIndex:
+      slicer.util.selectModule('Home')
+      self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
+      self.secondaryToolBar.visible = False
+    
+    if index == self.planningTabIndex:
+      slicer.util.selectModule('Home')
+      self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
+      self.secondaryToolBar.visible = False
+
+
+    if index == self.navigationTabIndex:
+      slicer.util.selectModule('Home')
+      self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
+      self.secondaryToolBar.visible = True
+
+
+    if index == self.registrationTabIndex:
+      slicer.util.selectModule('Home')
+      self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
+      self.secondaryToolBar.visible = True
+
     
   def toggleStyle(self,visible):
     if visible:
@@ -168,34 +237,38 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def toggleUI(self, visible):
 
     if visible:
-      self.customUIOn()
+      self.hideSlicerUI()
     else:
-      self.customUIOff()
+      self.showSlicerUI()
   
   def raiseSettings(self, unused):
     self.settingsDialog.exec()
 
 
-  def customUIOn(self):
+  def hideSlicerUI(self):
     slicer.util.setDataProbeVisible(False)
     slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
     slicer.util.setModuleHelpSectionVisible(False)
     slicer.util.setModulePanelTitleVisible(False)
     slicer.util.setPythonConsoleVisible(False)
+    slicer.util.setApplicationLogoVisible(False)
     slicer.util.setToolbarsVisible(True)
     mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
     keepToolbars = [
-      slicer.util.findChild(slicer.util.mainWindow(), 'NavToolBar'),      
+      slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'), 
+      slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),   
+      slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar')  
       ]
     slicer.util.setToolbarsVisible(False, keepToolbars)
   
-  def customUIOff(self):
+  def showSlicerUI(self):
     slicer.util.setDataProbeVisible(True)
     slicer.util.setMenuBarsVisible(True)
     slicer.util.setModuleHelpSectionVisible(True)
     slicer.util.setModulePanelTitleVisible(True)
     slicer.util.setPythonConsoleVisible(True)
     slicer.util.setToolbarsVisible(True)
+    slicer.util.setApplicationLogoVisible(True)
   
   def toggleRuler(self, checked):
     selectionNode = slicer.app.applicationLogic().GetSelectionNode()

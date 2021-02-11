@@ -1,3 +1,153 @@
-QMenu::item:selected {    
-    background-color: #FF6600;
+QWidget{
+    background-color: #2a2a2a;
+    color: #AFAFAF ;
+}
+
+/* Module Panel Buttons */
+QPushButton{
+    background-color: #434343; 
+    border: 2px #434343; 
+    border-radius: 3px; 
+    min-height: 20px; 
+    color: #AFAFAF
+}
+
+QTabBar#PrimaryTabBar::tab{
+    height: 30px;
+    margin: 0px;
+    padding: 0px;
+    font: 14px;
+
+}
+
+/* Tab button on the top, active */
+QTabBar#PrimaryTabBar::tab:selected{
+    background-color: #2a2a2a; 
+    border:none; 
+    border-top: 4px solid #bb86fc;
+    border-bottom: 2px solid #2a2a2a;
+    min-height: 20px; 
+    min-width: 200px;
+    font: bold 14px;
+    color: #bb86fc
+} 
+
+/* Tab button on the top, inactive */
+QTabBar#PrimaryTabBar::tab:!selected{
+    background-color: #121212; 
+    border:none; 
+    border-top: 4px solid #121212;
+    border-bottom: 2px solid #434343;
+    min-height: 20px; 
+    min-width: 200px;
+
+    color: #AFAFAF
+}  
+
+QTabBar#SecondaryTabBar::tab{
+    height: 30px;
+    margin: 0px;
+    padding: 0px;
+    font: 10px;
+    background-color: #2a2a2a;
+    min-width: 200px;
+
+}
+
+/* Tab button on the top, active */
+QTabBar#SecondaryTabBar::tab:selected{
+    color: #bb86fc; 
+    
+} 
+
+/* Tab button on the top, inactive */
+QTabBar#SecondaryTabBar::tab:!selected{
+    color: #AFAFAF; 
+    
+}
+
+
+/* QToolBar{
+    background-color: #121212;
+    border: none;
+    border-bottom: 2px solid #434343;
+    margin: 0px;
+} */
+
+QToolBar#PrimaryToolBar{
+    background-color: #121212;
+    border: none;
+    border-bottom: 2px solid #2a2a2a;
+    margin: 0px;
+}
+
+QToolBar#SecondaryToolBar{
+    background-color: #2a2a2a; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 16px;
+    
+}
+
+QToolBar#BottomToolBar{
+    background-color: #2a2a2a; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 20px;
+    
+}
+
+QWidget#PrimaryCenteredWidget{
+    background-color: #121212; 
+    margin 0px; 
+    padding: 0px; 
+    border-bottom: 2px solid #434343;
+}
+
+QWidget#SecondaryCenteredWidget{
+    background-color: #2a2a2a; 
+    margin 0px; 
+    padding: 0px; 
+}
+
+QLabel#NousNavLabel{
+    background-color: #121212;
+    color: #0397a7; 
+    border-bottom: 2px solid #434343;
+    font: 14px;
+    padding: 2px;
+}
+
+QWidget#CentralWidget{
+    background-color: #7e1e1e;     
+}
+
+/* Module Panel Buttons */
+QPushButton#AdvanceButton{
+    background-color: #bb86fc; 
+    border: 2px #bb86fc; 
+    border-radius: 3px; 
+    min-height: 40px; 
+    min-width: 180px;
+    font: 12px bold;
+    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #fafafa
+}
+
+/* Module Panel Buttons */
+QPushButton#BackButton{
+    background-color: #666666; 
+    border: 2px #666666; 
+    border-radius: 3px; 
+    min-height: 40px; 
+    min-width: 180px;
+    font: 12px bold;
+    margin-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #fafafa
 }
