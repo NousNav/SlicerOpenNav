@@ -1,6 +1,6 @@
 QWidget{
     background-color: #2a2a2a;
-    color: #AFAFAF ;
+    color: #B7B7B7 ;
 }
 
 /* Module Panel Buttons */
@@ -9,7 +9,7 @@ QPushButton{
     border: 2px #434343; 
     border-radius: 3px; 
     min-height: 20px; 
-    color: #AFAFAF
+    color: #B7B7B7
 }
 
 QTabBar#PrimaryTabBar::tab{
@@ -24,12 +24,12 @@ QTabBar#PrimaryTabBar::tab{
 QTabBar#PrimaryTabBar::tab:selected{
     background-color: #2a2a2a; 
     border:none; 
-    border-top: 4px solid #bb86fc;
+    border-top: 4px solid #5ac2c9;
     border-bottom: 2px solid #2a2a2a;
     min-height: 20px; 
     min-width: 200px;
     font: bold 14px;
-    color: #bb86fc
+    color: #5ac2c9
 } 
 
 /* Tab button on the top, inactive */
@@ -41,7 +41,7 @@ QTabBar#PrimaryTabBar::tab:!selected{
     min-height: 20px; 
     min-width: 200px;
 
-    color: #AFAFAF
+    color: #FAFAFA
 }  
 
 QTabBar#SecondaryTabBar::tab{
@@ -56,13 +56,13 @@ QTabBar#SecondaryTabBar::tab{
 
 /* Tab button on the top, active */
 QTabBar#SecondaryTabBar::tab:selected{
-    color: #bb86fc; 
+    color: #5ac2c9; 
     
 } 
 
 /* Tab button on the top, inactive */
 QTabBar#SecondaryTabBar::tab:!selected{
-    color: #AFAFAF; 
+    color: #B7B7B7; 
     
 }
 
@@ -114,7 +114,7 @@ QWidget#SecondaryCenteredWidget{
 
 QLabel#NousNavLabel{
     background-color: #121212;
-    color: #0397a7; 
+    color: #5ac2c9; 
     border-bottom: 2px solid #434343;
     font: 14px;
     padding: 2px;
@@ -126,8 +126,8 @@ QWidget#CentralWidget{
 
 /* Module Panel Buttons */
 QPushButton#AdvanceButton{
-    background-color: #bb86fc; 
-    border: 2px #bb86fc; 
+    background-color: #5ac2c9; 
+    border: 2px #5ac2c9; 
     border-radius: 3px; 
     min-height: 40px; 
     min-width: 180px;
