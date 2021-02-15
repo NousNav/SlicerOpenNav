@@ -307,7 +307,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     controller.set3DAxisVisible(False)
     controller.set3DAxisLabelVisible(False)
     controller.setOrientationMarkerType(3)  #Axis marker
-    #controller.setStyleSheet("background-color: #222222")
+    controller.setStyleSheet("background-color: #000000")
+
+    threeDWidget = layoutManager.threeDWidget(0)
+    threeDWidget.mrmlViewNode().SetBoxVisible(False)
+    threeDWidget.threeDController().visible = False
+    horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
+    threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
+  
 
   def setup2DViewForNode(self, node):
     layoutManager = slicer.app.layoutManager()
@@ -371,6 +378,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if modality != '':
       node.SetAttribute('DICOM.Modality', modality)
 
+    self.setupSliceViewers()
+
   def sceneDataIs2DOnly(self):
     volumesList = slicer.util.getNodesByClass('vtkMRMLVolumeNode')
     slicePlane = None
@@ -405,12 +414,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.setupSliceViewer(sliceWidget)
 
   def setupSliceViewer(self, sliceWidget):
-    controller = sliceWidget.sliceController()
-    controller.setOrientationMarkerType(3)  #Axis marker
-    controller.setRulerType(1)  #Thin ruler
-    controller.setRulerColor(0) #White ruler
-    controller.setStyleSheet("background-color: #464449")
+    controller = sliceWidget.sliceController()    
+    controller.setStyleSheet("background-color: #000000")
     controller.sliceViewLabel = ''
+    slicer.util.findChild(sliceWidget, "PinButton").visible = False
+    slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
+    slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
+    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
 
   def showSlicePlaneIn3D(self, sliceColor):
     sliceWidget = slicer.app.layoutManager().sliceWidget(sliceColor)

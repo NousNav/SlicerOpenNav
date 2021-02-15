@@ -1,9 +1,9 @@
+/*  General styling */
 QWidget{
     background-color: #2a2a2a;
     color: #B7B7B7 ;
 }
 
-/* Module Panel Buttons */
 QPushButton{
     background-color: #434343; 
     border: 2px #434343; 
@@ -12,15 +12,14 @@ QPushButton{
     color: #B7B7B7
 }
 
+/*Primary ToolBar */
 QTabBar#PrimaryTabBar::tab{
     height: 30px;
     margin: 0px;
     padding: 0px;
     font: 14px;
-
 }
 
-/* Tab button on the top, active */
 QTabBar#PrimaryTabBar::tab:selected{
     background-color: #2a2a2a; 
     border:none; 
@@ -32,7 +31,6 @@ QTabBar#PrimaryTabBar::tab:selected{
     color: #5ac2c9
 } 
 
-/* Tab button on the top, inactive */
 QTabBar#PrimaryTabBar::tab:!selected{
     background-color: #121212; 
     border:none; 
@@ -40,63 +38,14 @@ QTabBar#PrimaryTabBar::tab:!selected{
     border-bottom: 2px solid #434343;
     min-height: 20px; 
     min-width: 200px;
-
     color: #FAFAFA
 }  
-
-QTabBar#SecondaryTabBar::tab{
-    height: 30px;
-    margin: 0px;
-    padding: 0px;
-    font: 10px;
-    background-color: #2a2a2a;
-    min-width: 200px;
-
-}
-
-/* Tab button on the top, active */
-QTabBar#SecondaryTabBar::tab:selected{
-    color: #5ac2c9; 
-    
-} 
-
-/* Tab button on the top, inactive */
-QTabBar#SecondaryTabBar::tab:!selected{
-    color: #B7B7B7; 
-    
-}
-
-
-/* QToolBar{
-    background-color: #121212;
-    border: none;
-    border-bottom: 2px solid #434343;
-    margin: 0px;
-} */
 
 QToolBar#PrimaryToolBar{
     background-color: #121212;
     border: none;
     border-bottom: 2px solid #2a2a2a;
     margin: 0px;
-}
-
-QToolBar#SecondaryToolBar{
-    background-color: #2a2a2a; 
-    margin: 0px; 
-    padding: 0px; 
-    border: none; 
-    min-height: 16px;
-    
-}
-
-QToolBar#BottomToolBar{
-    background-color: #2a2a2a; 
-    margin: 0px; 
-    padding: 0px; 
-    border: none; 
-    min-height: 20px;
-    
 }
 
 QWidget#PrimaryCenteredWidget{
@@ -106,25 +55,49 @@ QWidget#PrimaryCenteredWidget{
     border-bottom: 2px solid #434343;
 }
 
+/* Secondary ToolBar */
+QTabBar#SecondaryTabBar::tab{
+    height: 30px;
+    margin: 0px;
+    padding: 0px;
+    font: 10px;
+    background-color: #2a2a2a;
+    min-width: 200px;
+}
+
+QTabBar#SecondaryTabBar::tab:selected{
+    color: #5ac2c9;     
+} 
+
+QTabBar#SecondaryTabBar::tab:!selected{
+    color: #B7B7B7;     
+}
+
+QToolBar#SecondaryToolBar{
+    background-color: #2a2a2a; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 16px;    
+}
+
 QWidget#SecondaryCenteredWidget{
     background-color: #2a2a2a; 
     margin 0px; 
     padding: 0px; 
 }
 
-QLabel#NousNavLabel{
-    background-color: #121212;
-    color: #5ac2c9; 
-    border-bottom: 2px solid #434343;
-    font: 14px;
-    padding: 2px;
+/* Bottom ToolBar */
+QToolBar#BottomToolBar{
+    background-color: #2a2a2a; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 20px;
+    
 }
 
-QWidget#CentralWidget{
-    background-color: #7e1e1e;     
-}
-
-/* Module Panel Buttons */
+/* Bottom ToolBar Buttons*/
 QPushButton#AdvanceButton{
     background-color: #5ac2c9; 
     border: 2px #5ac2c9; 
@@ -138,7 +111,6 @@ QPushButton#AdvanceButton{
     color: #fafafa
 }
 
-/* Module Panel Buttons */
 QPushButton#BackButton{
     background-color: #666666; 
     border: 2px #666666; 
@@ -151,3 +123,36 @@ QPushButton#BackButton{
     margin-bottom: 10px;
     color: #fafafa
 }
+
+QLabel#NousNavLabel{
+    background-color: #121212;
+    color: #5ac2c9; 
+    border-bottom: 2px solid #434343;
+    font: 14px;
+    padding: 2px;
+}
+
+/* QSlider styling for slice viewers */
+QSlider{
+    height: 30px;
+}
+
+QSlider::handle:horizontal {
+    border: 4px solid #5ac2c9;
+    background-color: #5ac2c9;   
+    width: 30px;
+    height: 30px;   
+    border-radius: 5px;  
+}
+
+QSlider::sub-page:horizontal {
+    background-color: #5ac2c9;
+    border: 4px #5ac2c9;
+    border-radius: 2px;
+}  
+
+QSlider::add-page:horizontal {
+    background-color: #000000;
+    border: 4px #000000;
+    border-radius: 2px;
+} 
