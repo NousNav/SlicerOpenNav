@@ -151,3 +151,34 @@ QPushButton#BackButton{
     margin-bottom: 10px;
     color: #fafafa
 }
+
+
+
+QSlider{
+    height: 30px;
+}
+
+QSlider::handle:horizontal {
+    border: 4px solid #5ac2c9;
+    background-color: #5ac2c9;   
+    width: 30px;
+    height: 30px;   
+    border-radius: 5px;  
+}
+
+QSlider::sub-page:horizontal {
+    background-color: #5ac2c9;
+    border: 4px #5ac2c9;
+    border-radius: 2px;
+}  
+QSlider::add-page:horizontal {
+    background-color: #000000;
+    border: 4px #000000;
+    border-radius: 2px;
+} 
+
+/* qMRMLSliderWidget{
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 5px;
+} */
