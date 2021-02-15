@@ -52,11 +52,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    #Apply style
-    self.applyStyle()
+    
     
     #Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
+
+    #Apply style
+    self.applyApplicationStyle()
 
     #Create logic class
     self.logic = HomeLogic()
@@ -89,12 +91,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     
 
-  def applyStyle(self):
+  def applyApplicationStyle(self):
     # Style
-    stylesheetfile = self.resourcePath('Home.qss')
-    with open(stylesheetfile,"r") as fh:
-      slicer.app.styleSheet = fh.read()
+    self.applyStyle([slicer.app], 'Home.qss')
+    
 
+  def applyStyle(self, widgets, styleSheetName):
+    stylesheetfile = self.resourcePath(styleSheetName)
+    with open(stylesheetfile,"r") as fh:
+      style = fh.read()
+      for widget in widgets:
+        widget.styleSheet = style
+  
   def setupNodes(self):
     #Set up the layout / 3D View
     self.setup3DView()
@@ -205,32 +213,36 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def onPrimaryTabChanged(self, index):
 
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
       self.secondaryToolBar.visible = False
+      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')  
     
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
       self.secondaryToolBar.visible = False
-
+      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')  
 
     if index == self.navigationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
       self.secondaryToolBar.visible = True
-
+      self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
     if index == self.registrationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.secondaryToolBar.visible = True
+      self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
     
   def toggleStyle(self,visible):
     if visible:
-      self.applyStyle()
+      self.applyApplicationStyle()
     else:
       slicer.app.styleSheet = ''
   
