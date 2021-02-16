@@ -160,17 +160,36 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
 
-    #Tabs for secondary toolbar
+    #Tabs for secondary toolbars - navigation and registration
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
     self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
     self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
-    self.secondaryTabBar = qt.QTabBar()
-    self.secondaryTabBar.setObjectName("SecondaryTabBar")
-    self.patientsTabIndex = self.secondaryTabBar.addTab("Section One")
-    self.planningTabIndex = self.secondaryTabBar.addTab("Section Two")
-    self.registrationTabIndex = self.secondaryTabBar.addTab("Section Three")
-    self.navigationTabIndex = self.secondaryTabBar.addTab("Section Four")
-    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.secondaryTabBar)
+    
+    self.navigationTabBar = qt.QTabBar()
+    self.navigationTabBar.setObjectName("NavigationTabBar")
+
+    # Registration Tab Bar
+    self.registrationTabBar = qt.QTabBar()
+    self.registrationTabBar.setObjectName("RegistrationTabBar")
+    self.prepRegistrationTabIndex = self.registrationTabBar.addTab("Patient prep")
+    self.trackingTabIndex = self.registrationTabBar.addTab("Tracking devices")
+    self.cameraTabIndex = self.registrationTabBar.addTab("Camera")
+    self.calibrateRegistrationTabIndex = self.registrationTabBar.addTab("Calibrate")
+    self.registerPatientTabIndex = self.registrationTabBar.addTab("Register patient")
+    self.registrationTabBar.visible = False
+
+    #Navigation Tab Bar
+    self.navigationTabBar = qt.QTabBar()
+    self.navigationTabBar.setObjectName("NavigationTabBar")
+    self.planSurgeryTabIndex = self.navigationTabBar.addTab("Plan surgery")
+    self.prepSurgeryTabIndex = self.navigationTabBar.addTab("Prep for surgery")
+    self.calibrateNavigationTabIndex = self.navigationTabBar.addTab("Calibrate")
+    self.navigateNavigationTabIndex = self.navigationTabBar.addTab("Navigate")
+    self.breakDownTabIndex = self.navigationTabBar.addTab("Break Down")
+    self.navigationTabBar.visible = False
+    
+    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
+    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.navigationTabBar)
     self.secondaryToolBar.addWidget(self.secondaryTabWidget)
 
     #Bottom toolbar
@@ -220,12 +239,16 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
       self.secondaryToolBar.visible = True
+      self.registrationTabBar.visible = False
+      self.navigationTabBar.visible = True
       self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
     if index == self.registrationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.secondaryToolBar.visible = True
+      self.registrationTabBar.visible = True
+      self.navigationTabBar.visible = False
       self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
     

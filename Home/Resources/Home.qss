@@ -58,7 +58,7 @@ QWidget#PrimaryCenteredWidget{
 }
 
 /* Secondary ToolBar */
-QTabBar#SecondaryTabBar::tab{
+QTabBar#RegistrationTabBar::tab, QTabBar#NavigationTabBar::tab{
     height: 30px;
     margin: 0px;
     padding: 0px;
@@ -67,11 +67,11 @@ QTabBar#SecondaryTabBar::tab{
     min-width: 200px;
 }
 
-QTabBar#SecondaryTabBar::tab:selected{
+QTabBar#RegistrationTabBar::tab:selected, QTabBar#NavigationTabBar::tab:selected{
     color: #5ac2c9;     
 } 
 
-QTabBar#SecondaryTabBar::tab:!selected{
+QTabBar#RegistrationTabBar::tab:!selected, QTabBar#NavigationTabBar::tab:!selected{
     color: #B7B7B7;     
 }
 
