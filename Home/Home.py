@@ -90,7 +90,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.onNodeAdded)
 
     
-
+  
+  
   def applyApplicationStyle(self):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')
@@ -227,13 +228,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
       self.secondaryToolBar.visible = False
-      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')  
+      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
+      self.goToFourUpLayout() 
     
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
       self.secondaryToolBar.visible = False
-      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')  
+      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
+      self.goToFourUpLayout() 
 
     if index == self.navigationTabIndex:
       slicer.util.selectModule('Home')
@@ -242,6 +245,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.registrationTabBar.visible = False
       self.navigationTabBar.visible = True
       self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+      self.goToPictureLayout()
 
     if index == self.registrationTabIndex:
       slicer.util.selectModule('Home')
@@ -250,6 +254,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.registrationTabBar.visible = True
       self.navigationTabBar.visible = False
       self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+      self.goToRegistrationCameraViewLayout()
 
     
   def toggleStyle(self,visible):
@@ -294,9 +299,44 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setToolbarsVisible(True)
     slicer.util.setApplicationLogoVisible(True)
   
-  def setup3DView(self):
+  def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
+    self.toggleAllSliceSlidersVisiblility(True)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+    
+  
+  def goToRedSliceLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    self.toggleAllSliceSlidersVisiblility(True)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+
+  def goToPictureLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    self.toggleAllSliceSlidersVisiblility(False)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+
+  def goToRegistrationCameraViewLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    self.toggleAllSliceSlidersVisiblility(False)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(True)
+
+  def go3DViewLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
+    self.toggleAllSliceSlidersVisiblility(True)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(True)
+  
+  def setup3DView(self):
+    layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
     controller.setBlackBackground()
     controller.set3DAxisVisible(False)
@@ -330,7 +370,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     for name in slicer.app.layoutManager().sliceViewNames():
         sliceWidget = slicer.app.layoutManager().sliceWidget(name)
         self.setupSliceViewer(sliceWidget)
-
+  
   def setupSliceViewer(self, sliceWidget):
     controller = sliceWidget.sliceController()    
     controller.setStyleSheet("background-color: #000000")
@@ -339,6 +379,24 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
     slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
+
+  def toggleAllSliceSlidersVisiblility(self, visible):
+    for name in slicer.app.layoutManager().sliceViewNames():
+        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+        self.toggleSliderForSliceVisibility(sliceWidget, visible)
+  
+  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
+    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
+
+  def toggleMainPanelVisibility(self, visible):
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    modulePanel.visible = visible
+
+  def toggleSidePanelVisibility(self, visible):
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    sidePanel.visible = visible
+
+  
 
   
 
