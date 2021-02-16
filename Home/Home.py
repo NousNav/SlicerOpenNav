@@ -108,11 +108,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setup3DView()
     self.setupSliceViewers()
 
-  def showAdvancedEffects(self, show):
-    for effect in self.effectsToHide:
-      widget = slicer.util.findChild(self.segWidget, effect)
-      widget.visible = show
-
   def onClose(self, unusedOne, unusedTwo):
     pass
 
@@ -120,9 +115,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     pass
 
   def modifyWindowUI(self):
-    
 
-    
     #Create primary toolbar
     slicer.util.mainWindow().addToolBarBreak()
     self.primaryToolBar = qt.QToolBar("PrimaryToolBar")
@@ -197,7 +190,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     advanceButton.name = 'AdvanceButton'
     self.bottomToolBar.addWidget(advanceButton)
 
-
     #Side Widget
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
     dockWidget.name = 'SidePanelDockWidget'
@@ -206,9 +198,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dockWidget.setWidget(self.SidePanelWidget)
     dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)
     slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea , dockWidget)
-    
-
-
     self.hideSlicerUI()
 
   def onPrimaryTabChanged(self, index):
@@ -282,35 +271,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setToolbarsVisible(True)
     slicer.util.setApplicationLogoVisible(True)
   
-  def toggleRuler(self, checked):
-    selectionNode = slicer.app.applicationLogic().GetSelectionNode()
-    interactionNode = slicer.app.applicationLogic().GetInteractionNode()
-
-    # clsName = 'vtkMRMLAnnotationRulerNode'
-    clsName = 'vtkMRMLMarkupsLineNode'
-
-    if checked:
-      selectionNode.SetReferenceActivePlaceNodeClassName(clsName)
-      interactionNode.SwitchToPersistentPlaceMode()
-
-    else:
-      rulers = slicer.mrmlScene.GetNodesByClass(clsName)
-
-      for ruler in rulers:
-        slicer.mrmlScene.RemoveNode(ruler)
-
-      interactionNode.SwitchToViewTransformMode()
-
-  def setLabelMapVolumeDefaults(self):
-    defaultNode = slicer.vtkMRMLVolumeArchetypeStorageNode()
-    defaultNode.SetDefaultWriteFileExtension('nii.gz')
-    slicer.mrmlScene.AddDefaultNode(defaultNode)
-
-  def setTablesDefaults(self):
-    defaultNode = slicer.vtkMRMLTableStorageNode()
-    defaultNode.SetDefaultWriteFileExtension('csv')
-    slicer.mrmlScene.AddDefaultNode(defaultNode)
-
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
@@ -327,89 +287,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
     threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
   
-
-  def setup2DViewForNode(self, node):
-    layoutManager = slicer.app.layoutManager()
-    sliceColor = self.getSliceViewFor2DNode(node)
-    if sliceColor == 'Red':
-      layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    elif sliceColor == 'Green':
-      layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpGreenSliceView)
-    elif sliceColor == 'Yellow':
-      layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpYellowSliceView)
-
-  def getSliceViewFor2DNode(self, node):
-    ijk2ras = vtk.vtkMatrix4x4()
-    node.GetIJKToRASMatrix(ijk2ras)
-    scanOrder = slicer.vtkMRMLVolumeNode.ComputeScanOrderFromIJKToRAS(ijk2ras)
-    if scanOrder == 'IS' or scanOrder == 'SI':
-      return 'Red'
-    elif scanOrder == 'PA' or scanOrder == 'AP':
-      return 'Green'
-    elif scanOrder == 'LR' or scanOrder == 'RL':
-      return 'Yellow'
-
-  def imageIs2D(self, node):
-    data = node.GetImageData()
-    dimension = data.GetDimensions()
-    return (min(dimension) == 1)
-
-  def hasStringInName(self,text, node):
-    name = node.GetName()
-    hasText = name.lower().find(text) != -1
-    return hasText
-
-  def determineImageType(self, node):
-    dimension = 3
-    modality = 'None'
-
-    if self.imageIs2D(node):
-      dimension = 2
-
-    #use subject hierarchy to get modality - most reliable
-    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    node_item = shNode.GetItemByDataNode(node)
-    sh_modality = shNode.GetItemAttribute(node_item, 'DICOM.Modality')
-
-    #Then, check modality in MRML Node
-    mrml_modality = node.GetAttribute('DICOM.Modality')
-
-    #Could not find modality
-    return dimension, modality
-
   def processIncomingVolumeNode(self, node):
-    dimension, modality = self.determineImageType(node)
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
-    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
-    if self.sceneDataIs2DOnly():
-      self.setup2DViewForNode(node)
-    else:
-      self.setup3DView()
-    # Copy over modality tag for all images
-    if modality != '':
-      node.SetAttribute('DICOM.Modality', modality)
-
+    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")    
+    self.setup3DView()
     self.setupSliceViewers()
-
-  def sceneDataIs2DOnly(self):
-    volumesList = slicer.util.getNodesByClass('vtkMRMLVolumeNode')
-    slicePlane = None
-
-    for volume in volumesList:
-      is2D = self.imageIs2D(volume)
-      if is2D:
-        #check if all 2D images are in same plane
-        if not slicePlane:
-          slicePlane = self.getSliceViewFor2DNode(volume)
-        else:
-          if self.getSliceViewFor2DNode(volume) != slicePlane:
-            return False  #multiple 2D images in different slice planes exist
-      else:
-        return False
-
-    #No 3D images found
-    return True
 
   @vtk.calldata_type(vtk.VTK_OBJECT)
   def onNodeAdded(self, caller, event, calldata):
@@ -434,13 +317,20 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
 
-  def showSlicePlaneIn3D(self, sliceColor):
-    sliceWidget = slicer.app.layoutManager().sliceWidget(sliceColor)
-    controller = sliceWidget.sliceController()
-    sliceNode = controller.mrmlSliceNode()
-    sliceNode.SetSliceVisible(True)
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.resetFocalPoint()
+  
+
+  
+
+
+class HomeLogic(ScriptedLoadableModuleLogic):
+  """This class should implement all the actual
+  computation done by your module.  The interface
+  should be such that other python code can import
+  this class and make use of the functionality without
+  requiring an instance of the Widget.
+  Uses ScriptedLoadableModuleLogic base class, available at:
+  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  """
 
   def loadDICOM(self, dicomData):
 
@@ -477,24 +367,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.error('Failed to import DICOM folder/file ' + dicomDataItem)
       return False
     return True
-
-
-class HomeLogic(ScriptedLoadableModuleLogic):
-  """This class should implement all the actual
-  computation done by your module.  The interface
-  should be such that other python code can import
-  this class and make use of the functionality without
-  requiring an instance of the Widget.
-  Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-    """
-    Run the actual algorithm
-    """
-
-    pass
 
 
 class HomeTest(ScriptedLoadableModuleTest):
