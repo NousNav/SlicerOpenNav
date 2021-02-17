@@ -165,32 +165,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
     self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
     self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
-    
-    self.navigationTabBar = qt.QTabBar()
-    self.navigationTabBar.setObjectName("NavigationTabBar")
-
-    # Registration Tab Bar
-    self.registrationTabBar = qt.QTabBar()
-    self.registrationTabBar.setObjectName("RegistrationTabBar")
-    self.prepRegistrationTabIndex = self.registrationTabBar.addTab("Patient prep")
-    self.trackingTabIndex = self.registrationTabBar.addTab("Tracking devices")
-    self.cameraTabIndex = self.registrationTabBar.addTab("Camera")
-    self.calibrateRegistrationTabIndex = self.registrationTabBar.addTab("Calibrate")
-    self.registerPatientTabIndex = self.registrationTabBar.addTab("Register patient")
-    self.registrationTabBar.visible = False
-
-    #Navigation Tab Bar
-    self.navigationTabBar = qt.QTabBar()
-    self.navigationTabBar.setObjectName("NavigationTabBar")
-    self.planSurgeryTabIndex = self.navigationTabBar.addTab("Plan surgery")
-    self.prepSurgeryTabIndex = self.navigationTabBar.addTab("Prep for surgery")
-    self.calibrateNavigationTabIndex = self.navigationTabBar.addTab("Calibrate")
-    self.navigateNavigationTabIndex = self.navigationTabBar.addTab("Navigate")
-    self.breakDownTabIndex = self.navigationTabBar.addTab("Break Down")
-    self.navigationTabBar.visible = False
-    
-    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
-    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(self.navigationTabBar)
     self.secondaryToolBar.addWidget(self.secondaryTabWidget)
 
     #Bottom toolbar
@@ -227,36 +201,47 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
-      self.secondaryToolBar.visible = False
-      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
+      self.enter()
       self.goToFourUpLayout() 
     
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
-      self.secondaryToolBar.visible = False
+      self.enter()
       self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
       self.goToFourUpLayout() 
 
     if index == self.navigationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
-      self.secondaryToolBar.visible = True
-      self.registrationTabBar.visible = False
-      self.navigationTabBar.visible = True
-      self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+      self.navigationWidget.enter()
       self.goToPictureLayout()
 
     if index == self.registrationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
-      self.secondaryToolBar.visible = True
-      self.registrationTabBar.visible = True
-      self.navigationTabBar.visible = False
-      self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+      self.registrationWidget.enter()
       self.goToRegistrationCameraViewLayout()
 
     
+  def enter(self):
+
+    #Hides other toolbars
+    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+
+    #Show current
+    self.bottomToolBar.visible = True
+    self.secondaryToolBar.visible = False
+
+    #Styling
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
+
+  
   def toggleStyle(self,visible):
     if visible:
       self.applyApplicationStyle()

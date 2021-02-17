@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Home</class>
+ <class>Registration</class>
  <widget class="qSlicerWidget" name="Registration">
   <property name="geometry">
    <rect>
@@ -11,37 +11,88 @@
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-  <item>
+   <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
-     <attribute name="title">
-       <string>Registration</string>
-     </attribute>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="RegistrationStep1">
-      <attribute name="title">
-       <string>Step 1: Connect Tracker</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_1"/>
+      <layout class="QVBoxLayout" name="verticalLayout_1">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Prep the patient</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Follow your hospital protocols and prep the patient for surgery. 
+
+Have the NousNav components ready for the next steps.
+</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="RegistrationStep2">
-      <attribute name="title">
-       <string>Step 2: Calibration</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Attach the 
+non-sterile
+reference array</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Fasten the array to the support arm on the Mayfield. Ensure the tracking discs are pointed toward where the camera will be.
+</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="RegistrationStep3">
-      <attribute name="title">
-       <string>Step 3: Registration</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Surgical pointer</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Place the non-sterile pointer in the scene and check to make sure the tracking discs are clean and the tip is not bent.</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="RegistrationStep4">
-      <attribute name="title">
-       <string>Step 4: ICP Registration</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4"/>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Align the camera</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Point the camera at the reference array and verify it can see both the pointer and reference array in the square on the right.</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>

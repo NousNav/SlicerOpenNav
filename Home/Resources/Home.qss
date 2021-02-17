@@ -100,7 +100,7 @@ QToolBar#BottomToolBar{
 }
 
 /* Bottom ToolBar Buttons*/
-QPushButton#AdvanceButton{
+QPushButton#AdvanceButton, QPushButton#RegistrationAdvanceButton, QPushButton#NavigationAdvanceButton{
     background-color: #5ac2c9; 
     border: 2px #5ac2c9; 
     border-radius: 3px; 
@@ -113,7 +113,7 @@ QPushButton#AdvanceButton{
     color: #fafafa
 }
 
-QPushButton#BackButton{
+QPushButton#BackButton, QPushButton#RegistrationBackButton, QPushButton#NavigationBackButton{
     background-color: #666666; 
     border: 2px #666666; 
     border-radius: 3px; 

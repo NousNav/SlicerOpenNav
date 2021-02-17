@@ -32,37 +32,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def __init__(self, parent):
-    ScriptedLoadableModuleWidget.__init__(self, parent)
-
-
-  def nextStep(self):
-    self.ui.RegistrationWidget.setCurrentIndex( self.ui.RegistrationWidget.currentIndex + 1)
-
-  def previousStep(self):
-    self.ui.RegistrationWidget.setCurrentIndex( self.ui.RegistrationWidget.currentIndex - 1)
-
-  def createNextButton(self):
-    btn = qt.QPushButton("Next Step")
-    btn.clicked.connect(self.nextStep)
-    return btn
-
-  def createPreviousButton(self):
-    btn = qt.QPushButton("Previous Step")
-    btn.clicked.connect(self.previousStep)
-    return btn
-
-  def createStepWidget(self, prevOn, nextOn):
-     w = qt.QWidget()
-     l = qt.QGridLayout()
-     w.setLayout(l)
-     if prevOn:
-       l.addWidget(self.createPreviousButton(), 0, 0 )
-     if nextOn:
-       l.addWidget(self.createNextButton(), 0, 1 )
-     return w
-
-
+  
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -78,50 +48,64 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
 
-    ###Stacked widgets navigation changes
-    self.CurrentRegistrationIndex = -1
-    self.ui.RegistrationWidget.currentChanged.connect( self.onRegistrationChanged )
+    #Bottom toolbar
+    self.bottomToolBar = qt.QToolBar("RegistrationBottomToolBar")
+    self.bottomToolBar.setObjectName("RegistrationBottomToolBar")
+    self.bottomToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
+    self.backButton = qt.QPushButton("Back (reg)")
+    self.backButton.name = 'RegistrationBackButton'
+    self.bottomToolBar.addWidget(self.backButton)
+    spacer = qt.QWidget()
+    policy = spacer.sizePolicy
+    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+    spacer.setSizePolicy(policy)
+    self.bottomToolBar.addWidget(spacer)
+    self.advanceButton = qt.QPushButton("Advance (reg)")
+    self.advanceButton.name = 'RegistrationAdvanceButton'
+    self.bottomToolBar.addWidget(self.advanceButton)
+    self.bottomToolBar.visible = False
 
+    # Registration Tab Bar
+    self.registrationTabBar = qt.QTabBar()
+    self.registrationTabBar.setObjectName("RegistrationTabBar")
+    self.prepRegistrationTabIndex = self.registrationTabBar.addTab("Patient prep")
+    self.trackingTabIndex = self.registrationTabBar.addTab("Tracking devices")
+    self.cameraTabIndex = self.registrationTabBar.addTab("Camera")
+    self.calibrateRegistrationTabIndex = self.registrationTabBar.addTab("Calibrate")
+    self.registerPatientTabIndex = self.registrationTabBar.addTab("Register patient")
+    self.registrationTabBar.visible = False
+    secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
+    secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
+    secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
 
-    ### Registration
-    self.trackerWidget = slicer.modules.tracking.createNewWidgetRepresentation().self()
+  def enter(self):
 
-    #Step 1: Connect Tracker:
-    self.ui.RegistrationStep1.layout().addWidget( qt.QLabel("Step 1: Connect Tracker") )
-    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.typeWidget)
-    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.connectButton)
-    self.ui.RegistrationStep1.layout().addWidget(self.trackerWidget.configurationFrame)
-    self.ui.RegistrationStep1.layout().addStretch(1)
-    self.ui.RegistrationStep1.layout().addWidget( self.createStepWidget(False, True) )
+    #Hides other toolbars
+    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationTabBar').visible = False
 
-    #Step 2: Calibrate Tools
-    self.ui.RegistrationStep2.layout().addWidget( qt.QLabel("Step 2: Calibrate Non-Sterile Tool") )
-    self.ui.RegistrationStep2.layout().addWidget(self.trackerWidget.toolsWidget)
-    self.ui.RegistrationStep2.layout().addStretch(1)
-    self.ui.RegistrationStep2.layout().addWidget( self.createStepWidget(True, True) )
+    #Show current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    self.bottomToolBar.visible = True
+    self.registrationTabBar.visible = True
 
-    #Step 3: Registration
-    self.ui.RegistrationStep3.layout().addWidget( qt.QLabel("Step 3: Register Patient to Image") )
-    self.ui.RegistrationStep3.layout().addWidget(self.trackerWidget.registerWidget)
-    self.ui.RegistrationStep3.layout().addStretch(1)
-    self.ui.RegistrationStep3.layout().addWidget( self.createStepWidget(True, True) )
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
-    #Step 4: ICP Registration
-    self.ui.RegistrationStep4.layout().addWidget( qt.QLabel("Step 4: Register Patient to Image") )
-    self.icpregistrationWidget = slicer.modules.nnicpregistration.createNewWidgetRepresentation()
-    self.ui.RegistrationStep4.layout().addWidget(self.icpregistrationWidget)
-    self.ui.RegistrationStep4.layout().addStretch(1)
-    self.ui.RegistrationStep4.layout().addWidget( self.createStepWidget(True, False) )
+  def applyApplicationStyle(self):
+    # Style
+    self.applyStyle([slicer.app], 'Home.qss')
+    
 
-  #TODO add enter to neceassary widgets
-  def onRegistrationChanged(self, tabIndex):
-    if tabIndex == self.CurrentRegistrationIndex:
-      return
-    #Enter New Tab
-    if tabIndex == self.ui.RegistrationWidget.indexOf( self.ui.RegistrationStep3 ):
-      self.trackerWidget.registerWidget.enter()
-    #Update Current Tab
-    self.CurrentRegistrationIndex = tabIndex
+  def applyStyle(self, widgets, styleSheetName):
+    stylesheetfile = self.resourcePath(styleSheetName)
+    with open(stylesheetfile,"r") as fh:
+      style = fh.read()
+      for widget in widgets:
+        widget.styleSheet = style
 
 
 class RegistrationLogic(ScriptedLoadableModuleLogic):

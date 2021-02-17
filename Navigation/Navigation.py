@@ -36,32 +36,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
 
-  def nextStep(self):
-    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex + 1)
-
-  def previousStep(self):
-    self.ui.NavigationWidget.setCurrentIndex( self.ui.NavigationWidget.currentIndex - 1)
-
-  def createNextButton(self):
-    btn = qt.QPushButton("Next Step")
-    btn.clicked.connect(self.nextStep)
-    return btn
-
-  def createPreviousButton(self):
-    btn = qt.QPushButton("Previous Step")
-    btn.clicked.connect(self.previousStep)
-    return btn
-
-  def createStepWidget(self, prevOn, nextOn):
-     w = qt.QWidget()
-     l = qt.QGridLayout()
-     w.setLayout(l)
-     if prevOn:
-       l.addWidget(self.createPreviousButton(), 0, 0 )
-     if nextOn:
-       l.addWidget(self.createNextButton(), 0, 1 )
-     return w
-
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -77,31 +51,64 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
-    ###Stacked widgets navigation changes
-    self.CurrentNavigationIndex = -1
-    self.ui.NavigationWidget.currentChanged.connect( self.onNavigationChanged )
+    #Bottom toolbar
+    self.bottomToolBar = qt.QToolBar("NavigationBottomToolBar")
+    self.bottomToolBar.setObjectName("NavigationBottomToolBar")
+    self.bottomToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
+    self.backButton = qt.QPushButton("Back (nav)")
+    self.backButton.name = 'NavigationBackButton'
+    self.bottomToolBar.addWidget(self.backButton)
+    spacer = qt.QWidget()
+    policy = spacer.sizePolicy
+    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+    spacer.setSizePolicy(policy)
+    self.bottomToolBar.addWidget(spacer)
+    self.advanceButton = qt.QPushButton("Advance (nav)")
+    self.advanceButton.name = 'NavigationAdvanceButton'
+    self.bottomToolBar.addWidget(self.advanceButton)
+    self.bottomToolBar.visible = False
 
-    #Step 1: Calibrate Tools
-    self.ui.NavigationStep1.layout().addWidget( qt.QLabel("Step 1: Calibrate Sterile Tool") )
-    self.toolsWidget = slicer.modules.tools.createNewWidgetRepresentation()
-    self.ui.NavigationStep1.layout().addWidget(self.toolsWidget)
-    self.ui.NavigationStep1.layout().addStretch(1)
-    self.ui.NavigationStep1.layout().addWidget( self.createStepWidget(False, True) )
+    #Navigation Tab Bar
+    self.navigationTabBar = qt.QTabBar()
+    self.navigationTabBar.setObjectName("NavigationTabBar")
+    self.planSurgeryTabIndex = self.navigationTabBar.addTab("Plan surgery")
+    self.prepSurgeryTabIndex = self.navigationTabBar.addTab("Prep for surgery")
+    self.calibrateNavigationTabIndex = self.navigationTabBar.addTab("Calibrate")
+    self.navigateNavigationTabIndex = self.navigationTabBar.addTab("Navigate")
+    self.breakDownTabIndex = self.navigationTabBar.addTab("Break Down")
+    self.navigationTabBar.visible = False
+    secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
+    secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
+    secondaryTabWidgetUI.CenterArea.layout().addWidget(self.navigationTabBar)
 
-    #Step 2: Navigation
-    self.ui.NavigationStep2.layout().addWidget( qt.QLabel("Step 2: Navigation") )
-    self.trackCameraWidget = slicer.modules.cameranavigation.createNewWidgetRepresentation()
-    self.ui.NavigationStep2.layout().addWidget(self.trackCameraWidget)
-    self.ui.NavigationStep2.layout().addStretch(1)
-    self.ui.NavigationStep2.layout().addWidget( self.createStepWidget(True, False) )
+  def enter(self):
 
-  #TODO add enter to neceassry widget
-  def onNavigationChanged(self, tabIndex):
-    if tabIndex == self.CurrentNavigationIndex:
-      return
-    #Enter New Tab
-    #Update Current Tab
-    self.CurrentNavigationIndex = tabIndex
+    #Hides other toolbars
+    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+
+    #Show current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    self.bottomToolBar.visible = True
+    self.navigationTabBar.visible = True
+
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+
+  def applyApplicationStyle(self):
+    # Style
+    self.applyStyle([slicer.app], 'Home.qss')
+    
+
+  def applyStyle(self, widgets, styleSheetName):
+    stylesheetfile = self.resourcePath(styleSheetName)
+    with open(stylesheetfile,"r") as fh:
+      style = fh.read()
+      for widget in widgets:
+        widget.styleSheet = style
 
 
 class NavigationLogic(ScriptedLoadableModuleLogic):
