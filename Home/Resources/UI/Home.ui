@@ -6,24 +6,70 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>295</height>
+    <width>400</width>
+    <height>318</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>0</height>
+   </size>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QStackedWidget" name="HomeWidget">
-     <widget class="QWidget" name="PlanningTab" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_1"/>
-     </widget>
-     <widget class="QWidget" name="RegistrationTab" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_1"/>
-     </widget>
-     <widget class="QWidget" name="PatientsTab">
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
-     </widget>
-     <widget class="QWidget" name="NavigationTab" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+    <widget class="QScrollArea" name="HomeScrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="HomeScrollAreaContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>412</width>
+        <height>293</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QStackedWidget" name="HomeWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>400</width>
+           <height>0</height>
+          </size>
+         </property>
+         <widget class="QWidget" name="PlanningTab">
+          <layout class="QVBoxLayout" name="verticalLayout_1"/>
+         </widget>
+         <widget class="QWidget" name="RegistrationTab">
+          <layout class="QVBoxLayout" name="verticalLayout_4"/>
+         </widget>
+         <widget class="QWidget" name="PatientsTab">
+          <layout class="QVBoxLayout" name="verticalLayout_3"/>
+         </widget>
+         <widget class="QWidget" name="NavigationTab">
+          <layout class="QVBoxLayout" name="verticalLayout_2"/>
+         </widget>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>

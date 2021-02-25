@@ -63,6 +63,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     policy = spacer.sizePolicy
     policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
     spacer.setSizePolicy(policy)
+    spacer.name = "NavigationBottomToolbarSpacer"
     self.bottomToolBar.addWidget(spacer)
     self.advanceButton = qt.QPushButton("Advance (nav)")
     self.advanceButton.name = 'NavigationAdvanceButton'

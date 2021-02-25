@@ -99,6 +99,26 @@ QToolBar#BottomToolBar{
     
 }
 
+/* Bottom ToolBar */
+QToolBar#NavigationBottomToolBar, QToolBar#RegistrationBottomToolBar{
+    background-color: #434343; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 20px;
+    
+}
+
+QWidget#RegistrationBottomToolBar, QWidget#RegistrationBottomToolbarSpacer, QWidget#NavigationnBottomToolBar, QWidget#NavigationBottomToolbarSpacer{
+    background-color: #434343; 
+    margin: 0px; 
+    padding: 0px; 
+    border: none; 
+    min-height: 20px;
+    
+}
+
+
 /* Bottom ToolBar Buttons*/
 QPushButton#AdvanceButton, QPushButton#RegistrationAdvanceButton, QPushButton#NavigationAdvanceButton{
     background-color: #5ac2c9; 
@@ -158,3 +178,8 @@ QSlider::add-page:horizontal {
     border: 4px #000000;
     border-radius: 2px;
 } 
+
+QMainWindow::separator { 
+    width:0px; 
+    height:0px;
+}

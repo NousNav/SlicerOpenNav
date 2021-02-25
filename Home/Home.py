@@ -208,20 +208,17 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
       self.enter()
-      self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
       self.goToFourUpLayout() 
 
     if index == self.navigationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
       self.navigationWidget.enter()
-      self.goToPictureLayout()
 
     if index == self.registrationTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.registrationWidget.enter()
-      self.goToRegistrationCameraViewLayout()
 
     
   def enter(self):

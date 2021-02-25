@@ -53,17 +53,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.setObjectName("RegistrationBottomToolBar")
     self.bottomToolBar.movable = False
     slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButton = qt.QPushButton("Back (reg)")
-    self.backButton.name = 'RegistrationBackButton'
-    self.bottomToolBar.addWidget(self.backButton)
+    self.backButtonReg = qt.QPushButton("Back (reg)")
+    self.backButtonReg.name = 'RegistrationBackButton'
+    self.backButtonAction = self.bottomToolBar.addWidget(self.backButtonReg)
     spacer = qt.QWidget()
     policy = spacer.sizePolicy
     policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
     spacer.setSizePolicy(policy)
+    spacer.name = "RegistrationBottomToolbarSpacer"
     self.bottomToolBar.addWidget(spacer)
-    self.advanceButton = qt.QPushButton("Advance (reg)")
-    self.advanceButton.name = 'RegistrationAdvanceButton'
-    self.bottomToolBar.addWidget(self.advanceButton)
+    self.advanceButtonReg = qt.QPushButton("Advance (reg)")
+    self.advanceButtonReg.name = 'RegistrationAdvanceButton'
+    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButtonReg)
     self.bottomToolBar.visible = False
 
     # Registration Tab Bar
@@ -79,8 +80,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
     secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
 
+    self.registrationTabBar.currentChanged.connect(self.onTabChanged)
+
+    self.preloadPictures()
+
   def enter(self):
 
+    
     #Hides other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
@@ -95,6 +101,193 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
+    self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex)
+    self.onTabChanged(self.prepRegistrationTabIndex)
+
+  def onTabChanged(self, index):
+
+    if index == self.prepRegistrationTabIndex:
+      self.registrationStep1()
+
+    if index == self.trackingTabIndex:
+      self.registrationStep2()
+
+    if index == self.cameraTabIndex:
+      self.registrationStep4()
+
+    if index == self.calibrateRegistrationTabIndex:
+      self.registrationStep5()
+    
+      
+  def registrationStep1(self):
+    
+    #set the layout and display an image
+    self.goToPictureLayout(self.pictures['RegistrationStep1.png'])
+
+    #set the button labels
+    self.backButtonReg.text = ''
+    self.advanceButtonReg.text = 'Setup NousNav'
+    self.backButtonAction.visible = False
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.trackingTabIndex))    
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep1)
+
+  def registrationStep2(self):
+    
+    #set the layout and display an image
+    self.goToPictureLayout(self.pictures['RegistrationStep2.png'])
+
+    #set the button labels
+    self.backButtonReg.text = 'Back'
+    self.advanceButtonReg.text = 'Press when done'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex))    
+    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())    
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep2)
+
+  def registrationStep3(self):
+    
+    #update toolbar needed for untabbed step
+    self.registrationTabBar.setCurrentIndex(self.trackingTabIndex)
+    
+    #set the layout and display an image
+    self.goToPictureLayout(self.pictures['RegistrationStep3.jpg'])
+
+    #set the button labels
+    self.backButtonReg.text = 'Back'
+    self.advanceButtonReg.text = 'Press when done'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.backButtonReg.clicked.connect(lambda:self.registrationStep2())
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))    
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep3)
+
+  def registrationStep4(self):
+    
+        
+    #set the layout and display an image
+    self.goToRegistrationCameraViewLayout(self.pictures['RegistrationStep4.png'])
+
+    #set the button labels
+    self.backButtonReg.text = 'Back'
+    self.advanceButtonReg.text = 'Press when done'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.backButtonReg.clicked.connect(lambda:self.registrationStep3())
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep4)
+
+  def registrationStep5(self):
+    
+        
+    #set the layout and display an image
+    self.goToPictureLayout(self.pictures['RegistrationStep5.png'])
+
+    #set the button labels
+    self.backButtonReg.text = 'Back'
+    self.advanceButtonReg.text = 'Press when done'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep5)
+
+    
+  
+  
+  def disconnectAll(self, widget):
+    try: widget.clicked.disconnect() 
+    except Exception: pass
+
+  def toggleAllSliceSlidersVisiblility(self, visible):
+    for name in slicer.app.layoutManager().sliceViewNames():
+        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+        self.toggleSliderForSliceVisibility(sliceWidget, visible)
+  
+  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
+    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
+
+  def toggleMainPanelVisibility(self, visible):
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    modulePanel.visible = visible
+
+  def toggleSidePanelVisibility(self, visible):
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    sidePanel.visible = visible
+  
+  def setSliceViewBackgroundColor(self, color = '#000000'):
+    for name in slicer.app.layoutManager().sliceViewNames():
+        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+        view = sliceWidget.sliceView()
+        view.setBackgroundColor(qt.QColor(color))
+  
+  def preloadPictures(self):
+    pictureNames = [
+      'RegistrationStep1.png'
+      , 'RegistrationStep2.png'
+      , 'RegistrationStep3.jpg'
+      , 'RegistrationStep4.png'
+      , 'RegistrationStep5.png'
+      ]
+    self.pictures = {}
+    properties = {}
+    properties['show'] = False
+    properties['singleFile'] = True
+    for image in pictureNames:
+      imageNode = slicer.util.loadVolume(self.resourcePath('Images/' + image), properties)
+      imageNode.hidden = True
+      self.pictures[image] = imageNode
+  
+  def goToRegistrationCameraViewLayout(self, image = None):
+    if image is not None:
+      slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    self.toggleAllSliceSlidersVisiblility(False)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(True)
+  
+  def goToPictureLayout(self, image = None):
+    if image is not None:
+      slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    self.toggleAllSliceSlidersVisiblility(False)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+    self.setSliceViewBackgroundColor('#434343')
+  
   def applyApplicationStyle(self):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')

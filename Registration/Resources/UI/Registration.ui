@@ -6,20 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>295</height>
+    <width>322</width>
+    <height>225</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="RegistrationStep1">
       <layout class="QVBoxLayout" name="verticalLayout_1">
        <item>
         <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Prep the patient</string>
          </property>
@@ -27,11 +32,19 @@
        </item>
        <item>
         <widget class="QLabel" name="label_2">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Follow your hospital protocols and prep the patient for surgery. 
 
 Have the NousNav components ready for the next steps.
 </string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -41,6 +54,11 @@ Have the NousNav components ready for the next steps.
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QLabel" name="label_3">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Attach the 
 non-sterile
@@ -50,9 +68,17 @@ reference array</string>
        </item>
        <item>
         <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Fasten the array to the support arm on the Mayfield. Ensure the tracking discs are pointed toward where the camera will be.
 </string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -62,6 +88,11 @@ reference array</string>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QLabel" name="label_5">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Surgical pointer</string>
          </property>
@@ -69,8 +100,16 @@ reference array</string>
        </item>
        <item>
         <widget class="QLabel" name="label_6">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Place the non-sterile pointer in the scene and check to make sure the tracking discs are clean and the tip is not bent.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -80,6 +119,11 @@ reference array</string>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QLabel" name="label_7">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Align the camera</string>
          </property>
@@ -87,8 +131,49 @@ reference array</string>
        </item>
        <item>
         <widget class="QLabel" name="label_8">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Point the camera at the reference array and verify it can see both the pointer and reference array in the square on the right.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="RegistrationStep5">
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_9">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Rotate pointer 
+about the center
+</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Place tip of pointer in the center divot on the reference array and rotate the tool about its tip.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
