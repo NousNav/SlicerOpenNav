@@ -188,6 +188,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
     dockWidget.name = 'SidePanelDockWidget'
     self.SidePanelWidget = qt.QWidget(dockWidget)
+    self.SidePanelWidget.setLayout(qt.QVBoxLayout())
     self.SidePanelWidget.name = 'SidePanelWidget'
     dockWidget.setWidget(self.SidePanelWidget)
     dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)

@@ -41,6 +41,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
+    self.AlignmentSideWidget = slicer.util.loadUI(self.resourcePath('UI/AlignmentSideWidget.ui'))
+    self.AlignmentSideWidgetui = slicer.util.childWidgetVariables(self.AlignmentSideWidget)
+
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelWidget')
+    sidePanel.layout().addWidget(self.AlignmentSideWidget)
+    self.AlignmentSideWidget.visible = False
+
     #Create logic class
     self.logic = RegistrationLogic()
 
@@ -186,7 +193,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
         
     #set the layout and display an image
-    self.goToRegistrationCameraViewLayout(self.pictures['RegistrationStep4.png'])
+    self.goToRegistrationCameraViewLayout()
+    self.AlignmentSideWidget.visible = True
+    
 
     #set the button labels
     self.backButtonReg.text = 'Back'
@@ -269,11 +278,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       imageNode.hidden = True
       self.pictures[image] = imageNode
   
-  def goToRegistrationCameraViewLayout(self, image = None):
-    if image is not None:
-      slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
+  def goToRegistrationCameraViewLayout(self):
+    
     layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
     self.toggleAllSliceSlidersVisiblility(False)
     self.toggleMainPanelVisibility(True)
     self.toggleSidePanelVisibility(True)

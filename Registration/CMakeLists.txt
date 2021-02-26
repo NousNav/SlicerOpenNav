@@ -9,6 +9,7 @@ set(MODULE_PYTHON_SCRIPTS
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/UI/${MODULE_NAME}.ui
+  Resources/UI/AlignmentSideWidget.ui
   Resources/Images/RegistrationStep1.png
   Resources/Images/RegistrationStep2.png
   Resources/Images/RegistrationStep3.jpg
