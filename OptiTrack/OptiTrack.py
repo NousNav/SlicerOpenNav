@@ -43,6 +43,9 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    self.logic = OptiTrackLogic()
+    self.logic.setTools(['ReferenceToTracker', 'LongToolToTracker', 'ShortToolToTracker'])
+
     # Instantiate and connect widgets ...
 
     #
@@ -56,13 +59,8 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     self.launcherPathEdit = ctk.ctkPathLineEdit()
-    basepath = ''
-    for item in os.listdir(os.path.expanduser('~')):
-      if item.startswith('PlusApp'):
-        basepath = os.path.join(os.path.expanduser('~'), item)
-        break
-
-    self.launcherPathEdit.currentPath = os.path.join(basepath, 'bin/PlusServer.exe')
+   
+    self.launcherPathEdit.currentPath = self.logic.getPlusLauncherPath()
     parametersFormLayout.addRow('Launcher Path:', self.launcherPathEdit)
 
     self.configPathEdit = ctk.ctkPathLineEdit()
@@ -89,8 +87,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     # Add vertical spacer
     self.layout.addStretch(1)
 
-    self.logic = OptiTrackLogic()
-    self.logic.setup()
+    
 
     
 
@@ -125,11 +122,15 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def setup(self):
+  def __init__(self):
     self.connector = None
     self.isRunning = False   
+    self.tools = []
   
-  def shutdown(self):
+  def setTools(self, tools):
+    self.tools = tools
+  
+  def shutdown(self, clean=False):
     if self.isRunning:
       self.connector.Stop()
       self.p.terminate()
@@ -137,6 +138,8 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
       import shutil
       shutil.rmtree(self.tempDirectory)
       print('Shutdown')
+      if clean:
+        self.cleanupTools()
   
   def writeConfigFile(self, configTemplateFileName, dataFileName):
     template = ''
@@ -150,6 +153,14 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     print(configDataFileName)
     return configDataFileName
 
+  def getPlusLauncherPath(self):
+    basepath = ''
+    for item in os.listdir(os.path.expanduser('~')):
+      if item.startswith('PlusApp'):
+        basepath = os.path.join(os.path.expanduser('~'), item)
+        break
+
+    return os.path.join(basepath, 'bin/PlusServer.exe')
 
   
   def getTempDirectoryBase(self):
@@ -167,6 +178,34 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     dirPath = fileInfo.absoluteFilePath()
     qt.QDir().mkpath(dirPath)
     return dirPath
+  
+  def checkTool(self, toolName):
+    try:
+        node = slicer.util.getNode(toolName)
+        node.CreateDefaultDisplayNodes()
+        # node.GetDisplayNode().SetEditorVisibility(True)
+        return True
+    except:
+      return False
+
+  def checkTools(self, toolsList=None):
+    if toolsList is None:
+      toolsList = self.tools    
+    for toolName in toolsList:
+      self.checkTool(toolName)
+  
+  def cleanupTools(self, toolsList=None):
+    if toolsList is None:
+      toolsList = self.tools    
+    for toolName in toolsList:
+      self.cleanupTool(toolName)
+  
+  def cleanupTool(self, toolName):
+    try:
+        node = slicer.util.getNode(toolName)
+        slicer.mrmlScene.RemoveNode(node)        
+    except:
+      pass
   
   def start(self, plusLauncherPath, plusConfigTemplatePath, plusDataPath):
     """
@@ -198,13 +237,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         print(output)
         return
       print('PLUS Server launched')
-      try:
-        node = slicer.util.getNode('ProbeToTracker')
-        node.CreateDefaultDisplayNodes()
-        print('Found ProbeToTracker')
-        node.GetDisplayNode().SetEditorVisibility(True)
-      except:
-        print('WARNING: Could not find probe')
+      self.checkTools()
     else:
       self.shutdown()
     

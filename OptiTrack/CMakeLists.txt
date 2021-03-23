@@ -9,9 +9,11 @@ set(MODULE_PYTHON_SCRIPTS
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml.in
+  Resources/Reference.xml.in
   Resources/ReplayOptiTrack.xml.in
   Resources/Ellipse.mha
   Resources/Probe.xml
+  Resources/Reference.xml
   )
 
 #-----------------------------------------------------------------------------

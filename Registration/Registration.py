@@ -4,7 +4,9 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 import textwrap
-
+from enum import Enum
+import RegistrationUtils.Landmarks as Landmarks
+import RegistrationUtils.Tools as Tools
 
 class Registration(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -27,6 +29,10 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
 
+
+ 
+    
+
 class RegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -43,10 +49,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.AlignmentSideWidget = slicer.util.loadUI(self.resourcePath('UI/AlignmentSideWidget.ui'))
     self.AlignmentSideWidgetui = slicer.util.childWidgetVariables(self.AlignmentSideWidget)
+    self.LandmarkSideWidget = slicer.util.loadUI(self.resourcePath('UI/LandmarkSideWidget.ui'))
+    self.LandmarkSideWidgetui = slicer.util.childWidgetVariables(self.LandmarkSideWidget)
 
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelWidget')
     sidePanel.layout().addWidget(self.AlignmentSideWidget)
+    sidePanel.layout().addWidget(self.LandmarkSideWidget)
     self.AlignmentSideWidget.visible = False
+    self.LandmarkSideWidget.visible = False
 
     #Create logic class
     self.logic = RegistrationLogic()
@@ -89,8 +99,22 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.registrationTabBar.currentChanged.connect(self.onTabChanged)
 
-    self.preloadPictures()
+    import OptiTrack
+    self.optitrack = OptiTrack.OptiTrackLogic()
 
+
+    self.preloadPictures()
+    self.setupToolTables()
+    self.setupLandmarkTables()
+
+    self.cameraTimer = None
+
+  def cleanup(self):
+    self.optitrack.shutdown()
+    if self.cameraTimer:
+      self.cameraTimer.stop()
+
+  
   def enter(self):
 
     
@@ -111,7 +135,30 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex)
     self.onTabChanged(self.prepRegistrationTabIndex)
 
+    qt.QTimer.singleShot(1000, self.startOptiTrack)
+
+    
+
+
+  def startOptiTrack(self):
+    if not self.optitrack.isRunning:
+      test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
+      test.setStandardButtons(0)
+      test.show()
+      slicer.app.processEvents()
+      test.deleteLater()
+      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('Reference.xml.in'), self.resourcePath('Reference.xml'))
+      test.hide()
+
+      if not self.optitrack.isRunning:
+        qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
+
+      
+  
   def onTabChanged(self, index):
+        
+    if self.cameraTimer:
+      self.cameraTimer.stop()
 
     if index == self.prepRegistrationTabIndex:
       self.registrationStep1()
@@ -124,6 +171,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if index == self.calibrateRegistrationTabIndex:
       self.registrationStep5()
+
+    if index == self.registerPatientTabIndex:
+      self.registrationStep6()
     
       
   def registrationStep1(self):
@@ -195,6 +245,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     #set the layout and display an image
     self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
+    self.LandmarkSideWidget.visible = False
+
+    self.cameraTimer = qt.QTimer()
+    self.cameraTimer.timeout.connect(self.tools.checkTools)
+    self.cameraTimer.start(100)
+
     
 
     #set the button labels
@@ -228,12 +284,59 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.advanceButtonReg)
     self.disconnectAll(self.backButtonReg)
     self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.registerPatientTabIndex))
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep5)
 
+  def registrationStep6(self):
+    
+        
+    #set the layout and display an image
+    self.goToRegistrationCameraViewLayout()
+    self.AlignmentSideWidget.visible = False
+    self.LandmarkSideWidget.visible = True
+    
+
+    #set the button labels
+    self.backButtonReg.text = 'Recalibrate'
+    self.advanceButtonReg.text = 'Touch 2 more landmarks'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.disconnectAll(self.ui.CollectButton)
+    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
+    self.ui.CollectButton.clicked.connect(self.landmarks.collectLandmarkPosition)
+    # self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
+    self.landmarks.startNextLandmark()
+  
+  
+  
+  def setupToolTables(self):
+    self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
+    node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Reference')
+    node.AddFiducial(0,0,0)
+    node.AddFiducial(0,50,0)
+    node.AddFiducial(0,0,50)
+    node.AddFiducial(50,0,0)
+    node.CreateDefaultDisplayNodes()
+    self.tools.addTool('ReferenceToTracker', 'Reference', node)
+    self.optitrack.setTools(['ReferenceToTracker'])
+    self.tools.optitrack = self.optitrack
     
   
+  def setupLandmarkTables(self):
+    self.landmarks = Landmarks(self.LandmarkSideWidgetui.LandmarkTableWidget, self.moduleName)
+    self.landmarks.addLandmark('Nasion')
+    self.landmarks.addLandmark('Left outer canthus')
+    self.landmarks.addLandmark('Left inner canthus')
+      
   
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect() 
@@ -277,6 +380,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       imageNode = slicer.util.loadVolume(self.resourcePath('Images/' + image), properties)
       imageNode.hidden = True
       self.pictures[image] = imageNode
+
+    
   
   def goToRegistrationCameraViewLayout(self):
     

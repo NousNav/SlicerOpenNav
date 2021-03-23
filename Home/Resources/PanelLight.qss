@@ -8,6 +8,25 @@ QPushButton{
     border: 2px #666666; 
     border-radius: 3px; 
     min-height: 20px; 
+    color: #fafafa
+}
+
+QPushButton:disabled{
+    background-color: #434343; 
+    border: 2px #434343; 
+    border-radius: 3px; 
+    min-height: 20px; 
+    color: #B7B7B7
+}
+QPushButton[low="true"]{
+    background-color: #434343; 
+    border: 2px #434343; 
+    border-radius: 3px; 
+    min-height: 20px; 
     color: #B7B7B7
 }
 
+/* QLabel[InstructionTitle="Yes"]{
+    color: red;
+    background-color:green
+} */

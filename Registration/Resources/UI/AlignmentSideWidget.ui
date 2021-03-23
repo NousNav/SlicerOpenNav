@@ -22,28 +22,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTableWidget" name="SeenTableWidget">
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
      </attribute>
-     <row>
-      <property name="text">
-       <string>1</string>
-      </property>
-     </row>
      <column>
       <property name="text">
-       <string>Object</string>
+       <string>New Column</string>
       </property>
      </column>
-     <item row="0" column="0">
-      <property name="text">
-       <string>Test</string>
-      </property>
-     </item>
     </widget>
    </item>
    <item>
@@ -54,28 +44,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="tableWidget_2">
+    <widget class="QTableWidget" name="UnseenTableWidget">
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
      </attribute>
-     <row>
-      <property name="text">
-       <string>1</string>
-      </property>
-     </row>
      <column>
       <property name="text">
-       <string>Object</string>
+       <string>New Column</string>
       </property>
      </column>
-     <item row="0" column="0">
-      <property name="text">
-       <string>Test</string>
-      </property>
-     </item>
     </widget>
    </item>
   </layout>

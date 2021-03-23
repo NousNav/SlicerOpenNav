@@ -57,8 +57,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
 
-    #Apply style
-    self.applyApplicationStyle()
+    
 
     #Create logic class
     self.logic = HomeLogic()
@@ -81,6 +80,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
     self.onPrimaryTabChanged(self.patientsTabIndex)
+
+    #Apply style
+    self.applyApplicationStyle()
 
     # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
     # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
