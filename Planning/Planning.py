@@ -15,7 +15,7 @@ class Planning(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav Planning"
     self.parent.categories = [""]
-    self.parent.dependencies = ["VolumeRendering","NNSegmentation", "DICOM"]
+    self.parent.dependencies = ["VolumeRendering", "NNSegmentation", "SegmentEditor"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the NousNav application
@@ -34,7 +34,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-
 
   def nextPlanningStep(self):
     self.ui.PlanningWidget.setCurrentIndex( self.ui.PlanningWidget.currentIndex + 1)
@@ -71,73 +70,73 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-
     #Create logic class
     self.logic = PlanningLogic()
 
-    #Dark palette does not propogate on its own?
+    # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     ###Stacked widgets navigation changes
     self.CurrentPlanningIndex = -1
-    self.ui.PlanningWidget.currentChanged.connect( self.onPlanningChanged )
+    self.ui.PlanningWidget.currentChanged.connect(self.onPlanningChanged)
 
-    #Step 1: Data Loading
-    self.ui.PlanningStep1.layout().addWidget( qt.QLabel("Step 1: Load Data") )
-    self.dicomButton = qt.QPushButton('Show DICOM Browser')
-    self.ui.PlanningStep1.layout().addWidget(self.dicomButton)
-    self.ui.PlanningStep1.layout().addStretch(1)
-    self.ui.PlanningStep1.layout().addWidget( self.createPlanningStepWidget(False, True) )
+    self.setupStep1(self.ui.PlanningStep1)
+    self.setupStep2(self.ui.PlanningStep2)
+    self.setupStep3(self.ui.PlanningStep3)
 
-    #Volume Rendering
-    self.ui.PlanningStep2.layout().addWidget( qt.QLabel("Step 2: Adjust Volume Rendering") )
-    self.renderFrame = qt.QWidget()
-    renderLayout = qt.QVBoxLayout()
-    self.renderFrame.setLayout( renderLayout )
+  def setupStep1(self, widget):
+    layout = widget.layout()
+    layout.addWidget(qt.QLabel("Segment the Skin"))
 
-    self.volumerenderWidget = slicer.modules.volumerendering.createNewWidgetRepresentation()
-    self.presets = slicer.util.findChild(self.volumerenderWidget, "PresetComboBox")
-    self.presets.setVisible(True)
-    renderLayout.addWidget(self.presets)
-    self.ui.PlanningStep2.layout().addWidget(self.renderFrame)
+    self.thresholdSlider = ctk.ctkRangeSlider(widget)
+    self.thresholdSlider.orientation = qt.Qt.Horizontal
+    self.thresholdSlider.setMinimum(0)
+    self.thresholdSlider.setMaximum(1000)
+    self.thresholdSlider.setValues(30, 700)
 
-    self.renderFrameAdvanced = ctk.ctkCollapsibleGroupBox(self.ui.PlanningStep2)
-    self.renderFrameAdvanced.name = "AdvancedVolume"
-    self.renderFrameAdvanced.title = "Advanced"
-    self.renderFrameAdvanced.setChecked(False)
-    self.renderFrameAdvanced.setLayout(qt.QVBoxLayout())
-    self.renderFrameAdvanced.layout().addWidget(self.volumerenderWidget)
-    self.ui.PlanningStep2.layout().addWidget(self.renderFrameAdvanced)
+    self.smoothingSlider = qt.QSlider(widget)
+    self.smoothingSlider.orientation = qt.Qt.Horizontal
+    self.smoothingSlider.setMinimum(0)
+    self.smoothingSlider.setMaximum(10)
+    self.smoothingSlider.setValue(3)
 
-    self.ui.PlanningStep2.layout().addStretch(1)
-    self.ui.PlanningStep2.layout().addWidget( self.createPlanningStepWidget(True, True) )
+    layout.addWidget(qt.QLabel("Threshold"))
+    layout.addWidget(self.thresholdSlider)
 
-    #Segmentation
-    self.ui.PlanningStep3.layout().addWidget( qt.QLabel("Step 3: Create Segmentation") )
-    self.segmentationWidget = slicer.modules.nnsegmentation.createNewWidgetRepresentation()
-    self.ui.PlanningStep3.layout().addWidget(self.segmentationWidget)
-    self.ui.PlanningStep3.layout().addStretch(1)
-    self.ui.PlanningStep3.layout().addWidget( self.createPlanningStepWidget(True, False) )
+    layout.addWidget(qt.QLabel("Smoothness"))
+    layout.addWidget(self.smoothingSlider)
 
-    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
+    # layout.addWidget(qt.QPushButton("Undo"))
+    # layout.addWidget(qt.QPushButton("Reset"))
 
-  def setupDICOMBrowser(self):
-    #Make sure that the DICOM widget exists
-    slicer.modules.dicom.widgetRepresentation()
-    self.dicomButton.setCheckable(True)
-    self.dicomButton.toggled.connect(self.toggleDICOMBrowser)
+    apply = qt.QPushButton('Apply')
+    apply.clicked.connect(self.apply)
+    layout.addWidget(apply)
 
-    #For some reason, the browser is instantiated as not hidden. Close
-    #so that the 'isHidden' check works as required
-    slicer.modules.DICOMWidget.browserWidget.close()
+    layout.addStretch(1)
+    layout.addWidget(self.createPlanningStepWidget(False, True))
 
-  def toggleDICOMBrowser(self, checked):
-    if checked:
-      slicer.modules.DICOMWidget.onOpenBrowserWidget()
-      self.dicomButton = qt.QPushButton('Hide DICOM Browser')
-    else:
-      slicer.modules.DICOMWidget.browserWidget.close()
-      self.dicomButton = qt.QPushButton('Show DICOM Browser')
+  def apply(self):
+    volume, *_ = slicer.mrmlScene.GetNodesByClass('vtkMRMLVolumeNode')
+
+    self.logic.createSkinSegmentation(
+      volume,
+      thresholdMin=self.thresholdSlider.minimumValue,
+      thresholdMax=self.thresholdSlider.maximumValue,
+      smoothingSize=self.smoothingSlider.value,
+    )
+
+  def setupStep2(self, widget):
+    layout = widget.layout()
+    layout.addWidget(qt.QLabel("Segment the Target"))
+    layout.addStretch(1)
+    layout.addWidget(self.createPlanningStepWidget(True, True))
+
+  def setupStep3(self, widget):
+    layout = widget.layout()
+    layout.addWidget(qt.QLabel("Plan the Trajectory"))
+    layout.addStretch(1)
+    layout.addWidget(self.createPlanningStepWidget(True, False))
 
   def onPlanningChanged(self, tabIndex):
     if tabIndex == self.CurrentPlanningIndex:
@@ -175,6 +174,77 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """
 
     pass
+
+  def createSkinSegmentation(self, volume, thresholdMin=30, thresholdMax=1000, smoothingSize=3):
+    seg_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
+    seg_node.CreateDefaultDisplayNodes()
+    seg_node.SetReferenceImageGeometryParameterFromVolumeNode(volume)
+
+    skin_id = seg_node.GetSegmentation().AddEmptySegment('skin')
+
+    editor_widget = slicer.qMRMLSegmentEditorWidget()
+    editor_widget.setMRMLScene(slicer.mrmlScene)
+    # editor_widget.visible = True
+
+    editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
+    editor_widget.setMRMLSegmentEditorNode(editor_node)
+
+    editor_node.SetAndObserveSegmentationNode(seg_node)
+    editor_node.SetAndObserveMasterVolumeNode(volume)
+
+    # compute threshold
+    # remove islands
+    # remove voids (inverted islands): invert, remove islands, invert
+    # smooth
+
+    # Thresholding
+    editor_widget.setActiveEffectByName("Threshold")
+    effect = editor_widget.activeEffect()
+    effect.setParameter("MinimumThreshold", thresholdMin)
+    effect.setParameter("MaximumThreshold", thresholdMax)
+    effect.self().onApply()
+
+    # Remove islands
+    # Find largest component
+    editor_widget.setActiveEffectByName("Islands")
+    effect = editor_widget.activeEffect()
+    effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
+    effect.self().onApply()
+
+    # Remove voids
+    # Invert
+    editor_widget.setActiveEffectByName("Logical operators")
+    effect = editor_widget.activeEffect()
+    effect.setParameter("Operation", "INVERT")
+    effect.self().onApply()
+
+    # Find largest component
+    editor_widget.setActiveEffectByName("Islands")
+    effect = editor_widget.activeEffect()
+    effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
+    effect.self().onApply()
+
+    # Invert
+    editor_widget.setActiveEffectByName("Logical operators")
+    effect = editor_widget.activeEffect()
+    effect.setParameter("Operation", "INVERT")
+    effect.self().onApply()
+
+    # Smooth
+    editor_widget.setActiveEffectByName("Smoothing")
+    effect = editor_widget.activeEffect()
+    effect.setParameter('SmoothingMethod', 'MEDIAN')
+    effect.setParameter('KernelSizeMm', smoothingSize)
+    effect.self().onApply()
+
+    slicer.mrmlScene.RemoveNode(editor_node)
+    del editor_node
+    del editor_widget
+
+    # Make results visible in 3D
+    seg_node.CreateClosedSurfaceRepresentation()
+
+    return seg_node
 
 
 class PlanningTest(ScriptedLoadableModuleTest):

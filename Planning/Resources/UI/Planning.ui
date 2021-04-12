@@ -21,21 +21,21 @@
      </attribute>
      <widget class="QWidget" name="PlanningStep1">
       <attribute name="title">
-       <string>Step 1: Load Data</string>
+       <string>Step 1: Skin Segmentation</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_planning1"/>
      </widget>
      <widget class="QWidget" name="PlanningStep2">
       <attribute name="title">
-       <string>Step 2: Volume Rendering</string>
+       <string>Step 2: Target Segmentation</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_planning2"/>
      </widget>
      <widget class="QWidget" name="PlanningStep3">
       <attribute name="title">
-       <string>Step 3: Segmentation</string>
+       <string>Step 3: Trajectory Planning</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_planning3"/>
+      <layout class="QVBoxLayout" name="verticalLayout_planning2"/>
      </widget>
     </widget>
    </item>
