@@ -296,8 +296,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       node.CreateDefaultDisplayNodes()
 
       segment = self.getSegment(node, self.SKIN_SEGMENT)
-      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.5)
-      segment.SetColor(0.3, 0.1, 0.9)
+      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.3)
+      segment.SetColor(0.40, 0.35, 0.35)
 
     return node
 
@@ -314,10 +314,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       node.CreateDefaultDisplayNodes()
 
       segment = self.getSegment(node, self.SEED_INSIDE_SEGMENT)
-      segment.SetColor(0.9, 0.1, 0.1)
+      segment.SetColor(0.1, 0.9, 0.1)
 
       segment = self.getSegment(node, self.SEED_OUTSIDE_SEGMENT)
-      segment.SetColor(0.4, 0.4, 0.4)
+      segment.SetColor(0.5, 0.1, 0.1)
 
     return node
 
