@@ -85,6 +85,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.setupStep3(self.ui.PlanningStep3)
 
   def setupStep1(self, widget):
+    """Skin Segmentation Step"""
+
     layout = widget.layout()
     layout.addWidget(qt.QLabel("Segment the Skin"))
 
@@ -110,27 +112,95 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # layout.addWidget(qt.QPushButton("Reset"))
 
     apply = qt.QPushButton('Apply')
-    apply.clicked.connect(self.apply)
+    apply.clicked.connect(self.createSkinSegmentation)
     layout.addWidget(apply)
 
     layout.addStretch(1)
     layout.addWidget(self.createPlanningStepWidget(False, True))
 
-  def apply(self):
-    volume, *_ = slicer.mrmlScene.GetNodesByClass('vtkMRMLVolumeNode')
+  def createSkinSegmentation(self):
+    volume = self.logic.getMasterVolume()
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
 
-    self.logic.createSkinSegmentation(
-      volume,
+    segmentation = self.logic.getSkinSegmentation()
+    segment = self.logic.SKIN_SEGMENT
+
+    self.logic.setEditorTargets(volume, segmentation, segment)
+    self.logic.applySkinSegmentation(
       thresholdMin=self.thresholdSlider.minimumValue,
       thresholdMax=self.thresholdSlider.maximumValue,
       smoothingSize=self.smoothingSlider.value,
     )
+    self.logic.endEffect()
+
+    # Make results visible in 3D
+    segmentation.CreateClosedSurfaceRepresentation()
 
   def setupStep2(self, widget):
     layout = widget.layout()
     layout.addWidget(qt.QLabel("Segment the Target"))
+
+    inside = qt.QPushButton('Paint Inside')
+    inside.clicked.connect(self.paintInside)
+    layout.addWidget(inside)
+
+    outide = qt.QPushButton('Paint Outide')
+    outide.clicked.connect(self.paintOutside)
+    layout.addWidget(outide)
+
+    preview = qt.QPushButton('Preview')
+    preview.clicked.connect(self.previewTarget)
+    layout.addWidget(preview)
+
+    apply = qt.QPushButton('Apply')
+    apply.clicked.connect(self.segmentTarget)
+    layout.addWidget(apply)
+
     layout.addStretch(1)
     layout.addWidget(self.createPlanningStepWidget(True, True))
+
+  def paintInside(self):
+    volume = self.logic.getMasterVolume()
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
+
+    segmentation = self.logic.getSeedSegmentation()
+    segment = self.logic.SEED_INSIDE_SEGMENT
+
+    self.logic.setEditorTargets(volume, segmentation, segment)
+    self.logic.beginPaint()
+
+  def paintOutside(self):
+    volume = self.logic.getMasterVolume()
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
+
+    segmentation = self.logic.getSeedSegmentation()
+    segment = self.logic.SEED_OUTSIDE_SEGMENT
+
+    self.logic.setEditorTargets(volume, segmentation, segment)
+    self.logic.beginPaint()
+
+  def previewTarget(self):
+    self.logic.endEffect()
+    volume = self.logic.getMasterVolume()
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
+    segmentation = self.logic.getSeedSegmentation()
+    self.logic.setEditorTargets(volume, segmentation)
+    self.logic.previewTargetSegmentation()
+
+  def segmentTarget(self):
+    self.logic.applyTargetSegmentation()
+    self.logic.endEffect()
+
+    segmentation = self.logic.getSeedSegmentation()
+    segmentation.CreateClosedSurfaceRepresentation()
 
   def setupStep3(self, widget):
     layout = widget.layout()
@@ -168,84 +238,191 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
+  def __init__(self):
+    self.MASTER_VOLUME = 'NN_Master_Volume'
+    self.SKIN_SEGMENTATION = 'NN_Skin_Segmentation'
+    self.SKIN_SEGMENT = 'NN_Skin'
+
+    self.SEED_SEGMENTATION = 'NN_Seed_Segmentation'
+    self.SEED_INSIDE_SEGMENT = 'NN_Inside'
+    self.SEED_OUTSIDE_SEGMENT = 'NN_Outside'
+
+    self.editor_widget = slicer.qMRMLSegmentEditorWidget()
+    self.editor_widget.setMRMLScene(slicer.mrmlScene)
+    # self.editor_widget.visible = True
+
+    self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
+    self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
+
+  def getMasterVolume(self):
+    """Get the master volume node, with name PlanningLogic.MASTER_VOLUME.
+    If none exists, use the first volume node in the scene.
     """
-    Run the actual algorithm
+    node = slicer.mrmlScene.GetFirstNodeByName(self.MASTER_VOLUME)
+    if node:
+      return node
+
+    node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLVolumeNode')
+    if node:
+      logging.warning('No master volume node is set. Using volume %s', node.GetName())
+      return node
+
+    logging.error('No volume in scene.')
+    return None
+
+  def getSegment(self, segmentation, segmentID):
+    """Get a segment from a segmentation. If none exists, create one and return it."""
+    segment = segmentation.GetSegmentation().GetSegment(segmentID)
+    if segment:
+      return segment
+
+    logging.info('Creating new segment %s', segmentID)
+
+    segmentation.GetSegmentation().AddEmptySegment(segmentID)
+    segment = segmentation.GetSegmentation().GetSegment(segmentID)
+    return segment
+
+
+  def getSkinSegmentation(self):
+    """Get the skin segmentation node, with name PlanningLogic.SKIN_SEGMENTATION.
+    If none exists, create one and return it.
     """
+    # get or create the node
+    node = slicer.mrmlScene.GetFirstNodeByName(self.SKIN_SEGMENTATION)
+    if not node:
+      logging.info('Creating new segmentation node')
+      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
+      node.SetName(self.SKIN_SEGMENTATION)
+      node.CreateDefaultDisplayNodes()
 
-    pass
+      segment = self.getSegment(node, self.SKIN_SEGMENT)
+      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.5)
+      segment.SetColor(0.3, 0.1, 0.9)
 
-  def createSkinSegmentation(self, volume, thresholdMin=30, thresholdMax=1000, smoothingSize=3):
-    seg_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
-    seg_node.CreateDefaultDisplayNodes()
-    seg_node.SetReferenceImageGeometryParameterFromVolumeNode(volume)
+    return node
 
-    skin_id = seg_node.GetSegmentation().AddEmptySegment('skin')
+  def getSeedSegmentation(self):
+    """Get the target seed segmentation node, with name PlanningLogic.SEED_SEGMENTATION.
+    If none exists, create one and return it.
+    """
+    # get or create the node
+    node = slicer.mrmlScene.GetFirstNodeByName(self.SEED_SEGMENTATION)
+    if not node:
+      logging.info('Creating new segmentation node')
+      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
+      node.SetName(self.SEED_SEGMENTATION)
+      node.CreateDefaultDisplayNodes()
 
-    editor_widget = slicer.qMRMLSegmentEditorWidget()
-    editor_widget.setMRMLScene(slicer.mrmlScene)
-    # editor_widget.visible = True
+      segment = self.getSegment(node, self.SEED_INSIDE_SEGMENT)
+      segment.SetColor(0.9, 0.1, 0.1)
 
-    editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
-    editor_widget.setMRMLSegmentEditorNode(editor_node)
+      segment = self.getSegment(node, self.SEED_OUTSIDE_SEGMENT)
+      segment.SetColor(0.4, 0.4, 0.4)
 
-    editor_node.SetAndObserveSegmentationNode(seg_node)
-    editor_node.SetAndObserveMasterVolumeNode(volume)
+    return node
 
-    # compute threshold
-    # remove islands
-    # remove voids (inverted islands): invert, remove islands, invert
-    # smooth
+  def setEditorTargets(self, volume, segmentation, segmentID=''):
+    """Set the persistent segment editor to edit the given volume and segmentation.
+    If segmentID is provided, also select that segment in the editor.
+    """
+    # make sure the active segmentation uses the active volume
+    segmentation.SetReferenceImageGeometryParameterFromVolumeNode(volume)
 
+    self.editor_node.SetAndObserveMasterVolumeNode(volume)
+    self.editor_node.SetAndObserveSegmentationNode(segmentation)
+
+    if segmentID:
+      self.editor_widget.setCurrentSegmentID(segmentID)
+
+  def applySkinSegmentation(
+      self,
+      thresholdMin=30,
+      thresholdMax=1000,
+      smoothingSize=3,
+  ):
+    """ Apply skin segmentation effects. Be sure to use setEditorTargets
+     beforehand, so the effect is applied correctly.
+
+    Effects: Threshold, remove islands, remove voids, smoothing
+    """
     # Thresholding
-    editor_widget.setActiveEffectByName("Threshold")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Threshold")
+    effect = self.editor_widget.activeEffect()
     effect.setParameter("MinimumThreshold", thresholdMin)
     effect.setParameter("MaximumThreshold", thresholdMax)
     effect.self().onApply()
 
     # Remove islands
     # Find largest component
-    editor_widget.setActiveEffectByName("Islands")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Islands")
+    effect = self.editor_widget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
 
     # Remove voids
-    # Invert
-    editor_widget.setActiveEffectByName("Logical operators")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Logical operators")
+    effect = self.editor_widget.activeEffect()
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
 
-    # Find largest component
-    editor_widget.setActiveEffectByName("Islands")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Islands")
+    effect = self.editor_widget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
     effect.self().onApply()
 
-    # Invert
-    editor_widget.setActiveEffectByName("Logical operators")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Logical operators")
+    effect = self.editor_widget.activeEffect()
     effect.setParameter("Operation", "INVERT")
     effect.self().onApply()
 
     # Smooth
-    editor_widget.setActiveEffectByName("Smoothing")
-    effect = editor_widget.activeEffect()
+    self.editor_widget.setActiveEffectByName("Smoothing")
+    effect = self.editor_widget.activeEffect()
     effect.setParameter('SmoothingMethod', 'MEDIAN')
     effect.setParameter('KernelSizeMm', smoothingSize)
     effect.self().onApply()
 
-    slicer.mrmlScene.RemoveNode(editor_node)
-    del editor_node
-    del editor_widget
+    self.endEffect()
 
-    # Make results visible in 3D
-    seg_node.CreateClosedSurfaceRepresentation()
+  def previewTargetSegmentation(self):
+    """ Preview target segmentation effects. Be sure to use setEditorTargets
+     beforehand, so the effect is applied correctly.
 
-    return seg_node
+    Effects: Grow from seeds
+    """
+    self.editor_widget.setActiveEffectByName('Grow from seeds')
+    effect = self.editor_widget.activeEffect()
+    effect.self().onPreview()
 
+  def applyTargetSegmentation(self, smoothingSize=3):
+    """ Preview target segmentation effects. Be sure to use setEditorTargets
+     beforehand, so the effect is applied correctly.
+
+    Effects: Grow from seeds, Smoothing
+    """
+    self.editor_widget.setActiveEffectByName('Grow from seeds')
+    effect = self.editor_widget.activeEffect()
+    effect.self().onApply()
+
+    self.editor_widget.setActiveEffectByName("Smoothing")
+    effect = self.editor_widget.activeEffect()
+    effect.setParameter('SmoothingMethod', 'MEDIAN')
+    effect.setParameter('KernelSizeMm', smoothingSize)
+    effect.self().onApply()
+
+  def beginPaint(self):
+    """ Begin a paint effect. Be sure to use setEditorTargets beforehand, so
+     the effect is applied correctly.
+    """
+
+    self.editor_widget.setActiveEffectByName('Paint')
+    effect = self.editor_widget.activeEffect()
+    # paint effect does not need onApply().
+
+  def endEffect(self):
+    """ End the active effect, returning mouse control to normal.
+    """
+    self.editor_widget.setActiveEffectByName('None')
 
 class PlanningTest(ScriptedLoadableModuleTest):
   """
