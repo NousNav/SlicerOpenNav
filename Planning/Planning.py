@@ -205,24 +205,20 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def setupStep3(self, widget):
     layout = widget.layout()
     layout.addWidget(qt.QLabel("Plan the Trajectory"))
+
+    trajectory = qt.QPushButton('Trajectory')
+    trajectory.clicked.connect(self.setTrajectory)
+    layout.addWidget(trajectory)
+
     layout.addStretch(1)
     layout.addWidget(self.createPlanningStepWidget(True, False))
+
+  def setTrajectory(self):
+    self.logic.placeTrajectory()
 
   def onPlanningChanged(self, tabIndex):
     if tabIndex == self.CurrentPlanningIndex:
       return
-    if tabIndex == self.ui.PlanningWidget.indexOf(self.ui.PlanningStep2):
-      nodeID = NNUtils.getActiveVolume()
-      if nodeID is not None:
-        node = slicer.mrmlScene.GetNodeByID(nodeID)
-        volumeComboBox = slicer.util.findChild(self.volumerenderWidget, "VolumeNodeComboBox")
-        volumeComboBox.setCurrentNode(node)
-        volRenLogic = slicer.modules.volumerendering.logic()
-        displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(node)
-        displayNode.SetVisibility(True)
-        displayNode.GetVolumePropertyNode().Copy(volRenLogic.GetPresetByName('CT-Bones'))
-        controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-        controller.resetFocalPoint()
 
     #Update Current Tab
     self.CurrentPlanningIndex = tabIndex
@@ -247,6 +243,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     self.SEED_INSIDE_SEGMENT = 'NN_Inside'
     self.SEED_OUTSIDE_SEGMENT = 'NN_Outside'
 
+    self.TRAJECTORY_MARKUP = 'NN_Trajectory'
+
     self.editor_widget = slicer.qMRMLSegmentEditorWidget()
     self.editor_widget.setMRMLScene(slicer.mrmlScene)
     # self.editor_widget.visible = True
@@ -262,8 +260,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     if node:
       return node
 
-    node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLVolumeNode')
-    if node:
+    nodeID = NNUtils.getActiveVolume()
+    if nodeID:
+      node = slicer.mrmlScene.GetNodeByID(nodeID)
       logging.warning('No master volume node is set. Using volume %s', node.GetName())
       return node
 
@@ -318,6 +317,20 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
 
       segment = self.getSegment(node, self.SEED_OUTSIDE_SEGMENT)
       segment.SetColor(0.5, 0.1, 0.1)
+
+    return node
+
+  def getTrajectoryMarkup(self):
+    node = slicer.mrmlScene.GetFirstNodeByName(self.TRAJECTORY_MARKUP)
+    if not node:
+      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsLineNode')
+      node.SetName(self.TRAJECTORY_MARKUP)
+
+      display = node.GetDisplayNode()
+      display.SetPropertiesLabelVisibility(False)
+      display.SetLineDiameter(3)  # 3mm
+      display.SetLineDiameter(3)  # 3mm
+      display.SetCurveLineSizeMode(display.UseLineDiameter)
 
     return node
 
@@ -423,6 +436,17 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """ End the active effect, returning mouse control to normal.
     """
     self.editor_widget.setActiveEffectByName('None')
+
+  def placeTrajectory(self):
+    """ Select the trajectory line markup and enter markup placement mode."""
+
+    trajectory = self.getTrajectoryMarkup()
+
+    selection_node = slicer.mrmlScene.GetNodeByID('vtkMRMLSelectionNodeSingleton')
+    interaction_node = slicer.mrmlScene.GetNodeByID('vtkMRMLInteractionNodeSingleton')
+
+    selection_node.SetActivePlaceNodeID(trajectory.GetID())
+    interaction_node.SetCurrentInteractionMode(interaction_node.Place)
 
 class PlanningTest(ScriptedLoadableModuleTest):
   """
