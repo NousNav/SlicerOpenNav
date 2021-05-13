@@ -19,6 +19,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Images/RegistrationStep3.jpg
   Resources/Images/RegistrationStep4.png
   Resources/Images/RegistrationStep5.png
+  Resources/Data/manny.vtk
   Resources/Icons/Done.svg
   Resources/Icons/NotStarted.svg
   Resources/Icons/NotStarted.png

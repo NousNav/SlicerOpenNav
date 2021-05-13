@@ -14,6 +14,8 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Ellipse.mha
   Resources/Probe.xml
   Resources/Reference.xml
+  Resources/Head.xml
+  Resources/PLUSHead.xml.in
   )
 
 #-----------------------------------------------------------------------------

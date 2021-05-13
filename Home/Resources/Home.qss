@@ -133,6 +133,19 @@ QPushButton#AdvanceButton, QPushButton#RegistrationAdvanceButton, QPushButton#Na
     color: #fafafa
 }
 
+QPushButton#AdvanceButton:disabled, QPushButton#RegistrationAdvanceButton:disabled, QPushButton#NavigationAdvanceButton:disabled{
+    background-color: #666666; 
+    border: 2px #666666; 
+    border-radius: 3px; 
+    min-height: 40px; 
+    min-width: 180px;
+    font: 12px bold;
+    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #b7b7b7
+}
+
 QPushButton#BackButton, QPushButton#RegistrationBackButton, QPushButton#NavigationBackButton{
     background-color: #666666; 
     border: 2px #666666; 

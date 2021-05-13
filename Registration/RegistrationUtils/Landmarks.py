@@ -13,10 +13,12 @@ class Landmark:
   def __init__(self, name, modelPos = [0,0,0]):
     self.name = name
     self.row = -1
+    self.index = -1
     self.state = LandmarkState.NOT_STARTED
     self.modelPosition = modelPos
     self.imagePosition = None
     self.trackerPosition = None
+    
 
     
 
@@ -32,12 +34,29 @@ class Landmarks:
     self.tableWidget.setSelectionMode(qt.QAbstractItemView.NoSelection)
     self.tableWidget.setFrameStyle(qt.QFrame.NoFrame)
 
+    self.landmarksNeeded = 3
+    self.landmarksCollected = 0
+    self.landmarksFinished = False
+
     # TODO: improve method of looking up icons
     self.notStartedIcon = qt.QIcon(self.resourcePath('Icons/NotStarted.svg'))
     self.doneIcon = qt.QIcon(self.resourcePath('Icons/Done.svg'))
     self.SkippedIcon = qt.QIcon(self.resourcePath('Icons/Skipped.svg'))
     self.startedIcon = qt.QIcon(self.resourcePath('Icons/Started.svg'))
+    self.model = slicer.util.loadModel(self.resourcePath('Data/manny.vtk'))
+    self.model.GetDisplayNode().SetVisibility(False)
+    self.model.GetDisplayNode().SetOpacity(0.5)
 
+    self.landmarksDisplay = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetVisibility(False)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetSelectedColor(35/255.0,76/255.0,79/255.0)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetColor(72/255.0,72/255.0,72/255.0)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetTextScale(0)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetGlyphScale(7)
+    self.landmarksDisplay.SetLocked(True)
+    self.showLandmarks = False
+
+ 
   def resourcePath(self, filename):
     scriptedModulesPath = os.path.dirname(slicer.util.modulePath(self.moduleName))
     return os.path.join(scriptedModulesPath, 'Resources', filename)
@@ -48,6 +67,7 @@ class Landmarks:
     self.addLandmarkToTable(newLandmark)
 
     self.landmarks.append(newLandmark)
+    newLandmark.index = self.landmarksDisplay.AddFiducial(modelPos[0], modelPos[1], modelPos[2])
     self.updateLandmarkDisplay(newLandmark)
 
   def addLandmarkToTable(self, landmark):
@@ -69,13 +89,20 @@ class Landmarks:
 
   def updateLandmarksDisplay(self):
     
+    self.landmarksCollected = 0
     for landmark in self.landmarks:
       self.updateLandmarkDisplay(landmark)
+
+    self.model.GetDisplayNode().SetVisibility(self.showLandmarks)
+    self.landmarksDisplay.GetDisplayNode().SetVisibility(self.showLandmarks)
+
+    self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
+      
 
   def updateLandmarkDisplay(self, landmark):
     button = self.tableWidget.cellWidget(landmark.row, 2)
     iconLabel = self.tableWidget.cellWidget(landmark.row, 0)
-
+    self.landmarksDisplay.SetNthControlPointSelected(landmark.row, False)
     if landmark.state == LandmarkState.NOT_STARTED:
       button.enabled = False
       button.text = ''
@@ -85,16 +112,20 @@ class Landmarks:
       button.enabled = True
       button.text = 'Skip'
       iconLabel.setPixmap(self.startedIcon.pixmap(16, 16))
+      self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
 
     if landmark.state == LandmarkState.DONE:
       button.enabled = True
       button.text = 'Redo'
       iconLabel.setPixmap(self.doneIcon.pixmap(16, 16))
+      self.landmarksCollected += 1
 
     if landmark.state == LandmarkState.SKIPPED:
       button.enabled = True
       button.text = 'Add'
       iconLabel.setPixmap(self.SkippedIcon.pixmap(16, 16))
+
+    
   
   def startNextLandmark(self):
     for landmark in self.landmarks:
@@ -113,8 +144,7 @@ class Landmarks:
     self.currentLandmark = landmark
     self.updateLandmarksDisplay()
   
-  def collectLandmarkPosition(self):
-    pos = [10,10,10]
+  def collectLandmarkPosition(self, pos = [0,0,0]):
     if self.currentLandmark is not None:
       self.currentLandmark.state = LandmarkState.DONE
       self.currentLandmark.trackerPosition = pos

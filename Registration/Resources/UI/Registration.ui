@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>322</width>
+    <width>326</width>
     <height>225</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
      <property name="currentIndex">
-      <number>5</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="RegistrationStep1">
       <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -174,6 +174,20 @@ about the center
          </property>
          <property name="wordWrap">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="PivotCalibrationButton">
+         <property name="text">
+          <string>Start Pivot Calibration</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="RMSLabel">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

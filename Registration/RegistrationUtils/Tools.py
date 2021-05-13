@@ -24,12 +24,14 @@ class Tools:
     self.seenTableWidget = seenTableWidget
     self.unseenTableWidget = unseenTableWidget
     self.optitrack = None
+    self.showToolMarkers = False
 
   def addTool(self, ID, name, geometry=None):
     newTool = Tool(ID, name, geometry)
     self.tools.append(newTool)
     self.updateToolsDisplay()
 
+    
   def checkTools(self):
     if self.optitrack is None:
       print("Fail")
@@ -79,14 +81,13 @@ class Tools:
       if tool.state == ToolState.SEEN:
         self.addToolToTable(tool, self.seenTableWidget)
         if tool.displayGeometry:
-          tool.displayGeometry.GetDisplayNode().SetVisibility(True)
+          tool.displayGeometry.GetDisplayNode().SetVisibility(self.showToolMarkers)
       else:
         self.addToolToTable(tool, self.unseenTableWidget)
         if tool.displayGeometry:
           tool.displayGeometry.GetDisplayNode().SetVisibility(False)
 
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.resetFocalPoint()
+    
     
     self.seenTableWidget.resizeColumnToContents(0)
     self.seenTableWidget.setShowGrid(False)
