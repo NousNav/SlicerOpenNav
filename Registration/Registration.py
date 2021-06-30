@@ -126,6 +126,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
 
     #Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True

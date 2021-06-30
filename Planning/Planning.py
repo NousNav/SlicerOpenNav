@@ -2,9 +2,13 @@ import os
 import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+import slicer.modules
 import logging
 import textwrap
 import NNUtils
+
+from PlanningUtils import LandmarkDefinitions
+
 
 class Planning(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -70,53 +74,219 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    #Create logic class
+    # Create logic class
     self.logic = PlanningLogic()
 
     # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
+    # Planning Tab Bar
+    self.planningTabBar = qt.QTabBar()
+    self.planningTabBar.setObjectName("PlanningTabBar")
+    self.planningTabBar.visible = False
+    secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
+    secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
+    secondaryTabWidgetUI.CenterArea.layout().addWidget(self.planningTabBar)
+
+    self.segmentSkinTabIndex = self.planningTabBar.addTab("Segment the Skin")
+    self.segmentTargetTabIndex = self.planningTabBar.addTab("Segment the Target")
+    self.trajectoryTabIndex = self.planningTabBar.addTab("Plan the Trajectory")
+    self.landmarksTabIndex = self.planningTabBar.addTab("Define Landmarks")
+
+    self.planningTabBar.currentChanged.connect(self.onTabChanged)
+
+    # Bottom toolbar
+    self.bottomToolBar = qt.QToolBar("PlanningBottomToolBar")
+    self.bottomToolBar.setObjectName("PlanningBottomToolBar")
+    self.bottomToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
+    self.backButtonPlan = qt.QPushButton("Back (plan)")
+    self.backButtonPlan.name = 'PlanningBackButton'
+    self.backButtonAction = self.bottomToolBar.addWidget(self.backButtonPlan)
+    spacer = qt.QWidget()
+    policy = spacer.sizePolicy
+    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+    spacer.setSizePolicy(policy)
+    spacer.name = "PlanningBottomToolbarSpacer"
+    self.bottomToolBar.addWidget(spacer)
+    self.advanceButtonPlan = qt.QPushButton("Advance (plan)")
+    self.advanceButtonPlan.name = 'PlanningAdvanceButton'
+    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButtonPlan)
+    self.bottomToolBar.visible = False
+
     ###Stacked widgets navigation changes
     self.CurrentPlanningIndex = -1
     self.ui.PlanningWidget.currentChanged.connect(self.onPlanningChanged)
 
-    self.setupStep1(self.ui.PlanningStep1)
-    self.setupStep2(self.ui.PlanningStep2)
-    self.setupStep3(self.ui.PlanningStep3)
+    self.ui.skinThresholdSlider.setValues(30, 700)
+    self.ui.skinSmoothingSlider.setValue(3)
+    self.ui.skinApply.clicked.connect(self.createSkinSegmentation)
 
-  def setupStep1(self, widget):
-    """Skin Segmentation Step"""
+    self.ui.targetPaintInside.clicked.connect(self.paintInside)
+    self.ui.targetPaintOutside.clicked.connect(self.paintOutside)
+    self.ui.targetPreview.clicked.connect(self.previewTarget)
+    self.ui.targetApply.clicked.connect(self.segmentTarget)
 
-    layout = widget.layout()
-    layout.addWidget(qt.QLabel("Segment the Skin"))
+    self.ui.trajectoryPlace.clicked.connect(self.setTrajectory)
 
-    self.thresholdSlider = ctk.ctkRangeSlider(widget)
-    self.thresholdSlider.orientation = qt.Qt.Horizontal
-    self.thresholdSlider.setMinimum(0)
-    self.thresholdSlider.setMaximum(1000)
-    self.thresholdSlider.setValues(30, 700)
+    header = self.ui.defineLandmarkTableWidget.horizontalHeader()
+    header.setSectionResizeMode(header.Stretch)
 
-    self.smoothingSlider = qt.QSlider(widget)
-    self.smoothingSlider.orientation = qt.Qt.Horizontal
-    self.smoothingSlider.setMinimum(0)
-    self.smoothingSlider.setMaximum(10)
-    self.smoothingSlider.setValue(3)
+    self.definitions = LandmarkDefinitions(
+      self.ui.defineLandmarkTableWidget,
+      self.moduleName,
+    )
 
-    layout.addWidget(qt.QLabel("Threshold"))
-    layout.addWidget(self.thresholdSlider)
+  def applyApplicationStyle(self):
+    # Style
+    self.applyStyle([slicer.app], 'Home.qss')
 
-    layout.addWidget(qt.QLabel("Smoothness"))
-    layout.addWidget(self.smoothingSlider)
 
-    # layout.addWidget(qt.QPushButton("Undo"))
-    # layout.addWidget(qt.QPushButton("Reset"))
+  def applyStyle(self, widgets, styleSheetName):
+    stylesheetfile = self.resourcePath(styleSheetName)
+    with open(stylesheetfile,"r") as fh:
+      style = fh.read()
+      for widget in widgets:
+        widget.styleSheet = style
 
-    apply = qt.QPushButton('Apply')
-    apply.clicked.connect(self.createSkinSegmentation)
-    layout.addWidget(apply)
+  def enter(self):
+    # Hide other toolbars
+    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
 
-    layout.addStretch(1)
-    layout.addWidget(self.createPlanningStepWidget(False, True))
+    # set slice viewer background
+    volume = self.logic.getMasterVolume()
+    slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
+    self.setSliceViewBackgroundColor('#000000')
+    self.goToFourUpLayout()
+
+    # Show current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    self.bottomToolBar.visible = True
+    self.planningTabBar.visible = True
+
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+
+    self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
+    self.onTabChanged(self.segmentSkinTabIndex)
+
+  def onTabChanged(self, index):
+    self.definitions.advanceButton = None
+
+    if index == self.segmentSkinTabIndex:
+      self.planningStep1()
+
+    if index == self.segmentTargetTabIndex:
+      self.planningStep2()
+
+    if index == self.trajectoryTabIndex:
+      self.planningStep3()
+
+    if index == self.landmarksTabIndex:
+      self.planningStep4()
+
+
+  def goToFourUpLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
+    self.toggleAllSliceSlidersVisiblility(True)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+
+  def toggleAllSliceSlidersVisiblility(self, visible):
+    for name in slicer.app.layoutManager().sliceViewNames():
+      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+      self.toggleSliderForSliceVisibility(sliceWidget, visible)
+
+  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
+    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
+
+  def toggleMainPanelVisibility(self, visible):
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    modulePanel.visible = visible
+
+  def toggleSidePanelVisibility(self, visible):
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    sidePanel.visible = visible
+
+  def setSliceViewBackgroundColor(self, color='#000000'):
+    for name in slicer.app.layoutManager().sliceViewNames():
+      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+      view = sliceWidget.sliceView()
+      view.setBackgroundColor(qt.QColor(color))
+
+  def disconnectAll(self, widget):
+    try:
+      widget.clicked.disconnect()
+    except Exception:
+      pass
+
+  def planningStep1(self):
+    self.disconnectAll(self.advanceButtonPlan)
+    self.disconnectAll(self.backButtonPlan)
+
+    self.backButtonAction.visible = False
+    self.backButtonPlan.text = ''
+
+    self.advanceButtonAction.visible = True
+    self.advanceButtonPlan.text = 'Segment the Target'
+    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentTargetTabIndex))
+
+    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep1)
+
+  def planningStep2(self):
+    self.disconnectAll(self.advanceButtonPlan)
+    self.disconnectAll(self.backButtonPlan)
+
+    self.backButtonAction.visible = True
+    self.backButtonPlan.text = 'Segment the Skin'
+    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
+
+    self.advanceButtonAction.visible = True
+    self.advanceButtonPlan.text = 'Plan the Trajectory'
+    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.trajectoryTabIndex))
+
+    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep2)
+
+  def planningStep3(self):
+    self.disconnectAll(self.advanceButtonPlan)
+    self.disconnectAll(self.backButtonPlan)
+
+    self.backButtonAction.visible = True
+    self.backButtonPlan.text = 'Segment the Target'
+    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
+
+    self.advanceButtonAction.visible = True
+    self.advanceButtonPlan.text = 'Define Landmarks'
+    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.landmarksTabIndex))
+
+    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep3)
+
+  def planningStep4(self):
+    self.disconnectAll(self.advanceButtonPlan)
+    self.disconnectAll(self.backButtonPlan)
+
+    self.backButtonAction.visible = True
+    self.backButtonPlan.text = 'Plan the Trajectory'
+    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
+
+    self.advanceButtonAction.visible = True
+    self.advanceButtonPlan.text = ''
+    self.advanceButtonPlan.clicked.connect(self.openNextModule)
+    self.definitions.advanceButton = self.advanceButtonPlan
+
+    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep4)
+
+  def openNextModule(self):
+    home = slicer.modules.HomeWidget
+    home.primaryTabBar.setCurrentIndex(home.registrationTabIndex)
+
+    print('we should move to registration now...')
 
   def createSkinSegmentation(self):
     volume = self.logic.getMasterVolume()
@@ -129,37 +299,14 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.logic.setEditorTargets(volume, segmentation, segment)
     self.logic.applySkinSegmentation(
-      thresholdMin=self.thresholdSlider.minimumValue,
-      thresholdMax=self.thresholdSlider.maximumValue,
-      smoothingSize=self.smoothingSlider.value,
+      thresholdMin=self.ui.skinThresholdSlider.minimumValue,
+      thresholdMax=self.ui.skinThresholdSlider.maximumValue,
+      smoothingSize=self.ui.skinSmoothingSlider.value,
     )
     self.logic.endEffect()
 
     # Make results visible in 3D
     segmentation.CreateClosedSurfaceRepresentation()
-
-  def setupStep2(self, widget):
-    layout = widget.layout()
-    layout.addWidget(qt.QLabel("Segment the Target"))
-
-    inside = qt.QPushButton('Paint Inside')
-    inside.clicked.connect(self.paintInside)
-    layout.addWidget(inside)
-
-    outide = qt.QPushButton('Paint Outide')
-    outide.clicked.connect(self.paintOutside)
-    layout.addWidget(outide)
-
-    preview = qt.QPushButton('Preview')
-    preview.clicked.connect(self.previewTarget)
-    layout.addWidget(preview)
-
-    apply = qt.QPushButton('Apply')
-    apply.clicked.connect(self.segmentTarget)
-    layout.addWidget(apply)
-
-    layout.addStretch(1)
-    layout.addWidget(self.createPlanningStepWidget(True, True))
 
   def paintInside(self):
     volume = self.logic.getMasterVolume()
@@ -202,17 +349,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segmentation = self.logic.getSeedSegmentation()
     segmentation.CreateClosedSurfaceRepresentation()
 
-  def setupStep3(self, widget):
-    layout = widget.layout()
-    layout.addWidget(qt.QLabel("Plan the Trajectory"))
-
-    trajectory = qt.QPushButton('Trajectory')
-    trajectory.clicked.connect(self.setTrajectory)
-    layout.addWidget(trajectory)
-
-    layout.addStretch(1)
-    layout.addWidget(self.createPlanningStepWidget(True, False))
-
   def setTrajectory(self):
     self.logic.placeTrajectory()
 
@@ -220,7 +356,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     if tabIndex == self.CurrentPlanningIndex:
       return
 
-    #Update Current Tab
+    # Update Current Tab
     self.CurrentPlanningIndex = tabIndex
 
 
@@ -264,6 +400,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     if nodeID:
       node = slicer.mrmlScene.GetNodeByID(nodeID)
       logging.warning('No master volume node is set. Using volume %s', node.GetName())
+      node.SetName(self.MASTER_VOLUME)
       return node
 
     logging.error('No volume in scene.')
@@ -446,6 +583,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     interaction_node = slicer.mrmlScene.GetNodeByID('vtkMRMLInteractionNodeSingleton')
 
     selection_node.SetActivePlaceNodeID(trajectory.GetID())
+    selection_node.SetActivePlaceNodeClassName(trajectory.GetClassName())
     interaction_node.SetCurrentInteractionMode(interaction_node.Place)
 
 class PlanningTest(ScriptedLoadableModuleTest):

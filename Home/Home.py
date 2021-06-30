@@ -210,8 +210,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
-      self.enter()
-      self.goToFourUpLayout() 
+      self.planningWidget.enter()
 
     if index == self.navigationTabIndex:
       slicer.util.selectModule('Home')
@@ -228,9 +227,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     #Hides other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
 
     #Show current
     self.bottomToolBar.visible = True

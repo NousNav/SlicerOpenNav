@@ -1,10 +1,10 @@
 /*  General styling */
-QWidget{
+QWidget {
     background-color: #2a2a2a;
     color: #B7B7B7 ;
 }
 
-QPushButton{
+QPushButton {
     background-color: #434343; 
     border: 2px #434343; 
     border-radius: 3px; 
@@ -15,16 +15,16 @@ QPushButton{
 }
 
 /*Primary ToolBar */
-QTabBar#PrimaryTabBar::tab{
+QTabBar#PrimaryTabBar::tab {
     height: 30px;
     margin: 0px;
     padding: 0px;
     font: 14px;
 }
 
-QTabBar#PrimaryTabBar::tab:selected{
+QTabBar#PrimaryTabBar::tab:selected {
     background-color: #2a2a2a; 
-    border:none; 
+    border: none; 
     border-top: 4px solid #5ac2c9;
     border-bottom: 2px solid #2a2a2a;
     min-height: 20px; 
@@ -33,9 +33,9 @@ QTabBar#PrimaryTabBar::tab:selected{
     color: #5ac2c9
 } 
 
-QTabBar#PrimaryTabBar::tab:!selected{
+QTabBar#PrimaryTabBar::tab:!selected {
     background-color: #121212; 
-    border:none; 
+    border: none; 
     border-top: 4px solid #121212;
     border-bottom: 2px solid #434343;
     min-height: 20px; 
@@ -43,22 +43,24 @@ QTabBar#PrimaryTabBar::tab:!selected{
     color: #FAFAFA
 }  
 
-QToolBar#PrimaryToolBar{
+QToolBar#PrimaryToolBar {
     background-color: #121212;
     border: none;
     border-bottom: 2px solid #2a2a2a;
     margin: 0px;
 }
 
-QWidget#PrimaryCenteredWidget{
+QWidget#PrimaryCenteredWidget {
     background-color: #121212; 
-    margin 0px; 
+    margin: 0px; 
     padding: 0px; 
     border-bottom: 2px solid #434343;
 }
 
 /* Secondary ToolBar */
-QTabBar#RegistrationTabBar::tab, QTabBar#NavigationTabBar::tab{
+QTabBar#RegistrationTabBar::tab,
+QTabBar#NavigationTabBar::tab,
+QTabBar#PlanningTabBar::tab {
     height: 30px;
     margin: 0px;
     padding: 0px;
@@ -67,15 +69,19 @@ QTabBar#RegistrationTabBar::tab, QTabBar#NavigationTabBar::tab{
     min-width: 200px;
 }
 
-QTabBar#RegistrationTabBar::tab:selected, QTabBar#NavigationTabBar::tab:selected{
+QTabBar#RegistrationTabBar::tab:selected,
+QTabBar#NavigationTabBar::tab:selected,
+QTabBar#PlanningTabBar::tab:selected {
     color: #5ac2c9;     
 } 
 
-QTabBar#RegistrationTabBar::tab:!selected, QTabBar#NavigationTabBar::tab:!selected{
+QTabBar#RegistrationTabBar::tab:!selected,
+QTabBar#NavigationTabBar::tab:!selected,
+QTabBar#PlanningTabBar::tab:!selected {
     color: #B7B7B7;     
 }
 
-QToolBar#SecondaryToolBar{
+QToolBar#SecondaryToolBar {
     background-color: #2a2a2a; 
     margin: 0px; 
     padding: 0px; 
@@ -83,14 +89,14 @@ QToolBar#SecondaryToolBar{
     min-height: 16px;    
 }
 
-QWidget#SecondaryCenteredWidget{
+QWidget#SecondaryCenteredWidget {
     background-color: #2a2a2a; 
     margin 0px; 
     padding: 0px; 
 }
 
 /* Bottom ToolBar */
-QToolBar#BottomToolBar{
+QToolBar#BottomToolBar {
     background-color: #2a2a2a; 
     margin: 0px; 
     padding: 0px; 
@@ -100,7 +106,9 @@ QToolBar#BottomToolBar{
 }
 
 /* Bottom ToolBar */
-QToolBar#NavigationBottomToolBar, QToolBar#RegistrationBottomToolBar{
+QToolBar#NavigationBottomToolBar,
+QToolBar#RegistrationBottomToolBar,
+QToolBar#PlanningBottomToolBar {
     background-color: #434343; 
     margin: 0px; 
     padding: 0px; 
@@ -109,18 +117,23 @@ QToolBar#NavigationBottomToolBar, QToolBar#RegistrationBottomToolBar{
     
 }
 
-QWidget#RegistrationBottomToolBar, QWidget#RegistrationBottomToolbarSpacer, QWidget#NavigationnBottomToolBar, QWidget#NavigationBottomToolbarSpacer{
+QWidget#RegistrationBottomToolBar, QWidget#RegistrationBottomToolbarSpacer,
+QWidget#NavigationnBottomToolBar, QWidget#NavigationBottomToolbarSpacer,
+QWidget#PlanningBottomToolBar, QWidget#PlanningBottomToolbarSpacer {
     background-color: #434343; 
     margin: 0px; 
     padding: 0px; 
     border: none; 
     min-height: 20px;
-    
+
 }
 
 
 /* Bottom ToolBar Buttons*/
-QPushButton#AdvanceButton, QPushButton#RegistrationAdvanceButton, QPushButton#NavigationAdvanceButton{
+QPushButton#AdvanceButton,
+QPushButton#RegistrationAdvanceButton,
+QPushButton#NavigationAdvanceButton,
+QPushButton#PlanningAdvanceButton {
     background-color: #5ac2c9; 
     border: 2px #5ac2c9; 
     border-radius: 3px; 
@@ -133,7 +146,10 @@ QPushButton#AdvanceButton, QPushButton#RegistrationAdvanceButton, QPushButton#Na
     color: #fafafa
 }
 
-QPushButton#AdvanceButton:disabled, QPushButton#RegistrationAdvanceButton:disabled, QPushButton#NavigationAdvanceButton:disabled{
+QPushButton#AdvanceButton:disabled,
+QPushButton#RegistrationAdvanceButton:disabled,
+QPushButton#NavigationAdvanceButton:disabled,
+QPushButton#PlanningAdvanceButton:disabled {
     background-color: #666666; 
     border: 2px #666666; 
     border-radius: 3px; 
@@ -146,7 +162,10 @@ QPushButton#AdvanceButton:disabled, QPushButton#RegistrationAdvanceButton:disabl
     color: #b7b7b7
 }
 
-QPushButton#BackButton, QPushButton#RegistrationBackButton, QPushButton#NavigationBackButton{
+QPushButton#BackButton,
+QPushButton#RegistrationBackButton,
+QPushButton#NavigationBackButton,
+QPushButton#PlanningBackButton {
     background-color: #666666; 
     border: 2px #666666; 
     border-radius: 3px; 
@@ -159,7 +178,7 @@ QPushButton#BackButton, QPushButton#RegistrationBackButton, QPushButton#Navigati
     color: #fafafa
 }
 
-QLabel#NousNavLabel{
+QLabel#NousNavLabel {
     background-color: #121212;
     color: #5ac2c9; 
     border-bottom: 2px solid #434343;
@@ -168,7 +187,7 @@ QLabel#NousNavLabel{
 }
 
 /* QSlider styling for slice viewers */
-QSlider{
+QSlider {
     height: 30px;
 }
 
@@ -193,7 +212,7 @@ QSlider::add-page:horizontal {
 } 
 
 QMainWindow::separator { 
-    width:0px; 
-    height:0px;
+    width: 0px; 
+    height: 0px;
 }
 
