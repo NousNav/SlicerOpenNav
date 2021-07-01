@@ -40,7 +40,7 @@
        <item>
         <widget class="ctkRangeSlider" name="skinThresholdSlider">
          <property name="minimum">
-          <number>0</number>
+          <number>-200</number>
          </property>
          <property name="maximum">
           <number>1000</number>
