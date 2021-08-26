@@ -149,6 +149,16 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       for widget in widgets:
         widget.styleSheet = style
 
+  def exit(self):
+    self.logic.getSkinSegmentation().SetDisplayVisibility(False)
+    self.logic.getSeedSegmentation().SetDisplayVisibility(False)
+    self.logic.getTrajectoryMarkup().SetDisplayVisibility(False)
+    try:
+      landmarks = slicer.util.getNode('LandmarkDefinitions')
+      landmarks.SetDisplayVisibility(False)
+    except:
+      pass
+  
   def enter(self):
     # Hide other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
@@ -294,6 +304,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
 
+    volume.SetName(self.logic.MASTER_VOLUME)
+
     segmentation = self.logic.getSkinSegmentation()
     segment = self.logic.SKIN_SEGMENT
 
@@ -432,7 +444,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       node.CreateDefaultDisplayNodes()
 
       segment = self.getSegment(node, self.SKIN_SEGMENT)
-      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.3)
+      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.5)
       segment.SetColor(0.40, 0.35, 0.35)
 
     return node

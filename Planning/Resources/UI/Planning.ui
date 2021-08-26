@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="PlanningWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="PlanningStep1">
       <layout class="QVBoxLayout" name="verticalLayout_planning1">
@@ -27,6 +27,9 @@
          </property>
          <property name="text">
           <string>Segment the Skin</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -82,6 +85,12 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
         </spacer>
        </item>
       </layout>
@@ -92,11 +101,14 @@
         <widget class="QLabel" name="label">
          <property name="font">
           <font>
-           <pointsize>40</pointsize>
+           <pointsize>35</pointsize>
           </font>
          </property>
          <property name="text">
           <string>Segment the Target</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -132,6 +144,12 @@
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
         </spacer>
        </item>

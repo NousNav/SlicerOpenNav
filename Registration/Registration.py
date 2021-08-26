@@ -119,6 +119,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.cameraTimer.stop()
 
   
+  def exit(self):
+    self.landmarks.showLandmarks = False
+    self.landmarks.updateLandmarksDisplay()
+    # self.goToFourUpLayout()
+    print('hide')
+  
   def enter(self):
 
     
@@ -153,12 +159,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       test.show()
       slicer.app.processEvents()
       test.deleteLater()
-      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath('Head.xml'))
+      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath('MotiveProfile-2021-06-24.xml'))
       test.hide()
 
       if not self.optitrack.isRunning:
         qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
       else:
+        self.advanceButtonReg.enabled = True
+        print('enable advance')
+    else:
         self.advanceButtonReg.enabled = True
 
       
@@ -323,6 +332,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       tipToPointer = slicer.util.getNode('TipToPointer')
       tipToPointer.SetAndObserveTransformNodeID(pointerToHeadFrame.GetID())
       print('Starting pre-record period')
+      self.ui.PivotCalibrationButton.text = 'Pivot calibration in progress'
       qt.QTimer.singleShot(5000, self.startPivotCalibration)
     except:
       pass
@@ -339,6 +349,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
+    self.ui.PivotCalibrationButton.text = 'Pivot calibration complete'
+    self.pivotLogic.FlipShaftDirection()
     self.pivotLogic.ComputePivotCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
     tipToPointer.SetMatrixTransformToParent(outputMatrix)
@@ -350,7 +362,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def setupPivotCalibration(self):
     #create output transform
-    tipToPointer = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLinearTransformNode', 'TipToPointer')
+    try:
+      tipToPointer = slicer.util.getNode('TipToPointer')
+    except:
+      tipToPointer = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLinearTransformNode', 'TipToPointer')
+    properties = {}
+    properties['show'] = False
+    succes, self.needleModel = slicer.util.loadModel(self.resourcePath('Data/NeedleModel.vtk'), properties)
+    self.needleModel.GetDisplayNode().SetVisibility(False)
+    self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
 
     
   
@@ -362,6 +382,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = True
 
+    self.landmarks.advanceButtonReg = self.advanceButtonReg
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
@@ -370,7 +391,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     #set the button labels
     self.backButtonReg.text = 'Recalibrate'
-    self.updateAdvanceButton()
+    self.landmarks.updateAdvanceButton()
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -380,24 +401,93 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.ui.CollectButton)
     self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
     self.ui.CollectButton.clicked.connect(self.onCollectButton)
-    # self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
+    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep8())
 
-    self.advanceButtonReg.enabled = False
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
     self.landmarks.startNextLandmark()
   
-  def updateAdvanceButton(self):
+  def registrationStep8(self):
+    #set the layout and display an image
+    try:
+      masterNode = slicer.modules.PlanningWidget.logic.getMasterVolume()
+    except:
+      masterNode = None
+      print('No node')
+    self.goToFourUpLayout(masterNode)
     
-    landmarksRemaining = self.landmarks.landmarksNeeded - self.landmarks.landmarksCollected
-    if landmarksRemaining > 1:
-      self.advanceButtonReg.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks' 
-    elif landmarksRemaining == 1:
-      self.advanceButtonReg.text = 'Touch 1 more landmark'
-    else:
-      self.advanceButtonReg.text = 'Press to continue'
-      self.advanceButtonReg.enabled = True
+    
+    self.AlignmentSideWidget.visible = False
+    self.LandmarkSideWidget.visible = False
+
+    self.landmarks.showLandmarks = False
+    self.landmarks.updateLandmarksDisplay()
+    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
+    controller.resetFocalPoint()
+    
+
+    self.fidicialOnlyRegistration()
+    
+    #set the button labels
+    self.backButtonReg.text = 'Start over'
+    self.advanceButtonReg.text = 'Accept'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    #set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.disconnectAll(self.ui.CollectButton)
+    self.backButtonReg.clicked.connect(lambda: self.registrationStep6())
+    # self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())
+
+    self.advanceButtonReg.enabled = False
+
+    #set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep8)
+  
+  
+  def fidicialOnlyRegistration(self):
+
+    fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
+    toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
+    defs = slicer.modules.PlanningWidget.definitions
+    for name, position in defs.positions.items():
+      toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
+      pos = self.landmarks.getTrackerPosition(name)
+      fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
+    
+    # Create transform node to hold the computed registration result
+    try:
+      self.transformNode = slicer.util.getNode('Registration Transform')
+    except:
+      self.transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLinearTransformNode")
+      self.transformNode.SetName("Registration Transform")
+
+    #Create your fiducial wizard node and set the input parameters
+    fiducialRegNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')
+
+    fiducialRegNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
+    fiducialRegNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
+    fiducialRegNode.SetOutputTransformNodeId(self.transformNode.GetID())
+    fiducialRegNode.SetRegistrationModeToSimilarity()
+
+    fromMarkupsNode.SetAndObserveTransformNodeID(self.transformNode.GetID())
+    self.needleModel.GetDisplayNode().SetVisibility(True) 
+    self.needleModel.GetDisplayNode().SetVisibility2D(True)  
+    self.needleModel.GetDisplayNode().SetSliceIntersectionThickness(6)
+    pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+    pointerToHeadFrame.SetAndObserveTransformNodeID(self.transformNode.GetID())
+
+    slicer.mrmlScene.RemoveNode(fromMarkupsNode)
+    slicer.mrmlScene.RemoveNode(toMarkupsNode)
+
+    slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.getSkinSegmentation().GetDisplayNode().SetVisibility2D(False)
+    
+  
+  
   
   def onCollectButton(self):
     print('Attempt collection')
@@ -410,37 +500,39 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       transform.TransformPoint(samplePoint, outputPoint)
       # print(outputPoint)
       self.landmarks.collectLandmarkPosition(outputPoint)
-      self.updateAdvanceButton()
     except:
       print('Could not get tip node')
     
   def setupToolTables(self):
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
-    node.AddFiducial(0,0,0)
-    node2 = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Head')
-    node2.AddFiducial(0,0,0)
+    node.AddFiducial(0,0,0, 'Pointer')
+    node.GetDisplayNode().SetGlyphScale(13)
+    node2 = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Reference Frame')
+    node2.AddFiducial(0,0,0, 'Reference Frame')
+    node2.GetDisplayNode().SetGlyphScale(13)
     
     self.tools.addTool('PointerToTracker', 'Pointer', node)
     self.optitrack.setTools(['PointerToHeadFrame'])
     self.optitrack.setTools(['PointerToTracker'])
 
-    self.tools.addTool('HeadFrameToTracker', 'Head', node2)
+    self.tools.addTool('HeadFrameToTracker', 'Reference Frame', node2)
     self.optitrack.setTools(['HeadFrameToTracker'])
     self.tools.optitrack = self.optitrack
     
   
   def setupLandmarkTables(self):
     self.landmarks = Landmarks(self.LandmarkSideWidgetui.LandmarkTableWidget, self.moduleName)
-    self.landmarks.addLandmark('Inion', [-1.912, 112.455, -151.242])
-    self.landmarks.addLandmark('Left tragus', [-73.714, 189.367, -162.215])
+    # self.landmarks.addLandmark('Inion', [-1.912, 112.455, -151.242])
+    # self.landmarks.addLandmark('Left tragus', [-73.714, 189.367, -162.215])
     self.landmarks.addLandmark('Left outer canthus', [-46.945, 256.678, -150.139])
-    self.landmarks.addLandmark('Left inner canthus', [-15.406, 265.77, -153.487])
-    self.landmarks.addLandmark('Nasion',[-1.990, 281.283, -142.598])
+    # self.landmarks.addLandmark('Left inner canthus', [-15.406, 265.77, -153.487])
+    # self.landmarks.addLandmark('Nasion',[-1.990, 281.283, -142.598])
     self.landmarks.addLandmark('Acanthion', [-2.846, 278.845, -193.982])
-    self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
+    # self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
     self.landmarks.addLandmark('Right outer canthus', [46.786, 252.705, -149.633])
-    self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])      
+    # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])    
+    self.landmarks.advanceButtonReg = self.advanceButtonReg  
   
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect() 
@@ -455,7 +547,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
 
   def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
     modulePanel.visible = visible
 
   def toggleSidePanelVisibility(self, visible):
@@ -486,6 +578,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.pictures[image] = imageNode
 
     
+  
+  def goToFourUpLayout(self, node=None):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
+    self.toggleAllSliceSlidersVisiblility(True)
+    self.toggleMainPanelVisibility(True)
+    self.toggleSidePanelVisibility(False)
+    self.setSliceViewBackgroundColor('#000000')
+    slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
   
   def goToRegistrationCameraViewLayout(self):
     

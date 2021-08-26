@@ -201,6 +201,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.registrationWidget.exit()
+    
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
@@ -218,6 +220,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.navigationWidget.enter()
 
     if index == self.registrationTabIndex:
+      self.planningWidget.exit()
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.registrationWidget.enter()

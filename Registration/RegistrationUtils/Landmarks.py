@@ -18,10 +18,7 @@ class Landmark:
     self.modelPosition = modelPos
     self.imagePosition = None
     self.trackerPosition = None
-    
-
-    
-
+    self.ignore = False
 class Landmarks:
   def __init__(self, tableWidget, moduleName):
     self.landmarks = []
@@ -37,6 +34,7 @@ class Landmarks:
     self.landmarksNeeded = 3
     self.landmarksCollected = 0
     self.landmarksFinished = False
+    self.advanceButtonReg = None
 
     # TODO: improve method of looking up icons
     self.notStartedIcon = qt.QIcon(self.resourcePath('Icons/NotStarted.svg'))
@@ -57,6 +55,19 @@ class Landmarks:
     self.showLandmarks = False
 
  
+  
+  def updateAdvanceButton(self):
+    
+    landmarksRemaining = self.landmarksNeeded - self.landmarksCollected
+    self.advanceButtonReg.enabled = False
+    if landmarksRemaining > 1:
+      self.advanceButtonReg.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks' 
+    elif landmarksRemaining == 1:
+      self.advanceButtonReg.text = 'Touch 1 more landmark'
+    else:
+      self.advanceButtonReg.text = 'Press to continue'
+      self.advanceButtonReg.enabled = True
+  
   def resourcePath(self, filename):
     scriptedModulesPath = os.path.dirname(slicer.util.modulePath(self.moduleName))
     return os.path.join(scriptedModulesPath, 'Resources', filename)
@@ -97,6 +108,8 @@ class Landmarks:
     self.landmarksDisplay.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
+    if self.showLandmarks:
+      self.updateAdvanceButton()
       
 
   def updateLandmarkDisplay(self, landmark):
@@ -150,6 +163,12 @@ class Landmarks:
       self.currentLandmark.trackerPosition = pos
       self.currentLandmark = None
       self.startNextLandmark()
+      
+  
+  def getTrackerPosition(self, name):
+    for landmark in self.landmarks:
+      if landmark.name == name:
+        return landmark.trackerPosition
   
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:

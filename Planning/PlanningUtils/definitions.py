@@ -10,15 +10,15 @@ class LandmarkDefinitions:
   """Wrap a vtkMRMLMarkupsFiducialNode, keeping track of which points are defined."""
 
   LANDMARK_NAMES = [
-    'Inion',
-    'Left tragus',
+    # 'Inion',
+    # 'Left tragus',
     'Left outer canthus',
-    'Left inner canthus',
-    'Nasion',
+    # 'Left inner canthus',
+    # 'Nasion',
     'Acanthion',
-    'Right inner canthus',
+    # 'Right inner canthus',
     'Right outer canthus',
-    'Right tragus',
+    # 'Right tragus',
   ]
   LANDMARKS_NEEDED = 3
 

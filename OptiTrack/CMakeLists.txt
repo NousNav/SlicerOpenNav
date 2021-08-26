@@ -16,6 +16,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Reference.xml
   Resources/Head.xml
   Resources/PLUSHead.xml.in
+  Resources/MotiveProfile-2021-06-24.xml
   )
 
 #-----------------------------------------------------------------------------
