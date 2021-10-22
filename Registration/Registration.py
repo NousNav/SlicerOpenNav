@@ -159,7 +159,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       test.show()
       slicer.app.processEvents()
       test.deleteLater()
-      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath('MotiveProfile-2021-06-24.xml'))
+      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath('MotiveProfile-2021-10-22.xml'))
       test.hide()
 
       if not self.optitrack.isRunning:
