@@ -154,23 +154,37 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def startOptiTrack(self):
     if not self.optitrack.isRunning:
-      test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
-      test.setStandardButtons(0)
-      test.show()
-      slicer.app.processEvents()
-      test.deleteLater()
-      self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath('MotiveProfile-2021-10-22.xml'))
-      test.hide()
-
-      if not self.optitrack.isRunning:
-        qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
-      else:
-        self.advanceButtonReg.enabled = True
-        print('enable advance')
+      #launch selector
+      self.hardwareSelector = slicer.util.loadUI(self.resourcePath('UI/HardwareDialog.ui'))
+      self.selectorUI = slicer.util.childWidgetVariables(self.hardwareSelector)
+      self.hardwareSelector.accepted.connect(self.launchOptiTrack)
+      self.hardwareSelector.open()      
     else:
         self.advanceButtonReg.enabled = True
 
+  def launchOptiTrack(self):
+
+    filename =  ''
+
+    if self.selectorUI.KitwareRadioButton.checked:
+      filename = 'MotiveProfile-2021-10-22.xml'
+
+    if self.selectorUI.BWHRadioButton.checked:
+      filename = 'NousNav-BWH-Hardware.xml'
       
+    test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
+    test.setStandardButtons(0)
+    test.show()
+    slicer.app.processEvents()
+    test.deleteLater()
+    self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath(filename))
+    test.hide()
+
+    if not self.optitrack.isRunning:
+      qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
+    else:
+      self.advanceButtonReg.enabled = True
+      print('enable advance')
   
   def onTabChanged(self, index):
         
