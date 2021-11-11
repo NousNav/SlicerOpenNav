@@ -246,7 +246,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Segment the Target'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentTargetTabIndex))
-
+    self.logic.getSkinSegmentation().SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep1)
 
   def planningStep2(self):
@@ -260,7 +260,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Plan the Trajectory'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.trajectoryTabIndex))
-
+    self.logic.getSeedSegmentation().SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep2)
 
   def planningStep3(self):
@@ -274,7 +274,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Define Landmarks'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.landmarksTabIndex))
-
+    self.logic.getTrajectoryMarkup().SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep3)
 
   def planningStep4(self):
@@ -289,7 +289,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonPlan.text = ''
     self.advanceButtonPlan.clicked.connect(self.openNextModule)
     self.definitions.advanceButton = self.advanceButtonPlan
-
+    try:
+      landmarks = slicer.util.getNode('LandmarkDefinitions')
+      landmarks.SetDisplayVisibility(True)
+    except:
+      pass
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep4)
 
   def openNextModule(self):

@@ -171,7 +171,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if self.selectorUI.BWHRadioButton.checked:
       filename = 'NousNav-BWH-Hardware.xml'
-      
+
     test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
     test.setStandardButtons(0)
     test.show()
@@ -454,15 +454,24 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.CollectButton)
     self.backButtonReg.clicked.connect(lambda: self.registrationStep6())
-    # self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())
+    self.advanceButtonReg.clicked.connect(lambda: self.openNextModule())
 
-    self.advanceButtonReg.enabled = False
+    self.advanceButtonReg.enabled = True
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep8)
   
+  def openNextModule(self):
+    home = slicer.modules.HomeWidget
+    home.primaryTabBar.setCurrentIndex(home.navigationTabIndex)
   
   def fidicialOnlyRegistration(self):
+
+    try:
+      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+    except:
+      print('Nodes missing, tracker not connected!!!')
+      pointerToHeadFrame = None
 
     fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
     toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
@@ -491,8 +500,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.GetDisplayNode().SetVisibility(True) 
     self.needleModel.GetDisplayNode().SetVisibility2D(True)  
     self.needleModel.GetDisplayNode().SetSliceIntersectionThickness(6)
-    pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-    pointerToHeadFrame.SetAndObserveTransformNodeID(self.transformNode.GetID())
+    if pointerToHeadFrame:
+      pointerToHeadFrame.SetAndObserveTransformNodeID(self.transformNode.GetID())
 
     slicer.mrmlScene.RemoveNode(fromMarkupsNode)
     slicer.mrmlScene.RemoveNode(toMarkupsNode)

@@ -108,6 +108,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       print('No node')
 
     slicer.modules.PlanningWidget.logic.getSeedSegmentation().SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
     slicer.modules.PlanningWidget.logic.getTrajectoryMarkup().SetDisplayVisibility(True)
 
     

@@ -229,10 +229,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.hideSlicerUI()
 
   def onPrimaryTabChanged(self, index):
-
+    print('Primary tab changed')
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     self.registrationWidget.exit()
+    self.planningWidget.exit()
     
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
