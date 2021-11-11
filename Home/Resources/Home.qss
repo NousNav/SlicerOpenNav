@@ -14,6 +14,11 @@ QPushButton {
     padding-right: 4px;
 }
 
+QPushButton:pressed {
+    background-color: #343434; 
+    
+}
+
 /*Primary ToolBar */
 QTabBar#PrimaryTabBar::tab {
     height: 30px;
@@ -162,6 +167,14 @@ QPushButton#PlanningAdvanceButton:disabled {
     color: #b7b7b7
 }
 
+QPushButton#AdvanceButton:pressed,
+QPushButton#RegistrationAdvanceButton:pressed,
+QPushButton#NavigationAdvanceButton:pressed,
+QPushButton#PlanningAdvanceButton:pressed {
+    background-color: #316d71; 
+    
+}
+
 QPushButton#BackButton,
 QPushButton#RegistrationBackButton,
 QPushButton#NavigationBackButton,
@@ -176,6 +189,14 @@ QPushButton#PlanningBackButton {
     margin-top: 10px;
     margin-bottom: 10px;
     color: #fafafa
+}
+
+QPushButton#BackButton:pressed,
+QPushButton#RegistrationBackButton:pressed,
+QPushButton#NavigationBackButton:pressed,
+QPushButton#PlanningBackButton:pressed {
+    background-color: #343434; 
+    
 }
 
 QLabel#NousNavLabel {

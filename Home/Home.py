@@ -78,6 +78,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
 
+    self.advanceButton.clicked.connect(lambda: self.primaryTabBar.setCurrentIndex(self.planningTabIndex))
+    self.backButton.clicked.connect(lambda: slicer.util.selectModule('Home'))
+
     self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
     self.onPrimaryTabChanged(self.patientsTabIndex)
 
@@ -87,11 +90,39 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
     # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
+    #Make sure DICOM widget exists
+    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
+
     #Begin listening for new volumes
     self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent,
             self.onNodeAdded)
 
+  def setupDICOMBrowser(self):
+    #Make sure that the DICOM widget exists
+    slicer.modules.dicom.widgetRepresentation()
+    self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
+    self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
+    self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
     
+    #For some reason, the browser is instantiated as not hidden. Close
+    #so that the 'isHidden' check works as required
+    slicer.modules.DICOMWidget.browserWidget.close() 
+    slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
+
+  
+  def onDICOMImport(self):
+    slicer.modules.DICOMWidget.browserWidget.dicomBrowser.openImportDialog()
+    self.ui.DICOMToggleButton.checked = qt.Qt.Checked
+  
+  def resetDICOMToggle(self):
+    self.ui.DICOMToggleButton.checked = qt.Qt.Unchecked
+    slicer.util.selectModule('Home')
+  
+  def toggleDICOMBrowser(self, show):
+    if show:
+      slicer.modules.DICOMWidget.onOpenBrowserWidget()
+    else:
+      slicer.modules.DICOMWidget.browserWidget.close()
   
   
   def applyApplicationStyle(self):
@@ -174,17 +205,17 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.bottomToolBar.setObjectName("BottomToolBar")
     self.bottomToolBar.movable = False
     slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    backButton = qt.QPushButton("Back")
-    backButton.name = 'BackButton'
-    self.bottomToolBar.addWidget(backButton)
+    self.backButton = qt.QPushButton("Back")
+    self.backButton.name = 'BackButton'
+    self.bottomToolBar.addWidget(self.backButton)
     spacer = qt.QWidget()
     policy = spacer.sizePolicy
     policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
     spacer.setSizePolicy(policy)
     self.bottomToolBar.addWidget(spacer)
-    advanceButton = qt.QPushButton("Advance")
-    advanceButton.name = 'AdvanceButton'
-    self.bottomToolBar.addWidget(advanceButton)
+    self.advanceButton = qt.QPushButton("Go To Planning")
+    self.advanceButton.name = 'AdvanceButton'
+    self.bottomToolBar.addWidget(self.advanceButton)
 
     #Side Widget
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
