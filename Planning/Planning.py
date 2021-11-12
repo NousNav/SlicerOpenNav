@@ -570,11 +570,18 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     effect = self.editor_widget.activeEffect()
     effect.self().onApply()
 
+    # Make sure both segments are visible
+    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+
     self.editor_widget.setActiveEffectByName("Smoothing")
     effect = self.editor_widget.activeEffect()
     effect.setParameter('SmoothingMethod', 'MEDIAN')
     effect.setParameter('KernelSizeMm', smoothingSize)
     effect.self().onApply()
+
+    # Rehide outside segment
+    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
   def beginPaint(self):
     """ Begin a paint effect. Be sure to use setEditorTargets beforehand, so
