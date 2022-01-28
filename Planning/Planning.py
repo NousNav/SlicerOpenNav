@@ -16,7 +16,7 @@ class Planning(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav Planning"
     self.parent.categories = [""]
-    self.parent.dependencies = ["VolumeRendering", "NNSegmentation", "SegmentEditor"]
+    self.parent.dependencies = ["VolumeRendering", "SegmentEditor"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the NousNav application
