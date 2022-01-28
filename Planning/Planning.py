@@ -114,7 +114,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.CurrentPlanningIndex = -1
     self.ui.PlanningWidget.currentChanged.connect(self.onPlanningChanged)
 
-    self.ui.skinThresholdSlider.setValues(30, 700)
+    self.ui.skinThresholdSlider.setValue(30)
     self.ui.skinSmoothingSlider.setValue(3)
     self.ui.skinApply.clicked.connect(self.createSkinSegmentation)
 
@@ -179,6 +179,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
     self.onTabChanged(self.segmentSkinTabIndex)
+
+    # Set threshold slider extremes and default
+    volumeDisplay = self.logic.getMasterVolume().GetDisplayNode()
+    min = volumeDisplay.GetWindowLevelMin()
+    max = volumeDisplay.GetWindowLevelMax()
+    window = volumeDisplay.GetWindow()
+    self.ui.skinThresholdSlider.setMinimum( min - window )
+    self.ui.skinThresholdSlider.setMaximum( max + window )
+    self.ui.skinThresholdSlider.setValue( min + window / 10 )
 
   def onTabChanged(self, index):
     self.definitions.advanceButton = None
@@ -286,9 +295,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SKIN_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    #Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
-      thresholdMin=self.ui.skinThresholdSlider.minimumValue,
-      thresholdMax=self.ui.skinThresholdSlider.maximumValue,
+      thresholdMin=self.ui.skinThresholdSlider.value,
+      thresholdMax=self.logic.getMasterVolume().GetImageData().GetScalarRange()[1],
       smoothingSize=self.ui.skinSmoothingSlider.value,
     )
     self.logic.endEffect()
@@ -482,7 +492,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """ Apply skin segmentation effects. Be sure to use setEditorTargets
      beforehand, so the effect is applied correctly.
 
-    Effects: Threshold, remove islands, remove voids, smoothing
+    Effects: Threshold, close morphologically, remove islands, remove voids, smoothing
     """
     # Thresholding
     self.editor_widget.setActiveEffectByName("Threshold")
@@ -496,6 +506,13 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     self.editor_widget.setActiveEffectByName("Islands")
     effect = self.editor_widget.activeEffect()
     effect.setParameterDefault("Operation", "KEEP_LARGEST_ISLAND")
+    effect.self().onApply()
+
+    # Morphological closure
+    self.editor_widget.setActiveEffectByName("Smoothing")
+    effect = self.editor_widget.activeEffect()
+    effect.setParameter('SmoothingMethod', 'CLOSING')
+    effect.setParameter('KernelSizeMm', 5)
     effect.self().onApply()
 
     # Remove voids

@@ -41,7 +41,7 @@
         </widget>
        </item>
        <item>
-        <widget class="ctkRangeSlider" name="skinThresholdSlider">
+        <widget class="QSlider" name="skinThresholdSlider">
          <property name="minimum">
           <number>-200</number>
          </property>

@@ -357,6 +357,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
     node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
+
+    displayNode = node.GetDisplayNode()
+    range = node.GetImageData().GetScalarRange()
+    if range[1] - range[0] < 4000:
+      displayNode.SetAutoWindowLevel(True)
+    else:
+      displayNode.SetAutoWindowLevel(False)
+      displayNode.SetLevel(50)
+      displayNode.SetWindow(100)
     self.setup3DView()
     self.setupSliceViewers()
 
