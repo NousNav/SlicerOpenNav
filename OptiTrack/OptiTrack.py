@@ -208,9 +208,6 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
       pass
   
   def start(self, plusLauncherPath, plusConfigTemplatePath, plusDataPath):
-    """
-    Run the actual algorithm
-    """
     import time
 
     self.tempDirectory = self.createTempDirectory()
@@ -233,15 +230,13 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         print('Server failed to launch:')        
         self.shutdown()
         output = self.p.stdout.read()
-        output = output.decode("utf-8")
+        output = output.decode("utf-8", 'replace')
         print(output)
         return
       print('PLUS Server launched')
       self.checkTools()
     else:
       self.shutdown()
-    
-
 
 
 class OptiTrackTest(ScriptedLoadableModuleTest):
