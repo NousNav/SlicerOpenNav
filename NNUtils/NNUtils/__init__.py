@@ -79,3 +79,7 @@ def setSliceViewsPosition(pos):
   for sliceID in ['Yellow', 'Green', 'Red']:
     sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
     sliceNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])
+
+def centerCam():
+  controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
+  controller.resetFocalPoint()

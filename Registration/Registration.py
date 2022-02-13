@@ -292,11 +292,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.cameraTimer.timeout.connect(self.tools.checkTools)
     self.cameraTimer.start(100)
 
-    def centerCam():
-      controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-      controller.resetFocalPoint()
-
-    qt.QTimer.singleShot(1000, lambda: centerCam())
+    qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
 
     
 
@@ -399,9 +395,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.advanceButtonReg = self.advanceButtonReg
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.resetFocalPoint()
-    
+    NNUtils.centerCam()
 
     #set the button labels
     self.backButtonReg.text = 'Recalibrate'
@@ -437,9 +431,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.resetFocalPoint()
-    
+    NNUtils.centerCam()
 
     self.fidicialOnlyRegistration()
     

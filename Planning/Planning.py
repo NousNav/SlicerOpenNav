@@ -324,6 +324,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Make results visible in 3D
     segmentation.CreateClosedSurfaceRepresentation()
 
+    NNUtils.centerCam()
+
   def paintInside(self):
     volume = self.logic.getMasterVolume()
     if not volume:
