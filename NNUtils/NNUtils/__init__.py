@@ -1,6 +1,8 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+from .parameter_node import parameterProperty, nodeReferenceProperty
+
 
 def getModality(node):
   shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
