@@ -2,7 +2,7 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
 import NNUtils
-import RegistrationUtils.Landmarks as Landmarks
+from LandmarkManager import Landmarks
 import RegistrationUtils.Tools as Tools
 
 

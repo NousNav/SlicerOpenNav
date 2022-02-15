@@ -4,8 +4,6 @@ set(MODULE_NAME Planning)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
-  ${MODULE_NAME}Utils/__init__.py
-  ${MODULE_NAME}Utils/definitions.py
   )
 
 set(MODULE_PYTHON_RESOURCES

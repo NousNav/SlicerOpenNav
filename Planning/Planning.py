@@ -4,7 +4,7 @@ import slicer.modules
 import logging
 import NNUtils
 
-from PlanningUtils import LandmarkDefinitions
+from LandmarkManager import PlanningLandmarkTableManager, LandmarkManagerLogic
 
 
 class Planning(ScriptedLoadableModule):
@@ -128,9 +128,14 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     header = self.ui.defineLandmarkTableWidget.horizontalHeader()
     header.setSectionResizeMode(header.Stretch)
 
-    self.definitions = LandmarkDefinitions(
+    self.landmarkLogic = LandmarkManagerLogic()
+    self.tableManager = PlanningLandmarkTableManager(
+      self.landmarkLogic,
       self.ui.defineLandmarkTableWidget,
-      self.moduleName,
+      {
+        'NotStarted': qt.QIcon(self.resourcePath('Icons/NotStarted.svg')),
+        'Done': qt.QIcon(self.resourcePath('Icons/Done.svg')),
+      }
     )
 
   def applyApplicationStyle(self):
@@ -145,12 +150,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
         widget.styleSheet = style
 
   def exit(self):
-    self.logic.getSkinSegmentation().SetDisplayVisibility(False)
-    self.logic.getSeedSegmentation().SetDisplayVisibility(False)
-    self.logic.getTrajectoryMarkup().SetDisplayVisibility(False)
+    self.logic.skin_segmentation.SetDisplayVisibility(False)
+    self.logic.seed_segmentation.SetDisplayVisibility(False)
+    self.logic.trajectory_markup.SetDisplayVisibility(False)
     try:
-      landmarks = slicer.util.getNode('LandmarkDefinitions')
-      landmarks.SetDisplayVisibility(False)
+      self.landmarkLogic.landmarks.SetDisplayVisibility(False)
     except:
       pass
 
@@ -163,7 +167,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
 
     # set slice viewer background
-    volume = self.logic.getMasterVolume()
+    volume = self.logic.master_volume
     slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
     NNUtils.setSliceViewBackgroundColor('#000000')
     self.goToFourUpLayout()
@@ -181,7 +185,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.onTabChanged(self.segmentSkinTabIndex)
 
     # Set threshold slider extremes and default
-    volumeDisplay = self.logic.getMasterVolume().GetDisplayNode()
+    volumeDisplay = self.logic.master_volume.GetDisplayNode()
     min = volumeDisplay.GetWindowLevelMin()
     max = volumeDisplay.GetWindowLevelMax()
     window = volumeDisplay.GetWindow()
@@ -189,8 +193,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.skinThresholdSlider.setMaximum( max + window )
     self.ui.skinThresholdSlider.setValue( min + window / 10 )
 
+    self.landmarkLogic.landmarks.SetDisplayVisibility(True)
+
   def onTabChanged(self, index):
-    self.definitions.advanceButton = None
+    self.tableManager.advanceButton = None
 
     if index == self.segmentSkinTabIndex:
       self.planningStep1()
@@ -227,7 +233,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Segment the Target'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentTargetTabIndex))
-    self.logic.getSkinSegmentation().SetDisplayVisibility(True)
+    self.logic.skin_segmentation.SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep1)
 
   def planningStep2(self):
@@ -241,7 +247,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Plan the Trajectory'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.trajectoryTabIndex))
-    self.logic.getSeedSegmentation().SetDisplayVisibility(True)
+    self.logic.seed_segmentation.SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep2)
 
   def planningStep3(self):
@@ -255,7 +261,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Define Landmarks'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.landmarksTabIndex))
-    self.logic.getTrajectoryMarkup().SetDisplayVisibility(True)
+    self.logic.trajectory_markup.SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep3)
 
   def planningStep4(self):
@@ -269,7 +275,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = ''
     self.advanceButtonPlan.clicked.connect(self.openNextModule)
-    self.definitions.advanceButton = self.advanceButtonPlan
+    self.tableManager.advanceButton = self.advanceButtonPlan
     try:
       landmarks = slicer.util.getNode('LandmarkDefinitions')
       landmarks.SetDisplayVisibility(True)
@@ -284,21 +290,19 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     print('we should move to registration now...')
 
   def createSkinSegmentation(self):
-    volume = self.logic.getMasterVolume()
+    volume = self.logic.master_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
 
-    volume.SetName(self.logic.MASTER_VOLUME)
-
-    segmentation = self.logic.getSkinSegmentation()
+    segmentation = self.logic.skin_segmentation
     segment = self.logic.SKIN_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
     #Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
       thresholdMin=self.ui.skinThresholdSlider.value,
-      thresholdMax=self.logic.getMasterVolume().GetImageData().GetScalarRange()[1],
+      thresholdMax=self.logic.master_volume.GetImageData().GetScalarRange()[1],
       smoothingSize=self.ui.skinSmoothingSlider.value,
     )
     self.logic.endEffect()
@@ -309,24 +313,24 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
   def paintInside(self):
-    volume = self.logic.getMasterVolume()
+    volume = self.logic.master_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
 
-    segmentation = self.logic.getSeedSegmentation()
+    segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
     self.logic.beginPaint()
 
   def paintOutside(self):
-    volume = self.logic.getMasterVolume()
+    volume = self.logic.master_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
 
-    segmentation = self.logic.getSeedSegmentation()
+    segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
@@ -334,11 +338,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def previewTarget(self):
     self.logic.endEffect()
-    volume = self.logic.getMasterVolume()
+    volume = self.logic.master_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
-    segmentation = self.logic.getSeedSegmentation()
+    segmentation = self.logic.seed_segmentation
     self.logic.setEditorTargets(volume, segmentation)
     self.logic.previewTargetSegmentation()
 
@@ -346,7 +350,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.applyTargetSegmentation()
     self.logic.endEffect()
 
-    segmentation = self.logic.getSeedSegmentation()
+    segmentation = self.logic.seed_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
   def setTrajectory(self):
@@ -359,6 +363,58 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Update Current Tab
     self.CurrentPlanningIndex = tabIndex
 
+def default_master_volume():
+  node_id = NNUtils.getActiveVolume()
+  node = slicer.mrmlScene.GetNodeByID(node_id)
+  logging.warning("No master volume is set. Using node %r", node)
+  return node
+
+def default_skin_segmentation():
+  node = slicer.mrmlScene.AddNewNodeByClass(
+    "vtkMRMLSegmentationNode",
+    "NN_SKIN_SEGMENTATION",
+  )
+  node.CreateDefaultDisplayNodes()
+  segmentation = node.GetSegmentation()
+  skin_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+    "NN_SKIN",
+    "NN_SKIN",
+    [0.40, 0.35, 0.35],
+  ))
+  node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 0.5)
+  return node
+
+def default_seed_segmentation():
+  node = slicer.mrmlScene.AddNewNodeByClass(
+    "vtkMRMLSegmentationNode",
+    "NN_SEED_SEGMENTATION",
+  )
+  node.CreateDefaultDisplayNodes()
+  segmentation = node.GetSegmentation()
+  inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+    "NN_INSIDE",
+    "NN_INSIDE",
+    [0.10, 0.90, 0.10],
+  ))
+  outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+    "NN_OUTSIDE",
+    "NN_OUTSIDE",
+    [0.90, 0.10, 0.10],
+  ))
+  return node
+
+def default_trajectory_markup():
+  node = slicer.mrmlScene.AddNewNodeByClass(
+    'vtkMRMLMarkupsLineNode',
+    'NN_TRAJECTORY',
+  )
+  node.CreateDefaultDisplayNodes()
+  display = node.GetDisplayNode()
+  display.SetPropertiesLabelVisibility(False)
+  display.SetLineDiameter(3)  # mm
+  display.SetCurveLineSizeMode(display.UseLineDiameter)
+  return node
+
 
 class PlanningLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
@@ -370,16 +426,20 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
+  master_volume = NNUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
+  skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", factory=default_skin_segmentation)
+  seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", factory=default_seed_segmentation)
+  trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", factory=default_trajectory_markup)
+
+  current_step = NNUtils.parameterProperty("CURRENT_TAB")
+
   def __init__(self):
-    self.MASTER_VOLUME = 'NN_Master_Volume'
-    self.SKIN_SEGMENTATION = 'NN_Skin_Segmentation'
-    self.SKIN_SEGMENT = 'NN_Skin'
+    super().__init__()
 
-    self.SEED_SEGMENTATION = 'NN_Seed_Segmentation'
-    self.SEED_INSIDE_SEGMENT = 'NN_Inside'
-    self.SEED_OUTSIDE_SEGMENT = 'NN_Outside'
+    self.SKIN_SEGMENT = 'NN_SKIN'
 
-    self.TRAJECTORY_MARKUP = 'NN_Trajectory'
+    self.SEED_INSIDE_SEGMENT = 'NN_INSIDE'
+    self.SEED_OUTSIDE_SEGMENT = 'NN_OUTSIDE'
 
     self.editor_widget = slicer.qMRMLSegmentEditorWidget()
     self.editor_widget.setMRMLScene(slicer.mrmlScene)
@@ -387,88 +447,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
 
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
-
-  def getMasterVolume(self):
-    """Get the master volume node, with name PlanningLogic.MASTER_VOLUME.
-    If none exists, use the first volume node in the scene.
-    """
-    node = slicer.mrmlScene.GetFirstNodeByName(self.MASTER_VOLUME)
-    if node:
-      return node
-
-    nodeID = NNUtils.getActiveVolume()
-    if nodeID:
-      node = slicer.mrmlScene.GetNodeByID(nodeID)
-      logging.warning('No master volume node is set. Using volume %s', node.GetName())
-      node.SetName(self.MASTER_VOLUME)
-      return node
-
-    logging.error('No volume in scene.')
-    return None
-
-  def getSegment(self, segmentation, segmentID):
-    """Get a segment from a segmentation. If none exists, create one and return it."""
-    segment = segmentation.GetSegmentation().GetSegment(segmentID)
-    if segment:
-      return segment
-
-    logging.info('Creating new segment %s', segmentID)
-
-    segmentation.GetSegmentation().AddEmptySegment(segmentID)
-    segment = segmentation.GetSegmentation().GetSegment(segmentID)
-    return segment
-
-  def getSkinSegmentation(self):
-    """Get the skin segmentation node, with name PlanningLogic.SKIN_SEGMENTATION.
-    If none exists, create one and return it.
-    """
-    # get or create the node
-    node = slicer.mrmlScene.GetFirstNodeByName(self.SKIN_SEGMENTATION)
-    if not node:
-      logging.info('Creating new segmentation node')
-      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
-      node.SetName(self.SKIN_SEGMENTATION)
-      node.CreateDefaultDisplayNodes()
-
-      segment = self.getSegment(node, self.SKIN_SEGMENT)
-      node.GetDisplayNode().SetSegmentOpacity3D(self.SKIN_SEGMENT, 0.5)
-      segment.SetColor(0.40, 0.35, 0.35)
-
-    return node
-
-  def getSeedSegmentation(self):
-    """Get the target seed segmentation node, with name PlanningLogic.SEED_SEGMENTATION.
-    If none exists, create one and return it.
-    """
-    # get or create the node
-    node = slicer.mrmlScene.GetFirstNodeByName(self.SEED_SEGMENTATION)
-    if not node:
-      logging.info('Creating new segmentation node')
-      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
-      node.SetName(self.SEED_SEGMENTATION)
-      node.CreateDefaultDisplayNodes()
-
-      segment = self.getSegment(node, self.SEED_INSIDE_SEGMENT)
-      segment.SetColor(0.1, 0.9, 0.1)
-
-      segment = self.getSegment(node, self.SEED_OUTSIDE_SEGMENT)
-      segment.SetColor(0.5, 0.1, 0.1)
-
-    return node
-
-  def getTrajectoryMarkup(self):
-    node = slicer.mrmlScene.GetFirstNodeByName(self.TRAJECTORY_MARKUP)
-    if not node:
-      node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsLineNode')
-      node.SetName(self.TRAJECTORY_MARKUP)
-
-      display = node.GetDisplayNode()
-      display.SetPropertiesLabelVisibility(False)
-      display.SetLineDiameter(3)  # 3mm
-      display.SetLineDiameter(3)  # 3mm
-      display.SetCurveLineSizeMode(display.UseLineDiameter)
-
-    return node
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.
@@ -561,8 +539,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     effect.self().onApply()
 
     # Make sure both segments are visible
-    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
 
     self.editor_widget.setActiveEffectByName("Smoothing")
     effect = self.editor_widget.activeEffect()
@@ -571,7 +549,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     effect.self().onApply()
 
     # Rehide outside segment
-    self.getSeedSegmentation().GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
   def beginPaint(self):
     """ Begin a paint effect. Be sure to use setEditorTargets beforehand, so
@@ -590,7 +568,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
   def placeTrajectory(self):
     """ Select the trajectory line markup and enter markup placement mode."""
 
-    trajectory = self.getTrajectoryMarkup()
+    trajectory = self.trajectory_markup
 
     selection_node = slicer.mrmlScene.GetNodeByID('vtkMRMLSelectionNodeSingleton')
     interaction_node = slicer.mrmlScene.GetNodeByID('vtkMRMLInteractionNodeSingleton')
