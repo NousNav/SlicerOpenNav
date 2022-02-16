@@ -391,7 +391,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
 
   def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
     modulePanel.visible = visible
 
   def toggleSidePanelVisibility(self, visible):
