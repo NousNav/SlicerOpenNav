@@ -81,6 +81,34 @@ def setSliceViewsPosition(pos):
     sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
     sliceNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])
 
+
+def setMainPanelVisible(visible):
+  modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
+  modulePanel.visible = visible
+
+
+def setSidePanelVisible(visible):
+  sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+  sidePanel.visible = visible
+
+
+def setSliceWidgetOffsetSliderVisible(sliceWidget, visible):
+  slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
+
+
+def setSliceWidgetSlidersVisible(visible):
+  for name in slicer.app.layoutManager().sliceViewNames():
+    sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+    setSliceWidgetOffsetSliderVisible(sliceWidget, visible)
+
+
+def setSliceViewBackgroundColor(color):
+  for name in slicer.app.layoutManager().sliceViewNames():
+    sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+    view = sliceWidget.sliceView()
+    view.setBackgroundColor(qt.QColor(color))
+
+
 def centerCam():
   controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
   controller.resetFocalPoint()

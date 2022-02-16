@@ -165,7 +165,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # set slice viewer background
     volume = self.logic.getMasterVolume()
     slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
-    self.setSliceViewBackgroundColor('#000000')
+    NNUtils.setSliceViewBackgroundColor('#000000')
     self.goToFourUpLayout()
 
     # Show current
@@ -198,31 +198,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    self.toggleAllSliceSlidersVisiblility(True)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
-
-  def toggleAllSliceSlidersVisiblility(self, visible):
-    for name in slicer.app.layoutManager().sliceViewNames():
-      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-      self.toggleSliderForSliceVisibility(sliceWidget, visible)
-
-  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
-    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
-
-  def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
-    modulePanel.visible = visible
-
-  def toggleSidePanelVisibility(self, visible):
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    sidePanel.visible = visible
-
-  def setSliceViewBackgroundColor(self, color='#000000'):
-    for name in slicer.app.layoutManager().sliceViewNames():
-      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-      view = sliceWidget.sliceView()
-      view.setBackgroundColor(qt.QColor(color))
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
 
   def disconnectAll(self, widget):
     try:

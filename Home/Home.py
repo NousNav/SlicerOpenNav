@@ -4,6 +4,7 @@ from slicer.ScriptedLoadableModule import *
 import logging
 from slicer.util import VTKObservationMixin
 
+import NNUtils
 
 
 class Home(ScriptedLoadableModule):
@@ -305,37 +306,37 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    self.toggleAllSliceSlidersVisiblility(True)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
 
   def goToRedSliceLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    self.toggleAllSliceSlidersVisiblility(True)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
 
   def goToPictureLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    self.toggleAllSliceSlidersVisiblility(False)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
+    NNUtils.setSliceWidgetSlidersVisible(False)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
 
   def goToRegistrationCameraViewLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    self.toggleAllSliceSlidersVisiblility(False)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(True)
+    NNUtils.setSliceWidgetSlidersVisible(False)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(True)
 
   def go3DViewLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-    self.toggleAllSliceSlidersVisiblility(True)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(True)
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(True)
 
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
@@ -381,22 +382,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
     slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
-
-  def toggleAllSliceSlidersVisiblility(self, visible):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        self.toggleSliderForSliceVisibility(sliceWidget, visible)
-
-  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
-    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
-
-  def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
-    modulePanel.visible = visible
-
-  def toggleSidePanelVisibility(self, visible):
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    sidePanel.visible = visible
 
 
 class HomeLogic(ScriptedLoadableModuleLogic):

@@ -1,5 +1,7 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+
+import NNUtils
 import RegistrationUtils.Landmarks as Landmarks
 import RegistrationUtils.Tools as Tools
 
@@ -520,28 +522,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     try: widget.clicked.disconnect()
     except Exception: pass
 
-  def toggleAllSliceSlidersVisiblility(self, visible):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        self.toggleSliderForSliceVisibility(sliceWidget, visible)
-  
-  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
-    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
-
-  def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
-    modulePanel.visible = visible
-
-  def toggleSidePanelVisibility(self, visible):
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    sidePanel.visible = visible
-  
-  def setSliceViewBackgroundColor(self, color = '#000000'):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        view = sliceWidget.sliceView()
-        view.setBackgroundColor(qt.QColor(color))
-  
   def preloadPictures(self):
     pictureNames = [
       'RegistrationStep1.png'
@@ -562,29 +542,29 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def goToFourUpLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    self.toggleAllSliceSlidersVisiblility(True)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
-    self.setSliceViewBackgroundColor('#000000')
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
+    NNUtils.setSliceViewBackgroundColor('#000000')
     slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
 
   def goToRegistrationCameraViewLayout(self):
 
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-    self.toggleAllSliceSlidersVisiblility(False)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(True)
+    NNUtils.setSliceWidgetSlidersVisible(False)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(True)
 
   def goToPictureLayout(self, image = None):
     if image is not None:
       slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    self.toggleAllSliceSlidersVisiblility(False)
-    self.toggleMainPanelVisibility(True)
-    self.toggleSidePanelVisibility(False)
-    self.setSliceViewBackgroundColor('#434343')
+    NNUtils.setSliceWidgetSlidersVisible(False)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
+    NNUtils.setSliceViewBackgroundColor('#434343')
 
   def applyApplicationStyle(self):
     # Style

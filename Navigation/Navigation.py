@@ -1,6 +1,8 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+import NNUtils
+
 
 class Navigation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -122,9 +124,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(self.navLayout)
     # self.toggleAllSliceSlidersVisiblility(False)
-    self.toggleMainPanelVisibility(False)
-    self.toggleSidePanelVisibility(False)
-    self.setSliceViewBackgroundColor('#000000')
+    NNUtils.setMainPanelVisible(False)
+    NNUtils.setSidePanelVisible(False)
+    NNUtils.setSliceViewBackgroundColor('#000000')
     slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
     self.setupSliceViewers()
 
@@ -172,28 +174,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()
     except Exception: pass
-
-  def toggleAllSliceSlidersVisiblility(self, visible):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        self.toggleSliderForSliceVisibility(sliceWidget, visible)
-  
-  def toggleSliderForSliceVisibility(self, sliceWidget, visible):
-    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
-
-  def toggleMainPanelVisibility(self, visible):
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
-    modulePanel.visible = visible
-
-  def toggleSidePanelVisibility(self, visible):
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    sidePanel.visible = visible
-  
-  def setSliceViewBackgroundColor(self, color = '#000000'):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        view = sliceWidget.sliceView()
-        view.setBackgroundColor(qt.QColor(color))
 
   @staticmethod
   def registerCustomLayouts(layoutLogic):
