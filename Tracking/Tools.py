@@ -5,8 +5,6 @@ import numpy as np
 
 from TrackingDevices import NDIDevices
 from TrackingDevices import PLUSOptiTrack
-from TrackingDevices.NDIDevices import NDIVegaTracker
-from TrackingDevices.PLUSOptiTrack import PLUSOptiTrackTracker
 import TrackingDevices.Interface as TrackingInterface
 
 

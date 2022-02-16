@@ -1,11 +1,9 @@
 import os
-import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 from slicer.util import VTKObservationMixin
 
-import textwrap
 
 
 class Home(ScriptedLoadableModule):
@@ -27,14 +25,6 @@ This is the Home module for the NousNav application
 This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
-
-import os
-import unittest
-import vtk, qt, ctk, slicer
-from slicer.ScriptedLoadableModule import *
-import logging
-import textwrap
-from slicer.util import VTKObservationMixin
 
 
 class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):

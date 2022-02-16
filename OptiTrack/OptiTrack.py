@@ -1,11 +1,7 @@
 import os
-import sys
 import subprocess
-import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-
-import logging
 
 
 #
@@ -166,7 +162,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     return dirPath
 
   def createTempDirectory(self):
-    import qt, slicer
+    import qt
     tempDir = qt.QDir(self.getTempDirectoryBase())
     tempDirName = qt.QDateTime().currentDateTime().toString("yyyyMMdd_hhmmss_zzz")
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)

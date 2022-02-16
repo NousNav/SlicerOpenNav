@@ -1,7 +1,6 @@
 import logging
 import vtk, qt, ctk, slicer
 import numpy as np
-import os
 
 import TrackingDevices.Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice

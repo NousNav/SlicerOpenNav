@@ -1,10 +1,5 @@
-import os
-import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-import logging
-import textwrap
-from enum import Enum
 import RegistrationUtils.Landmarks as Landmarks
 import RegistrationUtils.Tools as Tools
 

@@ -1,10 +1,7 @@
-import os
-import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import slicer.modules
 import logging
-import textwrap
 import NNUtils
 
 from PlanningUtils import LandmarkDefinitions
