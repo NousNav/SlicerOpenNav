@@ -6,6 +6,7 @@ import logging
 import textwrap
 import NNUtils
 
+
 class NNSegmentation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -47,6 +48,7 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
     segWidget.setLayout(hlayout)
     self.segmentationWidget = slicer.modules.segmenteditor.createNewWidgetRepresentation()
     segmentButton = qt.QPushButton("Automatic Segmentation")
+
     def segmentActiveVolume():
         nodeID = NNUtils.getActiveVolume()
         if(nodeID is not None):
@@ -71,10 +73,12 @@ class NNSegmentationWidget(ScriptedLoadableModuleWidget):
     editDialogLayout.addWidget(editCloseButton)
     editDialogLayout.stretch(1)
     editDialog.setLayout(editDialogLayout)
+
     def editSegmentation():
         print("edit")
         editDialog.show()
         editDialog.activateWindow()
+
     self.editButton.clicked.connect(editSegmentation)
     editDialogLayout.addWidget(self.editButton)
     hlayout.addWidget(self.editButton)
@@ -253,6 +257,7 @@ class NNSegmentationTest(ScriptedLoadableModuleTest):
 
     logic = NNSegmentationLogic()
     self.delayDisplay('Test passed!')
+
 
 #
 # Class for avoiding python error that is caused by the method SegmentEditor::setup

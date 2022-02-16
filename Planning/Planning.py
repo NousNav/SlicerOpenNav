@@ -65,7 +65,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
        l.addWidget(self.createNextPlanningButton(), 0, 1 )
      return w
 
-
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -141,7 +140,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')
 
-
   def applyStyle(self, widgets, styleSheetName):
     stylesheetfile = self.resourcePath(styleSheetName)
     with open(stylesheetfile,"r") as fh:
@@ -158,7 +156,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       landmarks.SetDisplayVisibility(False)
     except:
       pass
-  
+
   def enter(self):
     # Hide other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
@@ -199,7 +197,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     if index == self.landmarksTabIndex:
       self.planningStep4()
-
 
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
@@ -436,7 +433,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     segment = segmentation.GetSegmentation().GetSegment(segmentID)
     return segment
 
-
   def getSkinSegmentation(self):
     """Get the skin segmentation node, with name PlanningLogic.SKIN_SEGMENTATION.
     If none exists, create one and return it.
@@ -611,6 +607,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     selection_node.SetActivePlaceNodeClassName(trajectory.GetClassName())
     interaction_node.SetCurrentInteractionMode(interaction_node.Place)
 
+
 class PlanningTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
@@ -657,4 +654,3 @@ class PlanningTest(ScriptedLoadableModuleTest):
 class PlanningFileWriter(object):
   def __init__(self, parent):
     pass
-

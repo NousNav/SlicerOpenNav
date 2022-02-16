@@ -4,7 +4,9 @@ import subprocess
 import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+
 import logging
+
 
 #
 # OptiTrack
@@ -30,6 +32,7 @@ It performs a simple thresholding on the input volume and optionally captures a 
 This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """ # replace with organization, grant and thanks.
+
 
 #
 # OptiTrackWidget
@@ -59,7 +62,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     self.launcherPathEdit = ctk.ctkPathLineEdit()
-   
+
     self.launcherPathEdit.currentPath = self.logic.getPlusLauncherPath()
     parametersFormLayout.addRow('Launcher Path:', self.launcherPathEdit)
 
@@ -79,34 +82,27 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = True
     parametersFormLayout.addRow(self.applyButton)
 
-    
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    
 
     # Add vertical spacer
     self.layout.addStretch(1)
 
-    
-
-    
-
   def cleanup(self):
     self.logic.shutdown()
 
-  
+  def onApplyButton(self):
 
-  def onApplyButton(self):   
-    
     self.applyButton.enabled = False
     self.applyButton.text = 'OptiTrack is starting...'
     slicer.app.processEvents()
-    self.logic.start(self.launcherPathEdit.currentPath, self.configPathEdit.currentPath, self.dataPathEdit.currentPath)   
+    self.logic.start(self.launcherPathEdit.currentPath, self.configPathEdit.currentPath, self.dataPathEdit.currentPath)
     self.applyButton.enabled = True
     if self.logic.isRunning:
       self.applyButton.text = 'Stop OptiTrack'
     else:
       self.applyButton.text = 'Start OptiTrack'
+
 
 #
 # OptiTrackLogic
@@ -124,23 +120,23 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
 
   def __init__(self):
     self.connector = None
-    self.isRunning = False   
+    self.isRunning = False
     self.tools = []
-  
+
   def setTools(self, tools):
     self.tools = tools
-  
+
   def shutdown(self, clean=False):
     if self.isRunning:
       self.connector.Stop()
       self.p.terminate()
-      self.isRunning = False 
+      self.isRunning = False
       import shutil
       shutil.rmtree(self.tempDirectory)
       print('Shutdown')
       if clean:
         self.cleanupTools()
-  
+
   def writeConfigFile(self, configTemplateFileName, dataFileName):
     template = ''
     with open(configTemplateFileName,"r") as fh:
@@ -162,7 +158,6 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
 
     return os.path.join(basepath, 'bin/PlusServer.exe')
 
-  
   def getTempDirectoryBase(self):
     tempDir = qt.QDir(slicer.app.temporaryPath)
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), "OptiTrack")
@@ -178,7 +173,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     dirPath = fileInfo.absoluteFilePath()
     qt.QDir().mkpath(dirPath)
     return dirPath
-  
+
   def checkTool(self, toolName):
     try:
         node = slicer.util.getNode(toolName)
@@ -190,23 +185,23 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
 
   def checkTools(self, toolsList=None):
     if toolsList is None:
-      toolsList = self.tools    
+      toolsList = self.tools
     for toolName in toolsList:
       self.checkTool(toolName)
-  
+
   def cleanupTools(self, toolsList=None):
     if toolsList is None:
-      toolsList = self.tools    
+      toolsList = self.tools
     for toolName in toolsList:
       self.cleanupTool(toolName)
-  
+
   def cleanupTool(self, toolName):
     try:
         node = slicer.util.getNode(toolName)
-        slicer.mrmlScene.RemoveNode(node)        
+        slicer.mrmlScene.RemoveNode(node)
     except:
       pass
-  
+
   def start(self, plusLauncherPath, plusConfigTemplatePath, plusDataPath):
     import time
 
@@ -224,10 +219,10 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         self.connector.SetTypeClient("localhost", 18944)
       self.connector.Start()
 
-      time.sleep(5)      
+      time.sleep(5)
       slicer.app.processEvents()
       if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected:
-        print('Server failed to launch:')        
+        print('Server failed to launch:')
         self.shutdown()
         output = self.p.stdout.read()
         output = output.decode("utf-8", 'replace')

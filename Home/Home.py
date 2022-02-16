@@ -4,7 +4,9 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 from slicer.util import VTKObservationMixin
+
 import textwrap
+
 
 class Home(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -52,12 +54,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    
-    
     #Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
-
-    
 
     #Create logic class
     self.logic = HomeLogic()
@@ -103,32 +101,29 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
-    
+
     #For some reason, the browser is instantiated as not hidden. Close
     #so that the 'isHidden' check works as required
-    slicer.modules.DICOMWidget.browserWidget.close() 
+    slicer.modules.DICOMWidget.browserWidget.close()
     slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
 
-  
   def onDICOMImport(self):
     slicer.modules.DICOMWidget.browserWidget.dicomBrowser.openImportDialog()
     self.ui.DICOMToggleButton.checked = qt.Qt.Checked
-  
+
   def resetDICOMToggle(self):
     self.ui.DICOMToggleButton.checked = qt.Qt.Unchecked
     slicer.util.selectModule('Home')
-  
+
   def toggleDICOMBrowser(self, show):
     if show:
       slicer.modules.DICOMWidget.onOpenBrowserWidget()
     else:
       slicer.modules.DICOMWidget.browserWidget.close()
-  
-  
+
   def applyApplicationStyle(self):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')
-    
 
   def applyStyle(self, widgets, styleSheetName):
     stylesheetfile = self.resourcePath(styleSheetName)
@@ -136,7 +131,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       style = fh.read()
       for widget in widgets:
         widget.styleSheet = style
-  
+
   def setupNodes(self):
     #Set up the layout / 3D View
     self.setup3DView()
@@ -178,13 +173,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.navigationTabIndex = self.primaryTabBar.addTab("Navigation")
     self.primaryTabWidgetUI.CenterArea.layout().addWidget(self.primaryTabBar)
     self.primaryTabBar.currentChanged.connect(self.onPrimaryTabChanged)
-    
+
     #Assemble primary bar
     nousNavLabel = qt.QLabel('NousNav')
     nousNavLabel.setObjectName("NousNavLabel")
     self.primaryToolBar.addWidget(nousNavLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
-    
+
     #Settings dialog
     gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
@@ -234,13 +229,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     self.registrationWidget.exit()
     self.planningWidget.exit()
-    
+
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
       self.enter()
-      self.goToFourUpLayout() 
-    
+      self.goToFourUpLayout()
+
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
@@ -257,7 +252,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.registrationWidget.enter()
 
-    
   def enter(self):
 
     #Hides other toolbars
@@ -275,25 +269,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss') 
+    self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')
 
-  
   def toggleStyle(self,visible):
     if visible:
       self.applyApplicationStyle()
     else:
       slicer.app.styleSheet = ''
-  
+
   def toggleUI(self, visible):
 
     if visible:
       self.hideSlicerUI()
     else:
       self.showSlicerUI()
-  
+
   def raiseSettings(self, unused):
     self.settingsDialog.exec()
-
 
   def hideSlicerUI(self):
     slicer.util.setDataProbeVisible(False)
@@ -305,12 +297,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setToolbarsVisible(True)
     mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
     keepToolbars = [
-      slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'), 
-      slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),   
-      slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar')  
+      slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'),
+      slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),
+      slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar')
       ]
     slicer.util.setToolbarsVisible(False, keepToolbars)
-  
+
   def showSlicerUI(self):
     slicer.util.setDataProbeVisible(True)
     slicer.util.setMenuBarsVisible(True)
@@ -319,15 +311,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setPythonConsoleVisible(True)
     slicer.util.setToolbarsVisible(True)
     slicer.util.setApplicationLogoVisible(True)
-  
+
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
     self.toggleAllSliceSlidersVisiblility(True)
     self.toggleMainPanelVisibility(True)
     self.toggleSidePanelVisibility(False)
-    
-  
+
   def goToRedSliceLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
@@ -355,7 +346,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.toggleAllSliceSlidersVisiblility(True)
     self.toggleMainPanelVisibility(True)
     self.toggleSidePanelVisibility(True)
-  
+
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
@@ -370,11 +361,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     threeDWidget.threeDController().visible = False
     horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
     threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
-  
+
   def processIncomingVolumeNode(self, node):
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
-    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")    
+    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
     self.setup3DView()
     self.setupSliceViewers()
 
@@ -391,9 +382,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     for name in slicer.app.layoutManager().sliceViewNames():
         sliceWidget = slicer.app.layoutManager().sliceWidget(name)
         self.setupSliceViewer(sliceWidget)
-  
+
   def setupSliceViewer(self, sliceWidget):
-    controller = sliceWidget.sliceController()    
+    controller = sliceWidget.sliceController()
     controller.setStyleSheet("background-color: #000000")
     controller.sliceViewLabel = ''
     slicer.util.findChild(sliceWidget, "PinButton").visible = False
@@ -405,7 +396,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     for name in slicer.app.layoutManager().sliceViewNames():
         sliceWidget = slicer.app.layoutManager().sliceWidget(name)
         self.toggleSliderForSliceVisibility(sliceWidget, visible)
-  
+
   def toggleSliderForSliceVisibility(self, sliceWidget, visible):
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").visible = visible
 
@@ -416,12 +407,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def toggleSidePanelVisibility(self, visible):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     sidePanel.visible = visible
-
-  
-
-  
-
-  
 
 
 class HomeLogic(ScriptedLoadableModuleLogic):
@@ -478,7 +463,6 @@ class HomeTest(ScriptedLoadableModuleTest):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -518,4 +502,3 @@ class HomeTest(ScriptedLoadableModuleTest):
 class HomeFileWriter(object):
   def __init__(self, parent):
     pass
-

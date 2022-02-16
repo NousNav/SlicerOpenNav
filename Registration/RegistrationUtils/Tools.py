@@ -4,18 +4,21 @@ import os
 import slicer, vtk
 import OptiTrack
 
+
 class ToolState(Enum):
   NEVER_SEEN = 0
   NOT_SEEN = 1
   SEEN = 2
 
+
 class Tool:
   def __init__(self, ID, name, displayGeometry=None):
     self.id = ID #{Name}ToTracker transform
     self.name = name
-    self.displayGeometry = displayGeometry    
+    self.displayGeometry = displayGeometry
     self.state = ToolState.NEVER_SEEN
     self.xposition = None
+
 
 class Tools:
   def __init__(self, seenTableWidget, unseenTableWidget, moduleName):
@@ -31,7 +34,6 @@ class Tools:
     self.tools.append(newTool)
     self.updateToolsDisplay()
 
-    
   def checkTools(self):
     if self.optitrack is None:
       print("Fail")
@@ -45,16 +47,16 @@ class Tools:
       self.checkIfNodeIsActive(tool)
 
     self.updateToolsDisplay()
-  
+
   def checkIfNodeIsActive(self, tool):
     try:
       node = slicer.util.getNode(tool.id)
       matrix = node.GetMatrixTransformToParent()
       xposition = matrix.GetElement(0,3)
-      
+
       #if position, then tool is current
-      
-      if tool.xposition is None:      
+
+      if tool.xposition is None:
         tool.state = ToolState.SEEN
       else:
         #has position updated since last time?
@@ -71,9 +73,9 @@ class Tools:
     except:
       print("Fail")
       pass
-  
+
   def updateToolsDisplay(self):
-    
+
     self.seenTableWidget.setRowCount(0)
     self.unseenTableWidget.setRowCount(0)
 
@@ -87,8 +89,6 @@ class Tools:
         if tool.displayGeometry:
           tool.displayGeometry.GetDisplayNode().SetVisibility(False)
 
-    
-    
     self.seenTableWidget.resizeColumnToContents(0)
     self.seenTableWidget.setShowGrid(False)
     self.seenTableWidget.setFocusPolicy(qt.Qt.NoFocus)
@@ -100,8 +100,7 @@ class Tools:
     self.unseenTableWidget.setFocusPolicy(qt.Qt.NoFocus)
     self.unseenTableWidget.setSelectionMode(qt.QAbstractItemView.NoSelection)
     self.unseenTableWidget.setFrameStyle(qt.QFrame.NoFrame)
-  
-  
+
   def addToolToTable(self, tool, table):
     row = table.rowCount
     table.insertRow(row)

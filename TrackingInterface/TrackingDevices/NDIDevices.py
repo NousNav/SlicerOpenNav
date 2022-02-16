@@ -6,9 +6,11 @@ import os
 import TrackingDevices.Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice
 
+
 def setupNDIVegaTrackingDevice(toolFiles):
   if TrackingInterface.getTrackingDevice() is None:
         TrackingInterface.setTrackingDevice(NDIVegaTracker(toolFiles))
+
 
 class NDIVegaTracker(TrackingDevice):
 
@@ -19,7 +21,6 @@ class NDIVegaTracker(TrackingDevice):
       import sksurgerynditracker.nditracker
     except:
       slicer.util.pip_install("scikit-surgerynditracker")
-      
 
     self.settings_vega = {
           "tracker type": "vega",

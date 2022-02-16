@@ -75,6 +75,7 @@ def resetSliceViews():
     sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
     sliceNode.RotateToVolumePlane(volumeNode)
 
+
 def setSliceViewsPosition(pos):
   for sliceID in ['Yellow', 'Green', 'Red']:
     sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()

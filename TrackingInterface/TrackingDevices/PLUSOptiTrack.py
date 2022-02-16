@@ -7,21 +7,23 @@ import subprocess
 import TrackingDevices.Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice
 
+
 def setupPLUSOptiTrackTrackingDevice(templatePath, dataPath):
   if TrackingInterface.getTrackingDevice() is None:
         TrackingInterface.setTrackingDevice(PLUSOptiTrackTracker(templatePath, dataPath))
+
 
 class PLUSOptiTrackTracker(TrackingDevice):
 
   def __init__(self, templatePath, dataPath):
     # Tracking toggle button action
-    
+
     #Compute defaults
     basepath = ''
     for item in os.listdir(os.path.expanduser('~')):
       if item.startswith('PlusApp'):
         basepath = os.path.join(os.path.expanduser('~'), item)
-        break    
+        break
     launcherPath = os.path.join(basepath, 'bin/PlusServer.exe')
     self.settings_optitrack = {
           "tracker type": "plus-optitrack",
@@ -63,11 +65,11 @@ class PLUSOptiTrackTracker(TrackingDevice):
     self.poll.setMinimum(10)
     self.poll.setMaximum(500)
     self.poll.setValue(100)
-    
+
     configurationLayout.addRow('Poll (ms)', self.poll)
 
   def addTool(self, toolname, toolsource):
-    
+
     # Tool location
     transformNode = slicer.vtkMRMLLinearTransformNode()
     m = vtk.vtkMatrix4x4()
@@ -76,7 +78,7 @@ class PLUSOptiTrackTracker(TrackingDevice):
     transformNode.SetName(toolname)
     transformNode.SetSaveWithScene(False)
     slicer.mrmlScene.AddNode(transformNode)
-    
+
     # Tool tip relative to tool location
     transformNodeTip = slicer.vtkMRMLLinearTransformNode()
     m = vtk.vtkMatrix4x4()
@@ -92,7 +94,7 @@ class PLUSOptiTrackTracker(TrackingDevice):
     self.isTrackingActive.append(False)
     self.toolSources.append(toolsource)
 
-  def tracking(self):    
+  def tracking(self):
     for i in range(self.getNumberOfTools()):
       (transformNode, transformNodeTip) = self.getTransformsForTool(i)
       if self.isTrackingActive[i]:
@@ -121,16 +123,16 @@ class PLUSOptiTrackTracker(TrackingDevice):
 
     for i in range(self.getNumberOfTools()):
       try:
-        sourceNode = slicer.util.getNode(self.toolSources[i])        
+        sourceNode = slicer.util.getNode(self.toolSources[i])
         self.isTrackingActive[i] = True
       except:
         print('WARNING: Could not find {}'.format(self.toolSources[i]))
-  
+
   def launchPLUS(self, settings):
-    import time   
+    import time
 
     self.tempDirectory = self.createTempDirectory()
-    plusConfigPath = self.writeConfigFile(settings["templatePath"], settings["dataPath"])    
+    plusConfigPath = self.writeConfigFile(settings["templatePath"], settings["dataPath"])
     info = subprocess.STARTUPINFO()
     info.dwFlags = 1
     info.wShowWindow = 0
@@ -141,36 +143,33 @@ class PLUSOptiTrackTracker(TrackingDevice):
       self.connector.SetTypeClient("localhost", 18944)
     self.connector.Start()
 
-    time.sleep(5)      
+    time.sleep(5)
     slicer.app.processEvents()
     if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected:
-      print('Server failed to launch:')        
+      print('Server failed to launch:')
       self.stopTracking()
       output = self.p.stdout.read()
       output = output.decode("utf-8")
       print(output)
       return
     print('PLUS Server launched')
-    
-    
-  
+
   def stopTracking(self):
     if self.connector is not None:
       self.tracker_timer.stop()
       self.connector.Stop()
     else:
-      logging.warning("OptiTrack Tracker already closed")      
+      logging.warning("OptiTrack Tracker already closed")
 
     if self.tempDirectory is not None:
       print('delete old temp directory')
       import shutil
       shutil.rmtree(self.tempDirectory)
       self.tempDirectory = None
-    
-    if self.p is not None:
-      self.p.terminate()  
-      self.p = None    
 
+    if self.p is not None:
+      self.p.terminate()
+      self.p = None
 
   def getConfiguration(self):
     self.settings_optitrack = {
@@ -212,7 +211,7 @@ class PLUSOptiTrackTracker(TrackingDevice):
       fh.write(configData)
     print(configDataFileName)
     return configDataFileName
-  
+
   def getTempDirectoryBase(self):
     tempDir = qt.QDir(slicer.app.temporaryPath)
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), "OptiTrack")

@@ -6,6 +6,7 @@ import NNUtils
 
 import TrackingDevices.Interface as TrackingInterface
 
+
 class FiducialSelection(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -27,7 +28,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     self.statusLessThanThreePoints = "Less than three fiducials pairs"
@@ -40,7 +40,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     self.logic = FiducialSelectionLogic()
     self.toolsLogic = slicer.modules.tools.widgetRepresentation().self().logic
-
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -145,6 +144,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
       nfrom = self.FromNode.GetNumberOfFiducials()
       if nfrom > row:
         self.FromNode.RemoveNthControlPoint(row)
+
     def removeTo( row ):
       nto = 0
       if self.currentTo != None:
@@ -174,15 +174,12 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     self.updateTransform()
 
-
   def onPointsChanged(self, caller, event):
     self.updateTransform()
-
 
   def changeCurrentVolume(self, node):
     fTo = self.logic.createFiducialToNode(node)
     self.changeActiveFiducialNode(fTo)
-
 
   def changeActiveFiducialNode(self, node):
     #Remove observers from current active fiducial node
@@ -214,8 +211,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
     selectionNode.SetActivePlaceNodeID( self.currentTo.GetID() )
 
-
-
   #Registration Widget Function
   def setupRegistrationWidget(self):
     node = TrackingInterface.getTrackingToSceneTransform()
@@ -230,7 +225,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     self.FromNode.GetDisplayNode().VisibilityOn()
     self.FromNode.SetSaveWithScene( False )
     self.addFromObservers()
-
 
     volumeWidget = qt.QWidget(self.parent)
     volumeLayout = qt.QHBoxLayout()
@@ -259,11 +253,11 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
     header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
     header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
 
-
     #Add fiducials buttons
     buttonLayout = qt.QHBoxLayout()
     self.sceneButton = qt.QPushButton("Start Place in Scene")
     self.sceneButton.setCheckable(True)
+
     def setPlaceMode(checked):
       if(checked):
         self.sceneButton.setText("Stop Place in Scene")
@@ -279,6 +273,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         self.sceneButton.setText("Start Place in Scene")
         interactionNode = slicer.app.applicationLogic().GetInteractionNode()
         interactionNode.SetCurrentInteractionMode(slicer.vtkMRMLInteractionNode.ViewTransform)
+
     self.sceneButton.toggled.connect( setPlaceMode )
     buttonLayout.addWidget(self.sceneButton)
 
@@ -303,6 +298,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         self.FromNode.AddFiducial(x1, x2, x3)
       else:
         self.statusLabel.setText(self.statusToolNotTracked)
+
     self.trackerButton.clicked.connect(placeFromTool)
 
     self.fiducialWidget = qt.QWidget(self.parent)
@@ -314,6 +310,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     self.fiducialsVisibilityButton = qt.QPushButton("Hide Fiducials")
     self.fiducialsVisibilityButton.setCheckable(True)
+
     def toggleVisibility(checked):
       if checked:
         self.FromNode.GetDisplayNode().VisibilityOff()
@@ -325,6 +322,7 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
         if self.currentTo != None:
           self.currentTo.GetDisplayNode().VisibilityOn()
         self.fiducialsVisibilityButton.setText("Hide Fiducials")
+
     self.fiducialsVisibilityButton.toggled.connect(toggleVisibility)
     self.layout.addWidget(self.fiducialsVisibilityButton)
 
@@ -335,7 +333,6 @@ class FiducialSelectionWidget(ScriptedLoadableModuleWidget):
 
     # compress the layout
     self.layout.addStretch(1)
-
 
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -386,7 +383,6 @@ class FiducialSelectionLogic(ScriptedLoadableModuleLogic):
     if fiducialNodeID is not None:
       fiducialNode = slicer.mrmlScene.GetNodeByID( fiducialNodeID )
     return fiducialNode
-
 
   def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
     """
@@ -442,4 +438,3 @@ class FiducialSelectionTest(ScriptedLoadableModuleTest):
 class FiducialSelectionFileWriter(object):
   def __init__(self, parent):
     pass
-

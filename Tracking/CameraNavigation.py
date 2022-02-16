@@ -3,6 +3,7 @@ from slicer.ScriptedLoadableModule import *
 import numpy as np
 import NNUtils
 
+
 class CameraNavigation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -53,20 +54,24 @@ class CameraNavigationWidget(ScriptedLoadableModuleWidget):
     self.cameraTool.addItem("None")
     for i in range(self.toolsLogic.getNumberOfTools()):
       self.cameraTool.addItem(self.toolsLogic.getTool(i).getName())
+
     def indexChanged(index):
       if index == 0:
         NNUtils.resetSliceViews()
         NNUtils.centerOnActiveVolume()
+
     self.cameraTool.currentIndexChanged.connect(indexChanged)
     trackCameraLayout.addWidget(self.cameraTool)
     self.cameraAlignButton = qt.QPushButton("Orient to Volume")
     self.cameraAlignButton.setCheckable(True)
+
     def toggleCamera( checked ):
       if checked:
         self.cameraAlignButton.setText("Orient to Tool")
       else:
         self.cameraAlignButton.setText("Orient to Volume")
         NNUtils.resetSliceViews()
+
     self.cameraAlignButton.toggled.connect(toggleCamera)
     trackCameraLayout.addWidget(self.cameraAlignButton)
     self.layout.addWidget(self.trackCameraWidget)

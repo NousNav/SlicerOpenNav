@@ -8,6 +8,7 @@ from enum import Enum
 import RegistrationUtils.Landmarks as Landmarks
 import RegistrationUtils.Tools as Tools
 
+
 class Registration(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -29,16 +30,11 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
 
-
- 
-    
-
 class RegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -63,7 +59,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     #Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
-
 
     #Bottom toolbar
     self.bottomToolBar = qt.QToolBar("RegistrationBottomToolBar")
@@ -102,7 +97,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     import OptiTrack
     self.optitrack = OptiTrack.OptiTrackLogic()
 
-
     self.preloadPictures()
     self.setupToolTables()
     self.setupLandmarkTables()
@@ -118,16 +112,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.cameraTimer:
       self.cameraTimer.stop()
 
-  
   def exit(self):
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
     # self.goToFourUpLayout()
     print('hide')
-  
+
   def enter(self):
 
-    
     #Hides other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
@@ -149,16 +141,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     qt.QTimer.singleShot(1000, self.startOptiTrack)
 
-    
-
-
   def startOptiTrack(self):
     if not self.optitrack.isRunning:
       #launch selector
       self.hardwareSelector = slicer.util.loadUI(self.resourcePath('UI/HardwareDialog.ui'))
       self.selectorUI = slicer.util.childWidgetVariables(self.hardwareSelector)
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
-      self.hardwareSelector.open()      
+      self.hardwareSelector.open()
     else:
         self.advanceButtonReg.enabled = True
 
@@ -185,15 +174,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     else:
       self.advanceButtonReg.enabled = True
       print('enable advance')
-  
+
   def onTabChanged(self, index):
-        
+
     self.tools.showToolMarkers = False
     self.tools.updateToolsDisplay()
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
-        
+
     if self.cameraTimer:
       self.cameraTimer.stop()
 
@@ -211,10 +200,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if index == self.registerPatientTabIndex:
       self.registrationStep6()
-    
-      
+
   def registrationStep1(self):
-    
+
     #set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep1.png'])
 
@@ -224,19 +212,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = False
     self.advanceButtonAction.visible = True
 
-    
-
     #set the button actions
     self.disconnectAll(self.advanceButtonReg)
     self.disconnectAll(self.backButtonReg)
 
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.trackingTabIndex))    
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.trackingTabIndex))
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep1)
 
   def registrationStep2(self):
-    
+
     #set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep2.png'])
 
@@ -249,17 +235,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     #set the button actions
     self.disconnectAll(self.advanceButtonReg)
     self.disconnectAll(self.backButtonReg)
-    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex))    
-    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())    
+    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex))
+    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep2)
 
   def registrationStep3(self):
-    
+
     #update toolbar needed for untabbed step
     self.registrationTabBar.setCurrentIndex(self.trackingTabIndex)
-    
+
     #set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep3.jpg'])
 
@@ -273,14 +259,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.advanceButtonReg)
     self.disconnectAll(self.backButtonReg)
     self.backButtonReg.clicked.connect(lambda:self.registrationStep2())
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))    
+    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep3)
 
   def registrationStep4(self):
-    
-        
+
     #set the layout and display an image
     self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
@@ -293,8 +278,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.cameraTimer.start(100)
 
     qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
-
-    
 
     #set the button labels
     self.backButtonReg.text = 'Back'
@@ -312,8 +295,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep4)
 
   def registrationStep5(self):
-    
-        
+
     #set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep5.png'])
 
@@ -352,7 +334,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     print('Start recording')
     qt.QTimer.singleShot(5000, self.endPivotCalibration)
 
-  def endPivotCalibration(self):    
+  def endPivotCalibration(self):
     outputMatrix = vtk.vtkMatrix4x4()
     tipToPointer = slicer.util.getNode('TipToPointer')
     tipToPointer.GetMatrixTransformToParent(outputMatrix)
@@ -382,11 +364,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.GetDisplayNode().SetVisibility(False)
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
 
-    
-  
   def registrationStep6(self):
-    
-        
     #set the layout and display an image
     self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = False
@@ -411,11 +389,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.CollectButton.clicked.connect(self.onCollectButton)
     self.advanceButtonReg.clicked.connect(lambda: self.registrationStep8())
 
-
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
     self.landmarks.startNextLandmark()
-  
+
   def registrationStep8(self):
     #set the layout and display an image
     try:
@@ -424,8 +401,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       masterNode = None
       print('No node')
     self.goToFourUpLayout(masterNode)
-    
-    
+
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = False
 
@@ -434,7 +410,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     self.fidicialOnlyRegistration()
-    
+
     #set the button labels
     self.backButtonReg.text = 'Start over'
     self.advanceButtonReg.text = 'Accept'
@@ -452,11 +428,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep8)
-  
+
   def openNextModule(self):
     home = slicer.modules.HomeWidget
     home.primaryTabBar.setCurrentIndex(home.navigationTabIndex)
-  
+
   def fidicialOnlyRegistration(self):
 
     try:
@@ -472,7 +448,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
       pos = self.landmarks.getTrackerPosition(name)
       fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
-    
+
     # Create transform node to hold the computed registration result
     try:
       self.transformNode = slicer.util.getNode('Registration Transform')
@@ -489,8 +465,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     fiducialRegNode.SetRegistrationModeToSimilarity()
 
     fromMarkupsNode.SetAndObserveTransformNodeID(self.transformNode.GetID())
-    self.needleModel.GetDisplayNode().SetVisibility(True) 
-    self.needleModel.GetDisplayNode().SetVisibility2D(True)  
+    self.needleModel.GetDisplayNode().SetVisibility(True)
+    self.needleModel.GetDisplayNode().SetVisibility2D(True)
     self.needleModel.GetDisplayNode().SetSliceIntersectionThickness(6)
     if pointerToHeadFrame:
       pointerToHeadFrame.SetAndObserveTransformNodeID(self.transformNode.GetID())
@@ -500,10 +476,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
     slicer.modules.PlanningWidget.logic.getSkinSegmentation().GetDisplayNode().SetVisibility2D(False)
-    
-  
-  
-  
+
   def onCollectButton(self):
     print('Attempt collection')
     try:
@@ -517,7 +490,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.landmarks.collectLandmarkPosition(outputPoint)
     except:
       print('Could not get tip node')
-    
+
   def setupToolTables(self):
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
@@ -526,7 +499,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     node2 = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Reference Frame')
     node2.AddFiducial(0,0,0, 'Reference Frame')
     node2.GetDisplayNode().SetGlyphScale(13)
-    
+
     self.tools.addTool('PointerToTracker', 'Pointer', node)
     self.optitrack.setTools(['PointerToHeadFrame'])
     self.optitrack.setTools(['PointerToTracker'])
@@ -534,8 +507,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.addTool('HeadFrameToTracker', 'Reference Frame', node2)
     self.optitrack.setTools(['HeadFrameToTracker'])
     self.tools.optitrack = self.optitrack
-    
-  
+
   def setupLandmarkTables(self):
     self.landmarks = Landmarks(self.LandmarkSideWidgetui.LandmarkTableWidget, self.moduleName)
     # self.landmarks.addLandmark('Inion', [-1.912, 112.455, -151.242])
@@ -546,11 +518,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.addLandmark('Acanthion', [-2.846, 278.845, -193.982])
     # self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
     self.landmarks.addLandmark('Right outer canthus', [46.786, 252.705, -149.633])
-    # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])    
-    self.landmarks.advanceButtonReg = self.advanceButtonReg  
-  
+    # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])
+    self.landmarks.advanceButtonReg = self.advanceButtonReg
+
   def disconnectAll(self, widget):
-    try: widget.clicked.disconnect() 
+    try: widget.clicked.disconnect()
     except Exception: pass
 
   def toggleAllSliceSlidersVisiblility(self, visible):
@@ -592,8 +564,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       imageNode.hidden = True
       self.pictures[image] = imageNode
 
-    
-  
   def goToFourUpLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
@@ -602,15 +572,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.toggleSidePanelVisibility(False)
     self.setSliceViewBackgroundColor('#000000')
     slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
-  
+
   def goToRegistrationCameraViewLayout(self):
-    
+
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
     self.toggleAllSliceSlidersVisiblility(False)
     self.toggleMainPanelVisibility(True)
     self.toggleSidePanelVisibility(True)
-  
+
   def goToPictureLayout(self, image = None):
     if image is not None:
       slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
@@ -620,11 +590,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.toggleMainPanelVisibility(True)
     self.toggleSidePanelVisibility(False)
     self.setSliceViewBackgroundColor('#434343')
-  
+
   def applyApplicationStyle(self):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')
-    
 
   def applyStyle(self, widgets, styleSheetName):
     stylesheetfile = self.resourcePath(styleSheetName)
@@ -658,7 +627,6 @@ class RegistrationTest(ScriptedLoadableModuleTest):
   Uses ScriptedLoadableModuleTest base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
@@ -699,4 +667,3 @@ class RegistrationTest(ScriptedLoadableModuleTest):
 class RegistrationFileWriter(object):
   def __init__(self, parent):
     pass
-

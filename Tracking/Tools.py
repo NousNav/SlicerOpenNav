@@ -135,13 +135,13 @@ class ToolsWidget(ScriptedLoadableModuleWidget):
     toolsPath = os.path.join( toolsPath, "Resources/NDITools" )
     toolFiles = [os.path.join(toolsPath, f) for f in os.listdir(toolsPath)
                         if os.path.isfile(os.path.join(toolsPath, f))]
-    
+
     tracker = slicer.util.settingsValue('NousNav/Tracker', 'OptiTrack')
     if tracker == 'OptiTrack':
       PLUSOptiTrack.setupPLUSOptiTrackTrackingDevice(templatePath, dataPath)
     else:
-      NDIDevices.setupNDIVegaTrackingDevice(toolFiles)    
-    
+      NDIDevices.setupNDIVegaTrackingDevice(toolFiles)
+
     self.logic.setupTools()
 
   def updateStatus(self, transformNode, unusedArg2=None, unusedArg3=None):

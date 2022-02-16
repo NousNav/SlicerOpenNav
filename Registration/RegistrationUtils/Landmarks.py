@@ -3,11 +3,13 @@ import qt
 import os
 import slicer
 
+
 class LandmarkState(Enum):
   NOT_STARTED = 0
   IN_PROGRESS = 1
   DONE = 2
   SKIPPED = 3
+
 
 class Landmark:
   def __init__(self, name, modelPos = [0,0,0]):
@@ -19,6 +21,8 @@ class Landmark:
     self.imagePosition = None
     self.trackerPosition = None
     self.ignore = False
+
+
 class Landmarks:
   def __init__(self, tableWidget, moduleName):
     self.landmarks = []
@@ -54,24 +58,22 @@ class Landmarks:
     self.landmarksDisplay.SetLocked(True)
     self.showLandmarks = False
 
- 
-  
   def updateAdvanceButton(self):
-    
+
     landmarksRemaining = self.landmarksNeeded - self.landmarksCollected
     self.advanceButtonReg.enabled = False
     if landmarksRemaining > 1:
-      self.advanceButtonReg.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks' 
+      self.advanceButtonReg.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks'
     elif landmarksRemaining == 1:
       self.advanceButtonReg.text = 'Touch 1 more landmark'
     else:
       self.advanceButtonReg.text = 'Press to continue'
       self.advanceButtonReg.enabled = True
-  
+
   def resourcePath(self, filename):
     scriptedModulesPath = os.path.dirname(slicer.util.modulePath(self.moduleName))
     return os.path.join(scriptedModulesPath, 'Resources', filename)
-  
+
   def addLandmark(self, name, modelPos=[0,0,0]):
 
     newLandmark = Landmark(name, modelPos)
@@ -99,7 +101,7 @@ class Landmarks:
     self.tableWidget.setCellWidget(row, 2, button)
 
   def updateLandmarksDisplay(self):
-    
+
     self.landmarksCollected = 0
     for landmark in self.landmarks:
       self.updateLandmarkDisplay(landmark)
@@ -110,7 +112,6 @@ class Landmarks:
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
     if self.showLandmarks:
       self.updateAdvanceButton()
-      
 
   def updateLandmarkDisplay(self, landmark):
     button = self.tableWidget.cellWidget(landmark.row, 2)
@@ -138,15 +139,13 @@ class Landmarks:
       button.text = 'Add'
       iconLabel.setPixmap(self.SkippedIcon.pixmap(16, 16))
 
-    
-  
   def startNextLandmark(self):
     for landmark in self.landmarks:
       if landmark.state == LandmarkState.NOT_STARTED:
         self.startLandmark(landmark)
         break
     self.updateLandmarksDisplay()
-  
+
   def startLandmark(self, landmark):
     if self.currentLandmark is not None:
       #cancel current landmark if not done
@@ -156,20 +155,19 @@ class Landmarks:
     landmark.state = LandmarkState.IN_PROGRESS
     self.currentLandmark = landmark
     self.updateLandmarksDisplay()
-  
+
   def collectLandmarkPosition(self, pos = [0,0,0]):
     if self.currentLandmark is not None:
       self.currentLandmark.state = LandmarkState.DONE
       self.currentLandmark.trackerPosition = pos
       self.currentLandmark = None
       self.startNextLandmark()
-      
-  
+
   def getTrackerPosition(self, name):
     for landmark in self.landmarks:
       if landmark.name == name:
         return landmark.trackerPosition
-  
+
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:
       landmark.state = LandmarkState.SKIPPED

@@ -36,6 +36,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.connectButton = qt.QPushButton("Start Tracking")
     self.connectButton.setCheckable(True)
     self.layout.addWidget(self.connectButton)
+
     # Tracking toggle button action
     def toggleTracking(checked):
       if not checked:
@@ -48,6 +49,7 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
         except OSError as err:
           # TODO figure out error message handling
           slicer.util.errorDisplay( str(err) )
+
     self.connectButton.toggled.connect(toggleTracking)
 
     self.typeWidget = qt.QWidget()
@@ -58,11 +60,12 @@ class TrackingWidget(ScriptedLoadableModuleWidget):
     self.typeSelector.setCurrentText(slicer.util.settingsValue('NousNav/Tracker', 'OptiTrack'))
     typeLayout.addRow('Tracker type (restart needed for change to take effect):', self.typeSelector)
     self.layout.addWidget(self.typeWidget)
+
     def textChanged(text):
       qt.QSettings().setValue('NousNav/Tracker', text)
+
     self.typeSelector.currentTextChanged.connect(textChanged)
 
-    
     # Configuration
     self.toolsWidget = slicer.modules.tools.createNewWidgetRepresentation()
     self.configurationFrame = TrackingInterface.getTrackingDevice().getConfigurationWidget()
@@ -112,6 +115,7 @@ class TrackingLogic(ScriptedLoadableModuleLogic):
   """
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
+
 
 class TrackingTest(ScriptedLoadableModuleTest):
   """

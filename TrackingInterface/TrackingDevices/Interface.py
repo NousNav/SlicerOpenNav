@@ -1,6 +1,7 @@
 from abc import ABC
 import vtk, slicer
 
+
 class TrackingDevice(ABC):
   """Abstract base class interfacing to tracker
   """
@@ -34,35 +35,43 @@ import sys
 this = sys.modules[__name__]
 this._trackingDevice = None
 
+
 def setTrackingDevice(device):
   if this._trackingDevice is not None:
     this._trackingDevice.stopTracking()
   this._trackingDevice = device
 
+
 def getTrackingDevice():
   return this._trackingDevice
+
 
 def getNumberOfTools():
   if this._trackingDevice is None:
     return 0
   return this._trackingDevice.getNumberOfTools()
 
+
 def startTracking():
   if this._trackingDevice is not None:
     this._trackingDevice.startTracking()
 
+
 def stopTracking():
   if this._trackingDevice is not None:
      this._trackingDevice.stopTracking()
+
 
 def getConfiguration():
   if this._trackingDevice is None:
     return None
   return this._trackingDevice.getConfiguration()
 
+
 def setConfiguration(config):
   if this._trackingDevice is not None:
     this._trackingDevice.setConfiguration(config)
+
 
 def getTransformsForTool(index):
   """Return tuple (baseTransform, tipTransform)
@@ -71,10 +80,12 @@ def getTransformsForTool(index):
     return (None, None)
   return this._trackingDevice.getTransformsForTool(index)
 
+
 def isTracking(index):
   if this._trackingDevice is None:
     return False
   return this._trackingDevice.isTracking(index)
+
 
 def getTrackingToSceneTransform():
   """Return tracking to scene transform for access from different modules.

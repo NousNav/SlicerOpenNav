@@ -35,8 +35,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
-
-
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -111,14 +109,11 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
     slicer.modules.PlanningWidget.logic.getTrajectoryMarkup().SetDisplayVisibility(True)
 
-    
-    
     self.goToNavLayout(masterNode)
 
   def applyApplicationStyle(self):
     # Style
     self.applyStyle([slicer.app], 'Home.qss')
-    
 
   def applyStyle(self, widgets, styleSheetName):
     stylesheetfile = self.resourcePath(styleSheetName)
@@ -137,15 +132,13 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
     self.setupSliceViewers()
 
-    
-
     try:
       tipToPointer = slicer.util.getNode('TipToPointer')
       self.setupReslicing(tipToPointer)
 
     except:
       pass
-  
+
   def setupReslicing(self, driverNode):
 
     driver = slicer.modules.volumereslicedriver.logic()
@@ -165,23 +158,23 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     driver.SetRotationForSlice(-45.0, blueView)
     driver.SetModeForSlice(driver.MODE_INPLANE90, orangeView)
     driver.SetDriverForSlice(driverNode.GetID(), orangeView)
-  
+
   def setupSliceViewers(self):
     for name in slicer.app.layoutManager().sliceViewNames():
         sliceWidget = slicer.app.layoutManager().sliceWidget(name)
         self.setupSliceViewer(sliceWidget)
-  
+
   def setupSliceViewer(self, sliceWidget):
-    controller = sliceWidget.sliceController()    
+    controller = sliceWidget.sliceController()
     controller.setStyleSheet("background-color: #000000")
     controller.sliceViewLabel = ''
     slicer.util.findChild(sliceWidget, "PinButton").visible = False
     slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
     slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
-  
+
   def disconnectAll(self, widget):
-    try: widget.clicked.disconnect() 
+    try: widget.clicked.disconnect()
     except Exception: pass
 
   def toggleAllSliceSlidersVisiblility(self, visible):
@@ -232,10 +225,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       "    </view>"
       "   </item>"
       "  </layout>"
-      " </item>"     
+      " </item>"
       " <item>"
       "  <layout type=\"horizontal\">"
-       "   <item>"
+      "   <item>"
       "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
       "     <property name=\"orientation\" action=\"default\">Axial</property>"
       "     <property name=\"viewlabel\" action=\"default\">R</property>"
@@ -255,7 +248,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       "     <property name=\"viewlabel\" action=\"default\">Y</property>"
       "     <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
       "    </view>"
-      "   </item>"      
+      "   </item>"
       "  </layout>"
       " </item>"
       "</layout>")
@@ -288,7 +281,6 @@ class NavigationTest(ScriptedLoadableModuleTest):
   Uses ScriptedLoadableModuleTest base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-
 
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
@@ -329,4 +321,3 @@ class NavigationTest(ScriptedLoadableModuleTest):
 class NavigationFileWriter(object):
   def __init__(self, parent):
     pass
-
