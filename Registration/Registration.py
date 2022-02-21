@@ -104,6 +104,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButtonReg.enabled = False
 
+    self.beep = qt.QSoundEffect()
+    self.beep.setSource(qt.QUrl("file:"+self.resourcePath('Data/beep.wav')))
+
   def cleanup(self):
     self.optitrack.shutdown()
     if self.cameraTimer:
@@ -348,6 +351,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.ui.RMSLabel.text = 'RMS Error: ' + str(RMSE)
 
+    self.beep.play()
+
   def setupPivotCalibration(self):
     #create output transform
     try:
@@ -542,6 +547,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       transform.TransformPoint(samplePoint, outputPoint)
       # print(outputPoint)
       self.landmarks.collectLandmarkPosition(outputPoint)
+      self.beep.play()
     except:
       print('Could not get tip node')
 
