@@ -196,8 +196,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.registrationStep5()
 
     if index == self.registerPatientTabIndex:
-      self.registrationStep6()
-
+      self.registrationStep7()
+      
   def registrationStep1(self):
 
     #set the layout and display an image
@@ -307,7 +307,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.PivotCalibrationButton)
     self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.registerPatientTabIndex))
+    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep6())
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
 
     #set the frame in stacked widget
@@ -339,7 +339,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
     self.ui.PivotCalibrationButton.text = 'Pivot calibration complete'
-    self.pivotLogic.FlipShaftDirection()
     self.pivotLogic.ComputePivotCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
     tipToPointer.SetMatrixTransformToParent(outputMatrix)
@@ -357,11 +356,69 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       tipToPointer = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLinearTransformNode', 'TipToPointer')
     properties = {}
     properties['show'] = False
-    succes, self.needleModel = slicer.util.loadModel(self.resourcePath('Data/NeedleModel.vtk'), properties)
+    createModelsLogic = slicer.modules.createmodels.logic()
+    self.needleModel = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
+    self.needleModel.GetDisplayNode().SetColor(255,255,0)
     self.needleModel.GetDisplayNode().SetVisibility(False)
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
 
   def registrationStep6(self):
+    # set the layout and display an image
+    self.goToPictureLayout(self.pictures['RegistrationStep6.png'])
+
+    # set the button labels
+    self.backButtonReg.text = 'Back'
+    self.advanceButtonReg.text = 'Press when done'
+    self.backButtonAction.visible = True
+    self.advanceButtonAction.visible = True
+
+    # set the button actions
+    self.disconnectAll(self.advanceButtonReg)
+    self.disconnectAll(self.backButtonReg)
+    self.disconnectAll(self.ui.SpinCalibrationButton)
+    self.advanceButtonReg.clicked.connect(
+        lambda: self.registrationTabBar.setCurrentIndex(self.registerPatientTabIndex))
+    self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
+
+    # set the frame in stacked widget
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
+
+  def onSpinCalibrationButton(self):
+    # setup spin cal
+    try:
+      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+      self.pivotLogic.SetAndObserveTransformNode(pointerToHeadFrame)
+      tipToPointer = slicer.util.getNode('TipToPointer')
+      tipToPointer.SetAndObserveTransformNodeID(pointerToHeadFrame.GetID())
+      print('Starting pre-record period')
+      self.ui.SpinCalibrationButton.text = 'Spin calibration in progress'
+      qt.QTimer.singleShot(5000, self.startSpinCalibration)
+    except:
+      pass
+
+  def startSpinCalibration(self):
+    self.pivotLogic.SetRecordingState(True)
+    print('Start recording')
+    qt.QTimer.singleShot(5000, self.endSpinCalibration)
+
+  def endSpinCalibration(self):
+    outputMatrix = vtk.vtkMatrix4x4()
+    tipToPointer = slicer.util.getNode('TipToPointer')
+    tipToPointer.GetMatrixTransformToParent(outputMatrix)
+    self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
+    self.pivotLogic.SetRecordingState(False)
+    print('End recording')
+    self.ui.SpinCalibrationButton.text = 'Spin calibration complete'
+    self.pivotLogic.ComputeSpinCalibration()
+    self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
+    tipToPointer.SetMatrixTransformToParent(outputMatrix)
+
+    RMSE = self.pivotLogic.GetSpinRMSE()
+    self.pivotLogic.ClearToolToReferenceMatrices()
+
+    self.ui.RMSLabelSpin.text = 'RMS Error: ' + str(RMSE)
+  
+  def registrationStep7(self):
     #set the layout and display an image
     self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = False
@@ -387,7 +444,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonReg.clicked.connect(lambda: self.registrationStep8())
 
     #set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
+    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep7)
     self.landmarks.startNextLandmark()
 
   def registrationStep8(self):
@@ -529,6 +586,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       , 'RegistrationStep3.jpg'
       , 'RegistrationStep4.png'
       , 'RegistrationStep5.png'
+      , 'RegistrationStep6.png'
       ]
     self.pictures = {}
     properties = {}

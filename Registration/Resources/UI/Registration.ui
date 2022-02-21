@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>564</width>
+    <width>591</width>
     <height>491</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
      <property name="currentIndex">
-      <number>6</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="RegistrationStep1">
       <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -195,6 +195,53 @@ about the center
      </widget>
      <widget class="QWidget" name="RegistrationStep6">
       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_16">
+         <property name="font">
+          <font>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Rotate pointer 
+about its axis
+</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_15">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Place tip of pointer in the center divot on the reference array and rotate the pointer about its axis.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SpinCalibrationButton">
+         <property name="text">
+          <string>Start Spin Calibration</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="RMSLabelSpin">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="RegistrationStep7">
+      <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
         <widget class="QLabel" name="label_11">
          <property name="font">
