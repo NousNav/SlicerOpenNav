@@ -22,7 +22,6 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Images/RegistrationStep5.png
   Resources/Images/RegistrationStep6.png
   Resources/Data/manny.vtk
-  Resources/Data/NeedleModel.vtk
   Resources/Data/beep.wav
   Resources/Icons/Done.svg
   Resources/Icons/NotStarted.svg
