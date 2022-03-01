@@ -629,12 +629,3 @@ class PlanningTest(ScriptedLoadableModuleTest):
 
     logic = PlanningLogic()
     self.delayDisplay('Test passed!')
-
-
-#
-# Class for avoiding python error that is caused by the method SegmentEditor::setup
-# http://issues.slicer.org/view.php?id=3871
-#
-class PlanningFileWriter(object):
-  def __init__(self, parent):
-    pass

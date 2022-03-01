@@ -154,12 +154,3 @@ class TrackingTest(ScriptedLoadableModuleTest):
 
     logic = TrackingLogic()
     self.delayDisplay('Test passed!')
-
-
-#
-# Class for avoiding python error that is caused by the method SegmentEditor::setup
-# http://issues.slicer.org/view.php?id=3871
-#
-class TrackingFileWriter(object):
-  def __init__(self, parent):
-    pass
