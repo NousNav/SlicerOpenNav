@@ -375,52 +375,6 @@ def default_master_volume():
   logging.warning("Using active volume %r", node)
   return node
 
-def default_skin_segmentation():
-  node = slicer.mrmlScene.AddNewNodeByClass(
-    "vtkMRMLSegmentationNode",
-    "NN_SKIN_SEGMENTATION",
-  )
-  node.CreateDefaultDisplayNodes()
-  segmentation = node.GetSegmentation()
-  skin_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
-    "NN_SKIN",
-    "NN_SKIN",
-    [0.40, 0.35, 0.35],
-  ))
-  node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 0.5)
-  return node
-
-def default_seed_segmentation():
-  node = slicer.mrmlScene.AddNewNodeByClass(
-    "vtkMRMLSegmentationNode",
-    "NN_SEED_SEGMENTATION",
-  )
-  node.CreateDefaultDisplayNodes()
-  segmentation = node.GetSegmentation()
-  inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
-    "NN_INSIDE",
-    "NN_INSIDE",
-    [0.10, 0.90, 0.10],
-  ))
-  outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
-    "NN_OUTSIDE",
-    "NN_OUTSIDE",
-    [0.90, 0.10, 0.10],
-  ))
-  return node
-
-def default_trajectory_markup():
-  node = slicer.mrmlScene.AddNewNodeByClass(
-    'vtkMRMLMarkupsLineNode',
-    'NN_TRAJECTORY',
-  )
-  node.CreateDefaultDisplayNodes()
-  display = node.GetDisplayNode()
-  display.SetPropertiesLabelVisibility(False)
-  display.SetLineDiameter(3)  # mm
-  display.SetCurveLineSizeMode(display.UseLineDiameter)
-  return node
-
 
 class PlanningLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
@@ -433,9 +387,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
   """
 
   master_volume = NNUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
-  skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", factory=default_skin_segmentation)
-  seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", factory=default_seed_segmentation)
-  trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", factory=default_trajectory_markup)
+  skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
+  seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
+  trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
 
   current_step = NNUtils.parameterProperty("CURRENT_TAB")
 
@@ -453,6 +407,54 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
 
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
+
+    if not self.skin_segmentation:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLSegmentationNode",
+        "NN_SKIN_SEGMENTATION",
+      )
+      node.CreateDefaultDisplayNodes()
+      segmentation = node.GetSegmentation()
+      skin_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+        "NN_SKIN",
+        "NN_SKIN",
+        [0.40, 0.35, 0.35],
+      ))
+      node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 0.5)
+      self.skin_segmentation = node
+
+    if not self.seed_segmentation:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLSegmentationNode",
+        "NN_SEED_SEGMENTATION",
+      )
+      node.CreateDefaultDisplayNodes()
+      segmentation = node.GetSegmentation()
+      inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+        "NN_INSIDE",
+        "NN_INSIDE",
+        [0.10, 0.90, 0.10],
+      ))
+      outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+        "NN_OUTSIDE",
+        "NN_OUTSIDE",
+        [0.90, 0.10, 0.10],
+      ))
+      self.seed_segmentation = node
+
+    if not self.trajectory_markup:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        'vtkMRMLMarkupsLineNode',
+        'NN_TRAJECTORY',
+      )
+      node.CreateDefaultDisplayNodes()
+      display = node.GetDisplayNode()
+      display.SetPropertiesLabelVisibility(False)
+      display.SetLineDiameter(3)  # mm
+      display.SetCurveLineSizeMode(display.UseLineDiameter)
+      self.trajectory_markup = node
+
+
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.

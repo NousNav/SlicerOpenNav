@@ -71,20 +71,11 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   ]
   LANDMARKS_NEEDED = 3
 
-  requiredLandmarks: list = NNUtils.parameterProperty(
-    'REQUIRED_LANDMARKS',
-    factory=lambda: LandmarkManagerLogic.ALL_LANDMARKS
-  )
+  requiredLandmarks: list = NNUtils.parameterProperty('REQUIRED_LANDMARKS', default=ALL_LANDMARKS)
 
-  landmarkIndexes: dict = NNUtils.parameterProperty(
-    'LANDMARK_INDEXES',
-    factory=lambda: {}
-  )
+  landmarkIndexes: dict = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
-  landmarks = NNUtils.nodeReferenceProperty(
-    'PLANNING_LANDMARKS',
-    factory=lambda: slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-  )
+  landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', class_='vtkMRMLMarkupsFiducialNode')
 
   def __init__(self):
     super().__init__()
