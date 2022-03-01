@@ -168,6 +168,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     # set slice viewer background
     volume = self.logic.master_volume
+    if volume is None:
+      slicer.util.errorDisplay(
+        'No master volume is set and no volume is active. Choose a master volume.'
+      )
+      return
+
     slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
     NNUtils.setSliceViewBackgroundColor('#000000')
     self.goToFourUpLayout()
