@@ -364,9 +364,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.CurrentPlanningIndex = tabIndex
 
 def default_master_volume():
+  logging.warning('No master volume is set.')
+
   node_id = NNUtils.getActiveVolume()
+  if not node_id:
+    logging.warning('There is no active volume.')
+    return None
+
   node = slicer.mrmlScene.GetNodeByID(node_id)
-  logging.warning("No master volume is set. Using node %r", node)
+  logging.warning("Using active volume %r", node)
   return node
 
 def default_skin_segmentation():
