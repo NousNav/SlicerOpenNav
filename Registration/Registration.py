@@ -104,8 +104,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButtonReg.enabled = False
 
-    self.beep = qt.QSoundEffect()
-    self.beep.setSource(qt.QUrl("file:"+self.resourcePath('Data/beep.wav')))
+    try:
+      self.beep = qt.QSoundEffect()
+      self.beep.setSource(qt.QUrl("file:"+self.resourcePath('Data/beep.wav')))
+    except AttributeError:
+      slicer.util.warningDisplay(
+        'Sound playback not supported on this platform. Audio feedback is disabled.',
+        'Sound playback error',
+      )
 
   def cleanup(self):
     self.optitrack.shutdown()
