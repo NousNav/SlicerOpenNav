@@ -524,11 +524,12 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     effect.self().onApply()
 
     # Smooth
-    self.editor_widget.setActiveEffectByName("Smoothing")
-    effect = self.editor_widget.activeEffect()
-    effect.setParameter('SmoothingMethod', 'MEDIAN')
-    effect.setParameter('KernelSizeMm', smoothingSize)
-    effect.self().onApply()
+    if smoothingSize > 0 :
+      self.editor_widget.setActiveEffectByName("Smoothing")
+      effect = self.editor_widget.activeEffect()
+      effect.setParameter('SmoothingMethod', 'MEDIAN')
+      effect.setParameter('KernelSizeMm', smoothingSize)
+      effect.self().onApply()
 
     self.endEffect()
 
