@@ -162,7 +162,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Hide other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
 

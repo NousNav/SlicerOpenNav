@@ -66,19 +66,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.addWidget(self.advanceButton)
     self.bottomToolBar.visible = False
 
-    #Navigation Tab Bar
-    self.navigationTabBar = qt.QTabBar()
-    self.navigationTabBar.setObjectName("NavigationTabBar")
-    self.planSurgeryTabIndex = self.navigationTabBar.addTab("Plan surgery")
-    self.prepSurgeryTabIndex = self.navigationTabBar.addTab("Prep for surgery")
-    self.calibrateNavigationTabIndex = self.navigationTabBar.addTab("Calibrate")
-    self.navigateNavigationTabIndex = self.navigationTabBar.addTab("Navigate")
-    self.breakDownTabIndex = self.navigationTabBar.addTab("Break Down")
-    self.navigationTabBar.visible = False
-    secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
-    secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
-    secondaryTabWidgetUI.CenterArea.layout().addWidget(self.navigationTabBar)
-
     self.navLayout = NavigationWidget.registerCustomLayouts(slicer.app.layoutManager().layoutLogic())
 
   def enter(self):
@@ -87,11 +74,12 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
 
     #Show current
-    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
-    self.navigationTabBar.visible = True
 
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
