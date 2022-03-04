@@ -508,7 +508,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
     toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
-    defs = slicer.modules.PlanningWidget.definitions
+    defs = slicer.modules.PlanningWidget.landmarkLogic
     for name, position in defs.positions.items():
       toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
       pos = self.landmarks.getTrackerPosition(name)
