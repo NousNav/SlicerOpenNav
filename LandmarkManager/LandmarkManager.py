@@ -45,18 +45,6 @@ class LandmarkManagerWidget(ScriptedLoadableModuleWidget):
     pass
 
 
-class LandmarkManagerTest(ScriptedLoadableModuleTest):
-  def setUp(self):
-    pass
-
-  def runTest(self):
-    pass
-
-  def test_1(self):
-    logic = PlanningLandmarkLogic()
-    self.delayDisplay("Tests not implemented.")
-
-
 class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   ALL_LANDMARKS = [
     # 'Inion',
