@@ -3,6 +3,7 @@ import pathlib
 
 import qt
 import slicer
+import vtk
 
 import slicer.modules
 
@@ -11,6 +12,7 @@ from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModuleWidget,
   ScriptedLoadableModuleLogic,
 )
+from slicer.util import VTKObservationMixin
 
 import Home
 import NNUtils
@@ -112,7 +114,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.targetPreview.clicked.connect(self.previewTarget)
     self.ui.targetApply.clicked.connect(self.segmentTarget)
 
-    self.ui.trajectoryPlace.clicked.connect(self.setTrajectory)
+    self.ui.trajectoryEntry.clicked.connect(self.setTrajectoryEntry)
+    self.ui.trajectoryTarget.clicked.connect(self.setTrajectoryTarget)
 
     header = self.ui.defineLandmarkTableWidget.horizontalHeader()
     header.setSectionResizeMode(header.Stretch)
@@ -297,8 +300,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segmentation = self.logic.seed_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
-  def setTrajectory(self):
-    self.logic.placeTrajectory()
+  def setTrajectoryEntry(self):
+    self.logic.placeTrajectoryEntry()
+
+  def setTrajectoryTarget(self):
+    self.logic.placeTrajectoryTarget()
 
   def onSavePlanButtonClicked(self):
     default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)
@@ -335,7 +341,7 @@ def default_master_volume():
   return node
 
 
-class PlanningLogic(ScriptedLoadableModuleLogic):
+class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -349,11 +355,14 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
   skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
   seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
   trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
+  trajectory_target_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
+  trajectory_entry_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
 
   current_step = NNUtils.parameterProperty("CURRENT_TAB")
 
   def __init__(self):
-    super().__init__()
+    ScriptedLoadableModuleLogic.__init__(self)
+    VTKObservationMixin.__init__(self)
 
     self.SKIN_SEGMENT = 'NN_SKIN'
 
@@ -403,7 +412,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       ))
       self.seed_segmentation = node
 
-  def setupTrajectoryMarkupNode(self):
+  def setupTrajectoryMarkupNodes(self):
     if not self.trajectory_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
         'vtkMRMLMarkupsLineNode',
@@ -414,7 +423,42 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       display.SetPropertiesLabelVisibility(False)
       display.SetLineDiameter(3)  # mm
       display.SetCurveLineSizeMode(display.UseLineDiameter)
+      node.AddControlPointWorld(vtk.vtkVector3d())
+      node.AddControlPointWorld(vtk.vtkVector3d())
+      node.SetLocked(True)
+      display.SetVisibility(False)
       self.trajectory_markup = node
+
+    if not self.trajectory_target_markup:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        'vtkMRMLMarkupsFiducialNode',
+        'NN_TRAJECTORY_TARGET',
+      )
+      display = node.GetDisplayNode()
+      display.SetPointLabelsVisibility(False)
+      display.SetUseGlyphScale(False)
+      display.SetGlyphSize(4)  # 4mm
+      display.SetSelectedColor(0.0, 0.9, 0.0)  # green
+      display.SetActiveColor(0.4, 1.0, 0.4)  # hover: pale green
+      self.trajectory_target_markup = node
+
+    if not self.trajectory_entry_markup:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        'vtkMRMLMarkupsFiducialNode',
+        'NN_TRAJECTORY_ENTRY',
+      )
+      display = node.GetDisplayNode()
+      display.SetPointLabelsVisibility(False)
+      display.SetUseGlyphScale(False)
+      display.SetGlyphSize(4)  # 4mm
+      display.SetSelectedColor(0.8, 0.4, 0.4)  # skin color; brighter, saturated
+      display.SetActiveColor(1.0, 0.7, 0.7)  # hover: paler selected color
+      self.trajectory_entry_markup = node
+
+    self.addObserver(self.trajectory_target_markup, slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.updateTrajectory)
+    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.updateTrajectory)
+    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointRemovedEvent, self.updateTrajectory)
+    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointAddedEvent, self.updateTrajectory)
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.
@@ -542,16 +586,49 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """
     self.editor_widget.setActiveEffectByName('None')
 
-  def placeTrajectory(self):
-    """ Select the trajectory line markup and enter markup placement mode."""
+  def placeTrajectoryEntry(self):
+    self.setupTrajectoryMarkupNodes()
 
-    self.setupTrajectoryMarkupNode()
-
-    trajectory = self.trajectory_markup
+    markup = self.trajectory_entry_markup
+    markup.RemoveAllControlPoints()
 
     selection_node = slicer.mrmlScene.GetNodeByID('vtkMRMLSelectionNodeSingleton')
     interaction_node = slicer.mrmlScene.GetNodeByID('vtkMRMLInteractionNodeSingleton')
 
-    selection_node.SetActivePlaceNodeID(trajectory.GetID())
-    selection_node.SetActivePlaceNodeClassName(trajectory.GetClassName())
+    selection_node.SetActivePlaceNodeID(markup.GetID())
+    selection_node.SetActivePlaceNodeClassName(markup.GetClassName())
     interaction_node.SetCurrentInteractionMode(interaction_node.Place)
+
+  def placeTrajectoryTarget(self):
+    self.setupTrajectoryMarkupNodes()
+
+    markup = self.trajectory_target_markup
+    markup.RemoveAllControlPoints()
+
+    selection_node = slicer.mrmlScene.GetNodeByID('vtkMRMLSelectionNodeSingleton')
+    interaction_node = slicer.mrmlScene.GetNodeByID('vtkMRMLInteractionNodeSingleton')
+
+    selection_node.SetActivePlaceNodeID(markup.GetID())
+    selection_node.SetActivePlaceNodeClassName(markup.GetClassName())
+    interaction_node.SetCurrentInteractionMode(interaction_node.Place)
+
+  def updateTrajectory(self, o, e):
+    line = self.trajectory_markup
+
+    entry = self.trajectory_entry_markup
+    target = self.trajectory_target_markup
+
+    entry_exists = entry.GetNumberOfControlPoints() > 0
+    target_exists = target.GetNumberOfControlPoints() > 0
+    enabled = entry_exists and target_exists
+
+    line.GetDisplayNode().SetVisibility(enabled)
+    if enabled:
+      line.SetNthControlPointPositionFromArray(
+        0,
+        entry.GetNthControlPointPositionVector(0)
+      )
+      line.SetNthControlPointPositionFromArray(
+        1,
+        target.GetNthControlPointPositionVector(0)
+      )

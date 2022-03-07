@@ -170,9 +170,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="trajectoryPlace">
+        <widget class="QPushButton" name="trajectoryEntry">
          <property name="text">
-          <string>Define Trajectory</string>
+          <string>Define Entry Position</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="trajectoryTarget">
+         <property name="text">
+          <string>Define Target Position</string>
          </property>
         </widget>
        </item>
