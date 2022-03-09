@@ -303,7 +303,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def registrationStep5(self):
 
     #set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep5.png'])
+    self.goToPictureLayout(self.pictures['RegistrationStep5.png'], True)
+    self.AlignmentSideWidget.visible = True
+    self.LandmarkSideWidget.visible = False
+
+    self.cameraTimer = qt.QTimer()
+    self.cameraTimer.timeout.connect(self.tools.checkTools)
+    self.cameraTimer.start(100)
 
     #set the button labels
     self.backButtonReg.text = 'Back'
@@ -376,7 +382,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def registrationStep6(self):
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep6.png'])
+    self.goToPictureLayout(self.pictures['RegistrationStep6.png'], True)
 
     # set the button labels
     self.backButtonReg.text = 'Back'
@@ -628,14 +634,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.setMainPanelVisible(True)
     NNUtils.setSidePanelVisible(True)
 
-  def goToPictureLayout(self, image = None):
+  def goToPictureLayout(self, image = None, sidePanelVisible = False):
     if image is not None:
       slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
     NNUtils.setSliceWidgetSlidersVisible(False)
     NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
+    NNUtils.setSidePanelVisible(sidePanelVisible)
     NNUtils.setSliceViewBackgroundColor('#434343')
 
   def applyApplicationStyle(self):
