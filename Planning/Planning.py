@@ -551,6 +551,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """
     self.editor_widget.setActiveEffectByName('Grow from seeds')
     effect = self.editor_widget.activeEffect()
+    effect.setParameter('AutoUpdate', 0)
     effect.self().onPreview()
 
   def applyTargetSegmentation(self, smoothingSize=3):
