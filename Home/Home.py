@@ -202,6 +202,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.bottomToolBar.addWidget(spacer)
     self.advanceButton = qt.QPushButton("Go To Planning")
     self.advanceButton.name = 'AdvanceButton'
+    self.advanceButton.enabled = False
     self.bottomToolBar.addWidget(self.advanceButton)
 
     #Side Widget
@@ -358,6 +359,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
     node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
+    self.advanceButton.enabled = True
 
     displayNode = node.GetDisplayNode()
     range = node.GetImageData().GetScalarRange()
