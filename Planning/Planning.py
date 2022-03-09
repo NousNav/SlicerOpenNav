@@ -165,6 +165,18 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
 
+     # Show current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    self.bottomToolBar.visible = True
+    self.planningTabBar.visible = True
+
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+
+    self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
+    self.onTabChanged(self.segmentSkinTabIndex)
+    
     # set slice viewer background
     volume = self.logic.master_volume
     if volume is None:
@@ -177,17 +189,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     NNUtils.setSliceViewBackgroundColor('#000000')
     self.goToFourUpLayout()
 
-    # Show current
-    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
-    self.bottomToolBar.visible = True
-    self.planningTabBar.visible = True
-
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
-
-    self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
-    self.onTabChanged(self.segmentSkinTabIndex)
+   
 
     # Set threshold slider extremes and default
     volumeDisplay = self.logic.master_volume.GetDisplayNode()
