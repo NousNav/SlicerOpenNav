@@ -193,6 +193,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
     self.backButton = qt.QPushButton("Back")
     self.backButton.name = 'BackButton'
+    self.backButton.visible = False
     self.bottomToolBar.addWidget(self.backButton)
     spacer = qt.QWidget()
     policy = spacer.sizePolicy
