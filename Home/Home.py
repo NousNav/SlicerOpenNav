@@ -1,5 +1,6 @@
 import qt
 import slicer
+import typing
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -48,8 +49,25 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
 
+    innerTabBar = qt.QTabBar()
+    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(innerTabBar)
+
+    patients = slicer.modules.patients.createNewWidgetRepresentation()
+    planning = slicer.modules.planning.createNewWidgetRepresentation()
+    registration = slicer.modules.registration.createNewWidgetRepresentation()
+    navigation = slicer.modules.navigation.createNewWidgetRepresentation()
+
+    info = Workflow(
+      'nn',
+      nested=(
+        patients.self().workflow,
+        planning.self().workflow,
+        registration.self().workflow,
+        navigation.self().workflow,
+      ),
+    )
     # Create logic class
-    self.logic = HomeLogic()
+    self.logic = HomeLogic(info, self.ui.HomeWidget)
 
     # setup scene
     self.setupNodes()
@@ -57,32 +75,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
-    # The home module is a place holder for the planning, registration and navigation modules
-    self.patientsWidget = slicer.modules.patients.createNewWidgetRepresentation()
-    self.ui.PatientsTab.layout().addWidget(self.patientsWidget)
-
-    self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
-    self.ui.PlanningTab.layout().addWidget(self.planningWidget)
-
-    self.registrationWidget = slicer.modules.registration.createNewWidgetRepresentation()
-    self.ui.RegistrationTab.layout().addWidget(self.registrationWidget)
-
-    self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
-    self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
-
-    self.patientsWidget.self().advanceButton.clicked.connect(lambda: self.primaryTabBar.setCurrentIndex(self.planningTabIndex))
-    self.patientsWidget.self().backButton.clicked.connect(lambda: slicer.util.selectModule('Home'))
-
-    self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
-    self.onPrimaryTabChanged(self.patientsTabIndex)
+    self.advanceButton.clicked.connect(self.logic.gotoNext)
+    self.backButton.clicked.connect(self.logic.gotoPrev)
 
     self.setCustomUIVisible(True)
 
     # Apply style
     self.applyApplicationStyle()
-
-    # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
-    # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
   def applyApplicationStyle(self):
     NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
@@ -122,12 +121,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Tabs for primary toolbar
     self.primaryTabBar = qt.QTabBar()
     self.primaryTabBar.setObjectName("PrimaryTabBar")
-    self.patientsTabIndex = self.primaryTabBar.addTab("Patients")
-    self.planningTabIndex = self.primaryTabBar.addTab("Planning")
-    self.registrationTabIndex = self.primaryTabBar.addTab("Registration")
-    self.navigationTabIndex = self.primaryTabBar.addTab("Navigation")
     self.primaryTabWidgetUI.CenterArea.layout().addWidget(self.primaryTabBar)
-    self.primaryTabBar.currentChanged.connect(self.onPrimaryTabChanged)
 
     # Assemble primary bar
     nousNavLabel = qt.QLabel('NousNav')
@@ -159,32 +153,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dockWidget.setWidget(self.SidePanelWidget)
     dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)
     slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea , dockWidget)
-
-  def onPrimaryTabChanged(self, index):
-    print('Primary tab changed')
-    self.registrationWidget.exit()
-    self.planningWidget.exit()
-
-    if index == self.patientsTabIndex:
-      slicer.util.selectModule('Home')
-      self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
-      self.patientsWidget.enter()
-
-    if index == self.planningTabIndex:
-      slicer.util.selectModule('Home')
-      self.ui.HomeWidget.setCurrentWidget(self.ui.PlanningTab)
-      self.planningWidget.enter()
-
-    if index == self.navigationTabIndex:
-      slicer.util.selectModule('Home')
-      self.ui.HomeWidget.setCurrentWidget(self.ui.NavigationTab)
-      self.navigationWidget.enter()
-
-    if index == self.registrationTabIndex:
-      self.planningWidget.exit()
-      slicer.util.selectModule('Home')
-      self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
-      self.registrationWidget.enter()
 
   def toggleStyle(self,visible):
     if visible:
@@ -245,6 +213,112 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
 
 
+class Step:
+  def __init__(self, names, setups, teardowns):
+    self.names = names
+    self.setups = setups
+    self.teardowns = teardowns
+    self.nextStep = None
+    self.prevStep = None
+
+  @classmethod
+  def one(cls, name, setup, teardown):
+    return Step((name,), (setup,), (teardown,))
+
+  def concat(self, other):
+    cls = type(self)
+    return cls(
+      self.names + other.names,
+      self.setups + other.setups,
+      self.teardowns + other.teardowns,
+    )
+
+  @classmethod
+  def transition(cls, lhs, rhs):
+    """Find the actions needed to transition from self to other. Teardown self, then setup other."""
+    if not lhs or not rhs:
+      if lhs:
+        yield from reversed(lhs.teardowns)
+      if rhs:
+        yield from rhs.setups
+      return
+
+    # find the first index i where self.names and other.names differ
+    for i, (l, r) in enumerate(zip(lhs.names, rhs.names)):
+      if l != r:
+        break
+    else:
+      return # the lhs and rhs are the same; no action needed.
+
+    yield from reversed(lhs.teardowns[i:])  # teardown in reverse order; context is a stack.
+    yield from rhs.setups[i:]
+
+
+class Workflow:
+  def __init__(
+    self,
+    name,
+    widget=None,
+    setup=None,
+    teardown=None,
+    nested=()
+  ):
+    self.name = name
+    self.widget = widget
+    self.setup = setup
+    self.teardown = teardown
+    self.nested = nested
+
+  def flatten(self, stack):
+    if self.widget:
+      stack.addWidget(self.widget)
+
+    if not self.nested:
+      def setup():
+        if self.widget:
+          stack.setCurrentWidget(self.widget)
+        if self.setup:
+          self.setup()
+
+      def teardown():
+        if self.teardown:
+          self.teardown()
+
+      yield Step.one(self.name, setup, teardown)
+    else:
+      toolBar = qt.QToolBar()
+      toolBar.setObjectName(self.name + '-toolbar')
+      toolBar.visible = False
+      slicer.util.mainWindow().addToolBar(toolBar)
+
+      tabBar = qt.QTabBar()
+      tabBar.setObjectName(self.name + '-tabbar')
+      toolBar.addWidget(tabBar)
+
+      # centerArea.layout().addWidget(tabBar)
+
+      for nested in self.nested:
+        def setup(idx=tabBar.addTab(nested.name)):
+          toolBar.visible = True
+          tabBar.currentIndex = idx
+
+          if self.widget:
+            stack.setCurrentWidget(self.widget)
+          if self.setup:
+            self.setup()
+
+        def teardown():
+          toolBar.visible = False
+          if self.teardown:
+
+            self.teardown()
+
+        this = Step.one(self.name, setup, teardown)
+
+        for step in nested.flatten(stack):
+          yield this.concat(step)
+
+
 class HomeLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
@@ -254,4 +328,67 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-  pass
+
+  _currentName: typing.Tuple[str] = NNUtils.parameterProperty('CURRENT_STEP_NAME', default=None)
+
+  @property
+  def current(self) -> Step:
+    name = self._currentName
+    if name is None:
+      return None
+
+    return self.names[tuple(name)]
+
+  @current.setter
+  def current(self, value: Step):
+    self._currentName = tuple(value.names)
+
+  @property
+  def nextStep(self):
+    return self.current.nextStep
+
+  @property
+  def prevStep(self):
+    return self.current.prevStep
+
+  def __init__(self, info: Workflow, stack):
+    super().__init__()
+
+    self.stack = stack
+
+    self.steps = list(info.flatten(stack))
+    self.names = {step.names: step for step in self.steps}
+
+    # build doubly-linked list
+    for prevStep, nextStep in zip(self.steps[:-1], self.steps[1:]):
+      prevStep.nextStep = nextStep
+      nextStep.prevStep = prevStep
+
+    # Initialize workflow selecting first step
+    self.goto(self.steps[0])
+
+  def goto(self, dst: Step):
+    slicer.util.selectModule('Home')
+
+    if dst is None:
+      return
+
+    src = self.current
+
+    # Collect and execute actions (including teardown and setup)
+    # associated with the current transition.
+    actions = Step.transition(src, dst)
+    for action in actions:
+      if action:
+        action()
+
+    self._currentName = dst.names
+
+    slicer.modules.HomeWidget.backButton.visible = dst.prevStep is not None
+    slicer.modules.HomeWidget.advanceButton.visible = dst.nextStep is not None
+
+  def gotoNext(self):
+    self.goto(self.nextStep)
+
+  def gotoPrev(self):
+    self.goto(self.prevStep)

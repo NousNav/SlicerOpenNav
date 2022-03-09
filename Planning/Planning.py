@@ -4,6 +4,7 @@ from slicer.ScriptedLoadableModule import *
 import slicer.modules
 import logging
 import NNUtils
+import Home
 
 from LandmarkManager import PlanningLandmarkTableManager, LandmarkManagerLogic
 
@@ -35,7 +36,20 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   """
 
   def __init__(self, parent):
-    ScriptedLoadableModuleWidget.__init__(self, parent)
+    super().__init__(parent)
+
+    self.workflow = Home.Workflow(
+      'planning',
+      widget=self.parent,
+      nested=(
+        Home.Workflow('skin', setup=self.planningStep1),
+        Home.Workflow('target', setup=self.planningStep2),
+        Home.Workflow('trajectory', setup=self.planningStep3),
+        Home.Workflow('landmarks', setup=self.planningStep4),
+      ),
+      setup=self.enter,
+      teardown=self.exit,
+    )
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -131,7 +145,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
     self.onTabChanged(self.segmentSkinTabIndex)
-    
+
     # set slice viewer background
     volume = self.logic.master_volume
     if volume is None:
@@ -250,16 +264,14 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def openNextModule(self):
     home = slicer.modules.HomeWidget
-    home.primaryTabBar.setCurrentIndex(home.registrationTabIndex)
-
-    print('we should move to registration now...')
+    home.logic.gotoNext()
 
   def openPreviousModule(self):
     home = slicer.modules.HomeWidget
     home.primaryTabBar.setCurrentIndex(home.patientsTabIndex)
 
     print('we should move to patients now...')
-  
+
   def createSkinSegmentation(self):
     volume = self.logic.master_volume
     if not volume:

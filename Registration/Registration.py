@@ -4,6 +4,7 @@ import vtk
 from slicer.ScriptedLoadableModule import *
 
 import NNUtils
+import Home
 from LandmarkManager import Landmarks
 import RegistrationUtils.Tools as Tools
 
@@ -33,6 +34,26 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
+
+  def __init__(self, parent):
+    super().__init__(parent)
+
+    self.workflow = Home.Workflow(
+      'registration',
+      widget=self.parent,
+      nested=(
+        Home.Workflow('step1', setup=self.registrationStep1),
+        Home.Workflow('step2', setup=self.registrationStep2),
+        Home.Workflow('step3', setup=self.registrationStep3),
+        Home.Workflow('step4', setup=self.registrationStep4),
+        Home.Workflow('step5', setup=self.registrationStep5),
+        Home.Workflow('step6', setup=self.registrationStep6),
+        Home.Workflow('step7', setup=self.registrationStep7),
+        Home.Workflow('step8', setup=self.registrationStep8),
+      ),
+      setup=self.enter,
+      teardown=self.exit,
+    )
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -199,7 +220,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if index == self.registerPatientTabIndex:
       self.registrationStep7()
-      
+
   def registrationStep1(self):
 
     # set the layout and display an image
@@ -514,10 +535,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def restartRegistration(self):
     print('Restarting')
     self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex)
-  
+
   def openNextModule(self):
     home = slicer.modules.HomeWidget
-    home.primaryTabBar.setCurrentIndex(home.navigationTabIndex)
+    home.logic.gotoNext()
 
   def fidicialOnlyRegistration(self):
 

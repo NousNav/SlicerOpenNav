@@ -2,6 +2,7 @@ import slicer
 from slicer.ScriptedLoadableModule import *
 
 import NNUtils
+import Home
 
 
 class Navigation(ScriptedLoadableModule):
@@ -11,7 +12,7 @@ class Navigation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Nav"
+    self.parent.title = "NousNav Navigation"
     self.parent.categories = [""]
     self.parent.dependencies = ["CameraNavigation", "Tools"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
@@ -31,7 +32,14 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   """
 
   def __init__(self, parent):
-    ScriptedLoadableModuleWidget.__init__(self, parent)
+    super().__init__(parent)
+
+    self.workflow = Home.Workflow(
+      'navigation',
+      widget=self.parent,
+      setup=self.enter,
+      teardown=self.exit,
+    )
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)

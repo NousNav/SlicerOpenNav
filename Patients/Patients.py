@@ -10,6 +10,7 @@ import vtk
 from slicer.ScriptedLoadableModule import *
 
 import NNUtils
+import Home
 
 
 class Patients(ScriptedLoadableModule):
@@ -32,6 +33,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     super().__init__(parent)
     self.VolumeNodeTag = None
+
+    self.workflow = Home.Workflow(
+      'patients',
+      widget=self.parent,
+      setup=self.enter,
+      teardown=self.exit,
+    )
 
   def setup(self):
     super().setup()

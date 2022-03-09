@@ -55,18 +55,18 @@
            <height>0</height>
           </size>
          </property>
-         <widget class="QWidget" name="PlanningTab">
-          <layout class="QVBoxLayout" name="verticalLayout_1"/>
-         </widget>
-         <widget class="QWidget" name="RegistrationTab">
-          <layout class="QVBoxLayout" name="verticalLayout_4"/>
-         </widget>
-         <widget class="QWidget" name="PatientsTab">
-          <layout class="QVBoxLayout" name="verticalLayout_3"/>
-         </widget>
-         <widget class="QWidget" name="NavigationTab">
-          <layout class="QVBoxLayout" name="verticalLayout_2"/>
-         </widget>
+<!--         <widget class="QWidget" name="PlanningTab">-->
+<!--          <layout class="QVBoxLayout" name="verticalLayout_1"/>-->
+<!--         </widget>-->
+<!--         <widget class="QWidget" name="RegistrationTab">-->
+<!--          <layout class="QVBoxLayout" name="verticalLayout_4"/>-->
+<!--         </widget>-->
+<!--         <widget class="QWidget" name="PatientsTab">-->
+<!--          <layout class="QVBoxLayout" name="verticalLayout_3"/>-->
+<!--         </widget>-->
+<!--         <widget class="QWidget" name="NavigationTab">-->
+<!--          <layout class="QVBoxLayout" name="verticalLayout_2"/>-->
+<!--         </widget>-->
         </widget>
        </item>
       </layout>
