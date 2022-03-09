@@ -465,7 +465,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       masterNode = slicer.modules.PlanningWidget.logic.getMasterVolume()
     except:
       masterNode = None
-      print('No node')
+      print('No master volume node is loaded')
     self.goToFourUpLayout(masterNode)
 
     self.AlignmentSideWidget.visible = False
@@ -540,8 +540,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.mrmlScene.RemoveNode(fromMarkupsNode)
     slicer.mrmlScene.RemoveNode(toMarkupsNode)
 
-    slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.getSkinSegmentation().GetDisplayNode().SetVisibility2D(False)
+    slicer.modules.PlanningWidget.logic.skin_segmentation.SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
   def onCollectButton(self):
     print('Attempt collection')

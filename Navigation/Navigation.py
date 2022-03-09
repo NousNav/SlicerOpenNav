@@ -89,11 +89,11 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       masterNode = slicer.modules.PlanningWidget.logic.getMasterVolume()
     except:
       masterNode = None
-      print('No node')
+      print('No master volume node loaded')
 
-    slicer.modules.PlanningWidget.logic.getSeedSegmentation().SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.getSkinSegmentation().SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.getTrajectoryMarkup().SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.seed_segmentation.SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.skin_segmentation.SetDisplayVisibility(True)
+    slicer.modules.PlanningWidget.logic.trajectory_markup.SetDisplayVisibility(True)
 
     self.goToNavLayout(masterNode)
 

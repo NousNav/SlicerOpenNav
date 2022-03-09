@@ -1,7 +1,7 @@
 import os.path
 from enum import Enum
 
-import typing
+from typing import List, Dict
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -59,9 +59,9 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   ]
   LANDMARKS_NEEDED = 3
 
-  requiredLandmarks: list = NNUtils.parameterProperty('REQUIRED_LANDMARKS', default=ALL_LANDMARKS)
+  requiredLandmarks: List[str] = NNUtils.parameterProperty('REQUIRED_LANDMARKS', default=ALL_LANDMARKS)
 
-  landmarkIndexes: dict = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
+  landmarkIndexes: Dict[str, int] = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
   landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', class_='vtkMRMLMarkupsFiducialNode')
 
@@ -81,7 +81,7 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   @property
   def positions(self):
     data = {}
-    for name, idx in self.landmarkIdxMap.items():
+    for name, idx in self.landmarkIndexes.items():
       point = [0, 0, 0]
       self.landmarks.GetNthControlPointPositionWorld(idx, point)
       data[name] = point
