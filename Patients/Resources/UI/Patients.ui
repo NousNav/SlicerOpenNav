@@ -12,246 +12,41 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
    <item>
-    <widget class="QStackedWidget" name="PatientsWidget">
-     <property name="currentIndex">
-      <number>1</number>
+    <widget class="QPushButton" name="ImportDICOMButton">
+     <property name="text">
+      <string>Import DICOM Data</string>
      </property>
-     <widget class="QWidget" name="PatientsStep1">
-      <layout class="QVBoxLayout" name="verticalLayout_planning1">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>40</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Segment the Skin</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Threshold</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSlider" name="skinThresholdSlider">
-         <property name="minimum">
-          <number>-200</number>
-         </property>
-         <property name="maximum">
-          <number>1000</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Smoothness</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSlider" name="skinSmoothingSlider">
-         <property name="minimum">
-          <number>0</number>
-         </property>
-         <property name="maximum">
-          <number>10</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="skinApply">
-         <property name="text">
-          <string>Apply</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="PatientsStep2">
-      <layout class="QVBoxLayout" name="verticalLayout_planning2">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>35</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Segment the Target</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="targetPaintInside">
-         <property name="text">
-          <string>Paint Inside</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="targetPaintOutside">
-         <property name="text">
-          <string>Paint Outside</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="targetPreview">
-         <property name="text">
-          <string>Preview</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="targetApply">
-         <property name="text">
-          <string>Apply</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="PatientsStep3">
-      <layout class="QVBoxLayout" name="verticalLayout_planning3">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>40</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Plan the Trajectory</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="trajectoryPlace">
-         <property name="text">
-          <string>Define Trajectory</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="PatientsStep4">
-      <layout class="QVBoxLayout" name="verticalLayout_planning4">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>40</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Define Landmarks</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="defineLandmarkTableWidget">
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="lineWidth">
-          <number>0</number>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="sizeAdjustPolicy">
-          <enum>QAbstractScrollArea::AdjustToContents</enum>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::NoSelection</enum>
-         </property>
-         <property name="showGrid">
-          <bool>false</bool>
-         </property>
-         <attribute name="horizontalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>StatusLabel</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Name</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Button</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
     </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="DICOMToggleButton">
+     <property name="text">
+      <string>Show / Hide DICOM Browser</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="LoadDataButton">
+     <property name="text">
+      <string>Load Non-DICOM Data</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

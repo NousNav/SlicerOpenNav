@@ -1,11 +1,15 @@
 import ctk
 import logging
 import os.path
+import qt
 import slicer
 import slicer.modules
 import slicer.util
+import vtk
 
 from slicer.ScriptedLoadableModule import *
+
+import NNUtils
 
 
 class Patients(ScriptedLoadableModule):
@@ -37,11 +41,104 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     self.logic = PatientsLogic()
 
+    # Dark palette does not propogate on its own?
+    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
+
+    # Make sure DICOM widget exists
+    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
+
+    # Begin listening for new volumes
+    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onNodeAdded)
+
   def enter(self):
-    pass
+    # Hides other toolbars
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
+
+    # Show current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
+
+    # Styling
+    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
+    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
+    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelDark.qss"))
+
+    self.goToFourUpLayout()
+
+  def applyApplicationStyle(self):
+    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
+
+  def goToFourUpLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
+    NNUtils.setSliceWidgetSlidersVisible(True)
+    NNUtils.setMainPanelVisible(True)
+    NNUtils.setSidePanelVisible(False)
 
   def exit(self):
     pass
+
+  def onClose(self, o, e):
+    pass
+
+  def cleanup(self):
+    pass
+
+  def setupDICOMBrowser(self):
+    # Make sure that the DICOM widget exists
+    slicer.modules.dicom.widgetRepresentation()
+    self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
+    self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
+    self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
+
+    # For some reason, the browser is instantiated as not hidden. Close
+    # so that the 'isHidden' check works as required
+    slicer.modules.DICOMWidget.browserWidget.close()
+    slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
+
+  def onDICOMImport(self):
+    slicer.modules.DICOMWidget.browserWidget.dicomBrowser.openImportDialog()
+    self.ui.DICOMToggleButton.checked = qt.Qt.Checked
+
+  def resetDICOMToggle(self):
+    self.ui.DICOMToggleButton.checked = qt.Qt.Unchecked
+    slicer.util.selectModule('Home')
+
+  def toggleDICOMBrowser(self, show):
+    if show:
+      slicer.modules.DICOMWidget.onOpenBrowserWidget()
+    else:
+      slicer.modules.DICOMWidget.browserWidget.close()
+
+  def processIncomingVolumeNode(self, node):
+    if node.GetDisplayNode() is None:
+      node.CreateDefaultDisplayNodes()
+    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
+    slicer.modules.HomeWidget.advanceButton.enabled = True
+
+    displayNode = node.GetDisplayNode()
+    range = node.GetImageData().GetScalarRange()
+    if range[1] - range[0] < 4000:
+      displayNode.SetAutoWindowLevel(True)
+    else:
+      displayNode.SetAutoWindowLevel(False)
+      displayNode.SetLevel(50)
+      displayNode.SetWindow(100)
+    slicer.modules.HomeWidget.setup3DView()
+    slicer.modules.HomeWidget.setupSliceViewers()
+
+  @vtk.calldata_type(vtk.VTK_OBJECT)
+  def onNodeAdded(self, caller, event, calldata):
+    node = calldata
+    if isinstance(node, slicer.vtkMRMLVolumeNode):
+      # Call processing using a timer instead of calling it directly
+      # to allow the volume loading to fully complete.
+      # TODO: no event for volume loading done?
+      qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
 
 
 class PatientsLogic(ScriptedLoadableModuleLogic):

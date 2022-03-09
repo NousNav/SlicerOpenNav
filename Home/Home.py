@@ -1,13 +1,10 @@
 import qt
 import slicer
-import vtk
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 
 import NNUtils
-
-from Patients import PatientsLogic
 
 
 class Home(ScriptedLoadableModule):
@@ -19,7 +16,7 @@ class Home(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav Home"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Planning", "Registration", "Navigation"]
+    self.parent.dependencies = ["Patients", "Planning", "Registration", "Navigation"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the NousNav application
@@ -53,7 +50,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Create logic class
     self.logic = HomeLogic()
-    self.patientsLogic = PatientsLogic()
 
     # setup scene
     self.setupNodes()
@@ -62,11 +58,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # The home module is a place holder for the planning, registration and navigation modules
+    self.patientsWidget = slicer.modules.patients.createNewWidgetRepresentation()
+    self.ui.PatientsTab.layout().addWidget(self.patientsWidget)
+
     self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
-    self.ui.PlanningTab.layout().addWidget( self.planningWidget )
+    self.ui.PlanningTab.layout().addWidget(self.planningWidget)
 
     self.registrationWidget = slicer.modules.registration.createNewWidgetRepresentation()
-    self.ui.RegistrationTab.layout().addWidget( self.registrationWidget )
+    self.ui.RegistrationTab.layout().addWidget(self.registrationWidget)
 
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
@@ -82,39 +81,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
     # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
-
-    # Make sure DICOM widget exists
-    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
-
-    # Begin listening for new volumes
-    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent,
-            self.onNodeAdded)
-
-  def setupDICOMBrowser(self):
-    # Make sure that the DICOM widget exists
-    slicer.modules.dicom.widgetRepresentation()
-    self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
-    self.ui.ImportDICOMButton.clicked.connect(self.patientsLogic.onDICOMImport)
-    self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
-
-    # For some reason, the browser is instantiated as not hidden. Close
-    # so that the 'isHidden' check works as required
-    slicer.modules.DICOMWidget.browserWidget.close()
-    slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
-
-  def onDICOMImport(self):
-    slicer.modules.DICOMWidget.browserWidget.dicomBrowser.openImportDialog()
-    self.ui.DICOMToggleButton.checked = qt.Qt.Checked
-
-  def resetDICOMToggle(self):
-    self.ui.DICOMToggleButton.checked = qt.Qt.Unchecked
-    slicer.util.selectModule('Home')
-
-  def toggleDICOMBrowser(self, show):
-    if show:
-      slicer.modules.DICOMWidget.onOpenBrowserWidget()
-    else:
-      slicer.modules.DICOMWidget.browserWidget.close()
 
   def applyApplicationStyle(self):
     NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
@@ -220,8 +186,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if index == self.patientsTabIndex:
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.PatientsTab)
-      self.enter()
-      self.goToFourUpLayout()
+      self.patientsWidget.enter()
 
     if index == self.planningTabIndex:
       slicer.util.selectModule('Home')
@@ -238,25 +203,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.selectModule('Home')
       self.ui.HomeWidget.setCurrentWidget(self.ui.RegistrationTab)
       self.registrationWidget.enter()
-
-  def enter(self):
-
-    # Hides other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
-
-    # Show current
-    self.bottomToolBar.visible = True
-    self.secondaryToolBar.visible = False
-
-    # Styling
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelDark.qss"))
 
   def toggleStyle(self,visible):
     if visible:
@@ -298,13 +244,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setToolbarsVisible(True)
     slicer.util.setApplicationLogoVisible(True)
 
-  def goToFourUpLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
-
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
@@ -319,32 +258,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     threeDWidget.threeDController().visible = False
     horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
     threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
-
-  def processIncomingVolumeNode(self, node):
-    if node.GetDisplayNode() is None:
-      node.CreateDefaultDisplayNodes()
-    node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
-    self.advanceButton.enabled = True
-
-    displayNode = node.GetDisplayNode()
-    range = node.GetImageData().GetScalarRange()
-    if range[1] - range[0] < 4000:
-      displayNode.SetAutoWindowLevel(True)
-    else:
-      displayNode.SetAutoWindowLevel(False)
-      displayNode.SetLevel(50)
-      displayNode.SetWindow(100)
-    self.setup3DView()
-    self.setupSliceViewers()
-
-  @vtk.calldata_type(vtk.VTK_OBJECT)
-  def onNodeAdded(self, caller, event, calldata):
-    node = calldata
-    if isinstance(node, slicer.vtkMRMLVolumeNode):
-      # Call processing using a timer instead of calling it directly
-      # to allow the volume loading to fully complete.
-      # TODO: no event for volume loading done?
-      qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
 
   def setupSliceViewers(self):
     for name in slicer.app.layoutManager().sliceViewNames():

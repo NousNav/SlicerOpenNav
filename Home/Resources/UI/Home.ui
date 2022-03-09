@@ -62,45 +62,7 @@
           <layout class="QVBoxLayout" name="verticalLayout_4"/>
          </widget>
          <widget class="QWidget" name="PatientsTab">
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QPushButton" name="ImportDICOMButton">
-             <property name="text">
-              <string>Import DICOM Data</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="DICOMToggleButton">
-             <property name="text">
-              <string>Show / Hide DICOM Browser</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="LoadDataButton">
-             <property name="text">
-              <string>Load Non-DICOM Data</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_3"/>
          </widget>
          <widget class="QWidget" name="NavigationTab">
           <layout class="QVBoxLayout" name="verticalLayout_2"/>
