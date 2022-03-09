@@ -570,6 +570,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
      the effect is applied correctly.
     """
 
+    # Make both segments visible when painting
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+
     self.editor_widget.setActiveEffectByName('Paint')
     effect = self.editor_widget.activeEffect()
     # paint effect does not need onApply().
