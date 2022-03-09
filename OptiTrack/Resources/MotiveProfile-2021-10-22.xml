@@ -19,8 +19,8 @@
             </property>
             <property>
                 <name>StreamingScale</name>
-                <value>1000.000000</value>
-                <defaultValue>1000.000000</defaultValue>
+                <value>1.000000</value>
+                <defaultValue>1.000000</defaultValue>
             </property>
             <property>
                 <name>UpAxis</name>

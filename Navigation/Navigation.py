@@ -86,7 +86,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
 
     try:
-      masterNode = slicer.modules.PlanningWidget.logic.getMasterVolume()
+      masterNode = slicer.modules.PlanningWidget.logic.master_volume
     except:
       masterNode = None
       print('No master volume node loaded')

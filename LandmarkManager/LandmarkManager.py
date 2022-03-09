@@ -367,6 +367,7 @@ class Landmarks:
 
   def collectLandmarkPosition(self, pos=[0, 0, 0]):
     if self.currentLandmark is not None:
+      print(self.currentLandmark.name)
       self.currentLandmark.state = LandmarkState.DONE
       self.currentLandmark.trackerPosition = pos
       self.currentLandmark = None

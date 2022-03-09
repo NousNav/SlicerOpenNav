@@ -311,6 +311,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.cameraTimer.timeout.connect(self.tools.checkTools)
     self.cameraTimer.start(100)
 
+    self.ui.RMSLabel.text = ''
+    self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
+
     #set the button labels
     self.backButtonReg.text = 'Back'
     self.advanceButtonReg.text = 'Press when done'
@@ -383,12 +386,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def registrationStep6(self):
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep6.png'], True)
+    self.AlignmentSideWidget.visible = True
+    self.LandmarkSideWidget.visible = False
 
     # set the button labels
     self.backButtonReg.text = 'Back'
     self.advanceButtonReg.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
+
+    self.ui.RMSLabelSpin.text = ''
+    self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
     # set the button actions
     self.disconnectAll(self.advanceButtonReg)
@@ -447,6 +455,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
 
+    try:
+      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+      pointerToHeadFrame.SetAndObserveTransformNodeID(None)
+    except:
+      print("Warning!! Tracker not connected")
+
     #set the button labels
     self.backButtonReg.text = 'Recalibrate'
     self.landmarks.updateAdvanceButton()
@@ -468,7 +482,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def registrationStep8(self):
     #set the layout and display an image
     try:
-      masterNode = slicer.modules.PlanningWidget.logic.getMasterVolume()
+      masterNode = slicer.modules.PlanningWidget.logic.master_volume
     except:
       masterNode = None
       print('No master volume node is loaded')
@@ -493,7 +507,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.advanceButtonReg)
     self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.CollectButton)
-    self.backButtonReg.clicked.connect(lambda: self.registrationStep6())
+    self.backButtonReg.clicked.connect(lambda: self.restartRegistration())
     self.advanceButtonReg.clicked.connect(lambda: self.openNextModule())
 
     self.advanceButtonReg.enabled = True
@@ -501,6 +515,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     #set the frame in stacked widget
     self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep8)
 
+  def restartRegistration(self):
+    print('Restarting')
+    self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex)
+  
   def openNextModule(self):
     home = slicer.modules.HomeWidget
     home.primaryTabBar.setCurrentIndex(home.navigationTabIndex)
@@ -523,10 +541,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # Create transform node to hold the computed registration result
     try:
-      self.transformNode = slicer.util.getNode('Registration Transform')
+      self.transformNode = slicer.util.getNode('HeadFrameToImage')
     except:
       self.transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLinearTransformNode")
-      self.transformNode.SetName("Registration Transform")
+      self.transformNode.SetName("HeadFrameToImage")
 
     #Create your fiducial wizard node and set the input parameters
     fiducialRegNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')
