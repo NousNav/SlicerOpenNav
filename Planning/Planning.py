@@ -234,14 +234,19 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.advanceButtonPlan)
     self.disconnectAll(self.backButtonPlan)
 
-    self.backButtonAction.visible = False
-    self.backButtonPlan.text = ''
+    self.backButtonAction.visible = True
+    self.backButtonPlan.text = 'Return to Patients'
+    self.backButtonPlan.clicked.connect(lambda: self.openPreviousModule())
 
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Segment the Target'
     self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentTargetTabIndex))
     self.logic.skin_segmentation.SetDisplayVisibility(True)
     self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep1)
+
+    volume = self.logic.master_volume
+    if volume is None:
+      self.advanceButtonPlan.enabled = False
 
   def planningStep2(self):
     self.disconnectAll(self.advanceButtonPlan)
@@ -296,6 +301,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     print('we should move to registration now...')
 
+  def openPreviousModule(self):
+    home = slicer.modules.HomeWidget
+    home.primaryTabBar.setCurrentIndex(home.patientsTabIndex)
+
+    print('we should move to patients now...')
+  
   def createSkinSegmentation(self):
     volume = self.logic.master_volume
     if not volume:
