@@ -104,6 +104,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButtonReg.enabled = False
 
+    self.beep = None
     try:
       self.beep = qt.QSoundEffect()
       self.beep.setSource(qt.QUrl("file:"+self.resourcePath('Data/beep.wav')))
@@ -356,7 +357,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.ui.RMSLabel.text = 'RMS Error: ' + str(RMSE)
 
-    self.beep.play()
+    if self.beep:
+      self.beep.play()
 
   def setupPivotCalibration(self):
     #create output transform
@@ -552,7 +554,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       transform.TransformPoint(samplePoint, outputPoint)
       # print(outputPoint)
       self.landmarks.collectLandmarkPosition(outputPoint)
-      self.beep.play()
+      if self.beep:
+        self.beep.play()
     except:
       print('Could not get tip node')
 
