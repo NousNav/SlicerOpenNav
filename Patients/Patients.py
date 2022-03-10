@@ -1,3 +1,6 @@
+import ctk
+import logging
+import os.path
 import slicer
 import slicer.modules
 import slicer.util
@@ -42,4 +45,39 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
 
 class PatientsLogic(ScriptedLoadableModuleLogic):
-  pass
+
+  def loadDICOM(self, dicomData):
+
+    print("Loading DICOM from command line")
+    # dicomDataDir = "c:/my/folder/with/dicom-files"  # input folder with DICOM files
+    loadedNodeIDs = []  # this list will contain the list of all loaded node IDs
+
+    from DICOMLib import DICOMUtils
+    with DICOMUtils.TemporaryDICOMDatabase() as db:
+      self.importDicom(dicomData, db)
+      patientUIDs = db.patients()
+      for patientUID in patientUIDs:
+        loadedNodeIDs.extend(DICOMUtils.loadPatientByUID(patientUID))
+
+  def importDicom(self, dicomDataItem, dicomDatabase=None, copyFiles=False):
+    """ Import DICOM files from folder into Slicer database
+    """
+    try:
+      indexer = ctk.ctkDICOMIndexer()
+      assert indexer is not None
+      if dicomDatabase is None:
+        dicomDatabase = slicer.dicomDatabase
+      if os.path.isdir(dicomDataItem):
+        indexer.addDirectory(dicomDatabase, dicomDataItem, copyFiles)
+        indexer.waitForImportFinished()
+      elif os.path.isfile(dicomDataItem):
+        indexer.addFile(dicomDatabase, dicomDataItem, copyFiles)
+        indexer.waitForImportFinished()
+      else:
+        print('Item type is not recognized')
+    except Exception:
+      import traceback
+      traceback.print_exc()
+      logging.error('Failed to import DICOM folder/file ' + dicomDataItem)
+      return False
+    return True

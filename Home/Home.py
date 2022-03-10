@@ -1,10 +1,13 @@
-import os
-import vtk, qt, ctk, slicer
+import qt
+import slicer
+import vtk
+
 from slicer.ScriptedLoadableModule import *
-import logging
 from slicer.util import VTKObservationMixin
 
 import NNUtils
+
+from Patients import PatientsLogic
 
 
 class Home(ScriptedLoadableModule):
@@ -50,6 +53,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Create logic class
     self.logic = HomeLogic()
+    self.patientsLogic = PatientsLogic()
 
     # setup scene
     self.setupNodes()
@@ -90,7 +94,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Make sure that the DICOM widget exists
     slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
-    self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
+    self.ui.ImportDICOMButton.clicked.connect(self.patientsLogic.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
 
     # For some reason, the browser is instantiated as not hidden. Close
@@ -366,39 +370,4 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
-
-  def loadDICOM(self, dicomData):
-
-    print("Loading DICOM from command line")
-    # dicomDataDir = "c:/my/folder/with/dicom-files"  # input folder with DICOM files
-    loadedNodeIDs = []  # this list will contain the list of all loaded node IDs
-
-    from DICOMLib import DICOMUtils
-    with DICOMUtils.TemporaryDICOMDatabase() as db:
-      self.importDicom(dicomData, db)
-      patientUIDs = db.patients()
-      for patientUID in patientUIDs:
-        loadedNodeIDs.extend(DICOMUtils.loadPatientByUID(patientUID))
-
-  def importDicom(self, dicomDataItem, dicomDatabase=None, copyFiles=False):
-    """ Import DICOM files from folder into Slicer database
-    """
-    try:
-      indexer = ctk.ctkDICOMIndexer()
-      assert indexer is not None
-      if dicomDatabase is None:
-        dicomDatabase = slicer.dicomDatabase
-      if os.path.isdir(dicomDataItem):
-        indexer.addDirectory(dicomDatabase, dicomDataItem, copyFiles)
-        indexer.waitForImportFinished()
-      elif os.path.isfile(dicomDataItem):
-        indexer.addFile(dicomDatabase, dicomDataItem, copyFiles)
-        indexer.waitForImportFinished()
-      else:
-        print('Item type is not recognized')
-    except Exception:
-      import traceback
-      traceback.print_exc()
-      logging.error('Failed to import DICOM folder/file ' + dicomDataItem)
-      return False
-    return True
+  pass
