@@ -190,8 +190,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     NNUtils.setSliceViewBackgroundColor('#000000')
     self.goToFourUpLayout()
 
-   
-
     # Set threshold slider extremes and default
     volumeDisplay = self.logic.master_volume.GetDisplayNode()
     min = volumeDisplay.GetWindowLevelMin()
@@ -382,6 +380,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Update Current Tab
     self.CurrentPlanningIndex = tabIndex
 
+
 def default_master_volume():
   logging.warning('No master volume is set.')
 
@@ -472,8 +471,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       display.SetLineDiameter(3)  # mm
       display.SetCurveLineSizeMode(display.UseLineDiameter)
       self.trajectory_markup = node
-
-
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.
