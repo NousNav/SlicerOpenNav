@@ -61,13 +61,13 @@ class TrackedTool:
     linesPolyData.SetPoints(points)
     linesPolyData.SetLines(line)
 
-    tubeSegmentFilter = vtk.vtkTubeFilter();
-    tubeSegmentFilter.SetInputData(linesPolyData);
+    tubeSegmentFilter = vtk.vtkTubeFilter()
+    tubeSegmentFilter.SetInputData(linesPolyData)
     tubeSegmentFilter.SetRadius(1)
     tubeSegmentFilter.SetNumberOfSides(30)
     tubeSegmentFilter.CappingOn()
     tubeSegmentFilter.Update()
-    tubePolyData = tubeSegmentFilter.GetOutput();
+    tubePolyData = tubeSegmentFilter.GetOutput()
     self.tubeModel = slicer.modules.models.logic().AddModel(tubePolyData)
     self.tubeModel.SetName(self.toolname)
     self.tubeModel.SetSaveWithScene(False)
