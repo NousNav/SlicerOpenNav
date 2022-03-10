@@ -111,7 +111,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButtonPlan)
     self.bottomToolBar.visible = False
 
-    ###Stacked widgets navigation changes
+    # Stacked widgets navigation changes
     self.CurrentPlanningIndex = -1
     self.ui.PlanningWidget.currentChanged.connect(self.onPlanningChanged)
 
@@ -318,7 +318,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SKIN_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
-    #Only use a lower threshold and use the max value of volume as upper bound:
+    # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
       thresholdMin=self.ui.skinThresholdSlider.value,
       thresholdMax=self.logic.master_volume.GetImageData().GetScalarRange()[1],

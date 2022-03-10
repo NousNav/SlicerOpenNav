@@ -45,19 +45,19 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    #Remove uneeded UI elements, add toolbars
+    # Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
 
-    #Create logic class
+    # Create logic class
     self.logic = HomeLogic()
 
-    #setup scene
+    # setup scene
     self.setupNodes()
 
-    #Dark palette does not propogate on its own?
+    # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
-    #The home module is a place holder for the planning, registration and navigation modules
+    # The home module is a place holder for the planning, registration and navigation modules
     self.planningWidget = slicer.modules.planning.createNewWidgetRepresentation()
     self.ui.PlanningTab.layout().addWidget( self.planningWidget )
 
@@ -73,28 +73,28 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
     self.onPrimaryTabChanged(self.patientsTabIndex)
 
-    #Apply style
+    # Apply style
     self.applyApplicationStyle()
 
     # self.ui.TreeView.setMRMLScene(slicer.mrmlScene)
     # self.ui.TreeView.nodeTypes = ('vtkMRMLSegmentationNode', 'vtkMRMLVolumeNode')
 
-    #Make sure DICOM widget exists
+    # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
-    #Begin listening for new volumes
+    # Begin listening for new volumes
     self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent,
             self.onNodeAdded)
 
   def setupDICOMBrowser(self):
-    #Make sure that the DICOM widget exists
+    # Make sure that the DICOM widget exists
     slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
 
-    #For some reason, the browser is instantiated as not hidden. Close
-    #so that the 'isHidden' check works as required
+    # For some reason, the browser is instantiated as not hidden. Close
+    # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
     slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
 
@@ -124,7 +124,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         widget.styleSheet = style
 
   def setupNodes(self):
-    #Set up the layout / 3D View
+    # Set up the layout / 3D View
     self.setup3DView()
     self.setupSliceViewers()
 
@@ -136,14 +136,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def modifyWindowUI(self):
 
-    #Create primary toolbar
+    # Create primary toolbar
     slicer.util.mainWindow().addToolBarBreak()
     self.primaryToolBar = qt.QToolBar("PrimaryToolBar")
     self.primaryToolBar.setObjectName("PrimaryToolBar")
     self.primaryToolBar.movable = False
     slicer.util.mainWindow().addToolBar(self.primaryToolBar)
 
-    #create secondary toolbar
+    # create secondary toolbar
     slicer.util.mainWindow().addToolBarBreak()
     self.secondaryToolBar = qt.QToolBar("SecondaryToolBar")
     self.secondaryToolBar.setObjectName("SecondaryToolBar")
@@ -155,7 +155,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryTabWidget.setObjectName("PrimaryCenteredWidget")
     self.primaryTabWidgetUI = slicer.util.childWidgetVariables(self.primaryTabWidget)
 
-    #Tabs for primary toolbar
+    # Tabs for primary toolbar
     self.primaryTabBar = qt.QTabBar()
     self.primaryTabBar.setObjectName("PrimaryTabBar")
     self.patientsTabIndex = self.primaryTabBar.addTab("Patients")
@@ -165,13 +165,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryTabWidgetUI.CenterArea.layout().addWidget(self.primaryTabBar)
     self.primaryTabBar.currentChanged.connect(self.onPrimaryTabChanged)
 
-    #Assemble primary bar
+    # Assemble primary bar
     nousNavLabel = qt.QLabel('NousNav')
     nousNavLabel.setObjectName("NousNavLabel")
     self.primaryToolBar.addWidget(nousNavLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
 
-    #Settings dialog
+    # Settings dialog
     gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
@@ -180,13 +180,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
 
-    #Tabs for secondary toolbars - navigation and registration
+    # Tabs for secondary toolbars - navigation and registration
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
     self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
     self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
     self.secondaryToolBar.addWidget(self.secondaryTabWidget)
 
-    #Bottom toolbar
+    # Bottom toolbar
     self.bottomToolBar = qt.QToolBar("BottomToolBar")
     self.bottomToolBar.setObjectName("BottomToolBar")
     self.bottomToolBar.movable = False
@@ -205,7 +205,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.advanceButton.enabled = False
     self.bottomToolBar.addWidget(self.advanceButton)
 
-    #Side Widget
+    # Side Widget
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
     dockWidget.name = 'SidePanelDockWidget'
     self.SidePanelWidget = qt.QWidget(dockWidget)
@@ -247,7 +247,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def enter(self):
 
-    #Hides other toolbars
+    # Hides other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
     slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
@@ -255,11 +255,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
 
-    #Show current
+    # Show current
     self.bottomToolBar.visible = True
     self.secondaryToolBar.visible = False
 
-    #Styling
+    # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')
@@ -346,7 +346,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     controller.setBlackBackground()
     controller.set3DAxisVisible(False)
     controller.set3DAxisLabelVisible(False)
-    controller.setOrientationMarkerType(3)  #Axis marker
+    controller.setOrientationMarkerType(3)  # Axis marker
     controller.setStyleSheet("background-color: #000000")
 
     threeDWidget = layoutManager.threeDWidget(0)
@@ -378,7 +378,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     if isinstance(node, slicer.vtkMRMLVolumeNode):
       # Call processing using a timer instead of calling it directly
       # to allow the volume loading to fully complete.
-      #TODO: no event for volume loading done?
+      # TODO: no event for volume loading done?
       qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
 
   def setupSliceViewers(self):
@@ -409,7 +409,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   def loadDICOM(self, dicomData):
 
     print("Loading DICOM from command line")
-    #dicomDataDir = "c:/my/folder/with/dicom-files"  # input folder with DICOM files
+    # dicomDataDir = "c:/my/folder/with/dicom-files"  # input folder with DICOM files
     loadedNodeIDs = []  # this list will contain the list of all loaded node IDs
 
     from DICOMLib import DICOMUtils

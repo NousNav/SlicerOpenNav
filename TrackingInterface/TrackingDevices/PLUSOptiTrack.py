@@ -20,7 +20,7 @@ class PLUSOptiTrackTracker(TrackingDevice):
   def __init__(self, templatePath, dataPath):
     # Tracking toggle button action
 
-    #Compute defaults
+    # Compute defaults
     basepath = ''
     for item in os.listdir(os.path.expanduser('~')):
       if item.startswith('PlusApp'):

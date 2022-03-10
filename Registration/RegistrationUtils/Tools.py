@@ -11,7 +11,7 @@ class ToolState(Enum):
 
 class Tool:
   def __init__(self, ID, name, displayGeometry=None):
-    self.id = ID #{Name}ToTracker transform
+    self.id = ID # {Name}ToTracker transform
     self.name = name
     self.displayGeometry = displayGeometry
     self.state = ToolState.NEVER_SEEN
@@ -52,18 +52,18 @@ class Tools:
       matrix = node.GetMatrixTransformToParent()
       xposition = matrix.GetElement(0,3)
 
-      #if position, then tool is current
+      # if position, then tool is current
 
       if tool.xposition is None:
         tool.state = ToolState.SEEN
       else:
-        #has position updated since last time?
+        # has position updated since last time?
         if tool.xposition == xposition :
           tool.state = ToolState.NOT_SEEN
         else:
           tool.state = ToolState.SEEN
 
-      #Update position
+      # Update position
       tool.xposition = xposition
 
       if tool.displayGeometry:

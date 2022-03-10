@@ -42,13 +42,13 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    #Create logic class
+    # Create logic class
     self.logic = NavigationLogic()
 
-    #Dark palette does not propogate on its own?
+    # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
-    #Bottom toolbar
+    # Bottom toolbar
     self.bottomToolBar = qt.QToolBar("NavigationBottomToolBar")
     self.bottomToolBar.setObjectName("NavigationBottomToolBar")
     self.bottomToolBar.movable = False
@@ -71,14 +71,14 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
   def enter(self):
 
-    #Hides other toolbars
+    # Hides other toolbars
     slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
 
-    #Show current
+    # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
 
