@@ -448,12 +448,12 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       )
       node.CreateDefaultDisplayNodes()
       segmentation = node.GetSegmentation()
-      inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+      inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(  # noqa: F841
         "NN_INSIDE",
         "NN_INSIDE",
         [0.10, 0.90, 0.10],
       ))
-      outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
+      outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(  # noqa: F841
         "NN_OUTSIDE",
         "NN_OUTSIDE",
         [0.90, 0.10, 0.10],
@@ -586,7 +586,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
 
     self.editor_widget.setActiveEffectByName('Paint')
-    effect = self.editor_widget.activeEffect()
     # paint effect does not need onApply().
 
   def endEffect(self):

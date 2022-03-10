@@ -125,9 +125,9 @@ class PLUSOptiTrackTracker(TrackingDevice):
 
     for i in range(self.getNumberOfTools()):
       try:
-        sourceNode = slicer.util.getNode(self.toolSources[i])
+        slicer.util.getNode(self.toolSources[i])
         self.isTrackingActive[i] = True
-      except:
+      except slicer.util.MRMLNodeNotFoundException:
         print('WARNING: Could not find {}'.format(self.toolSources[i]))
 
   def launchPLUS(self, settings):

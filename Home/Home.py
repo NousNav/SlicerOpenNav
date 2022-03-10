@@ -218,8 +218,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def onPrimaryTabChanged(self, index):
     print('Primary tab changed')
-    modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
-    sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     self.registrationWidget.exit()
     self.planningWidget.exit()
 
@@ -288,7 +286,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.setPythonConsoleVisible(False)
     slicer.util.setApplicationLogoVisible(False)
     slicer.util.setToolbarsVisible(True)
-    mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
     keepToolbars = [
       slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'),
       slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),
@@ -435,7 +432,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
         indexer.waitForImportFinished()
       else:
         print('Item type is not recognized')
-    except Exception as e:
+    except Exception:
       import traceback
       traceback.print_exc()
       logging.error('Failed to import DICOM folder/file ' + dicomDataItem)
