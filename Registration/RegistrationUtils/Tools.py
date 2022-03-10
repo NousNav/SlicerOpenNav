@@ -1,8 +1,6 @@
 from enum import Enum
 import qt
-import os
-import slicer, vtk
-import OptiTrack
+import slicer
 
 
 class ToolState(Enum):

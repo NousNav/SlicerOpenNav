@@ -2,7 +2,8 @@ import os.path
 from enum import Enum
 
 from typing import List, Dict
-import vtk, qt, ctk, slicer
+import qt
+import slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 

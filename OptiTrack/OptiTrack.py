@@ -1,6 +1,8 @@
 import os
 import subprocess
-import vtk, qt, ctk, slicer
+import ctk
+import qt
+import slicer
 from slicer.ScriptedLoadableModule import *
 
 

@@ -17,7 +17,7 @@ class NDIVegaTracker(TrackingDevice):
     # Tracking toggle button action
     # TODO add to build process instead of installing here
     try:
-      import sksurgerynditracker.nditracker
+      import sksurgerynditracker.nditracker  # noqa: F401
     except:
       slicer.util.pip_install("scikit-surgerynditracker")
 

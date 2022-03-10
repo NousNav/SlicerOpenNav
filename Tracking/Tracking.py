@@ -1,4 +1,6 @@
-import vtk, qt, ctk, slicer
+import ctk
+import qt
+import slicer
 from slicer.ScriptedLoadableModule import *
 
 import TrackingDevices.Interface as TrackingInterface

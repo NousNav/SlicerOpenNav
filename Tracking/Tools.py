@@ -1,5 +1,7 @@
 import os
-import vtk, qt, ctk, slicer
+import qt
+import slicer
+import vtk
 from slicer.ScriptedLoadableModule import *
 import numpy as np
 

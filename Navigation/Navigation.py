@@ -1,4 +1,5 @@
-import vtk, qt, ctk, slicer
+import qt
+import slicer
 from slicer.ScriptedLoadableModule import *
 
 import NNUtils

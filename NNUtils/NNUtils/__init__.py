@@ -1,7 +1,7 @@
-import vtk, qt, ctk, slicer
-from slicer.ScriptedLoadableModule import *
+import qt
+import slicer
 
-from .parameter_node import parameterProperty, nodeReferenceProperty
+from .parameter_node import parameterProperty, nodeReferenceProperty  # noqa: F401
 
 
 def getModality(node):

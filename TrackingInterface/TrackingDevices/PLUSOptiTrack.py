@@ -1,5 +1,8 @@
 import logging
-import vtk, qt, ctk, slicer
+import ctk
+import qt
+import slicer
+import vtk
 import os
 import subprocess
 
@@ -219,7 +222,6 @@ class PLUSOptiTrackTracker(TrackingDevice):
     return dirPath
 
   def createTempDirectory(self):
-    import qt, slicer
     tempDir = qt.QDir(self.getTempDirectoryBase())
     tempDirName = qt.QDateTime().currentDateTime().toString("yyyyMMdd_hhmmss_zzz")
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
