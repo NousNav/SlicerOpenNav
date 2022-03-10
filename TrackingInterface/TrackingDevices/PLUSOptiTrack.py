@@ -4,7 +4,6 @@ import qt
 import slicer
 import vtk
 import os
-import subprocess
 
 import TrackingDevices.Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice
@@ -135,10 +134,7 @@ class PLUSOptiTrackTracker(TrackingDevice):
 
     self.tempDirectory = self.createTempDirectory()
     plusConfigPath = self.writeConfigFile(settings["templatePath"], settings["dataPath"])
-    info = subprocess.STARTUPINFO()
-    info.dwFlags = 1
-    info.wShowWindow = 0
-    self.p = subprocess.Popen([settings["launcherPath"], '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+    self.p = slicer.util.launchConsoleProcess([settings["launcherPath"], "--config-file=" + plusConfigPath])
     time.sleep(5)
     if not self.connector:
       self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
