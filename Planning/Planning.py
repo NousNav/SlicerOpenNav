@@ -547,6 +547,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     # Make sure both segments are visible
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
     self.editor_widget.setActiveEffectByName("Smoothing")
     effect = self.editor_widget.activeEffect()
@@ -565,6 +566,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     # Make both segments visible when painting
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
     self.editor_widget.setActiveEffectByName('Paint')
     # paint effect does not need onApply().
