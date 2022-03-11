@@ -99,9 +99,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     self.goToNavLayout(masterNode)
 
-  def applyApplicationStyle(self):
-    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
-
   def goToNavLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(self.navLayout)

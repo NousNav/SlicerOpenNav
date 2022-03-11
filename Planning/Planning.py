@@ -139,9 +139,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       }
     )
 
-  def applyApplicationStyle(self):
-    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
-
   def exit(self):
     self.logic.skin_segmentation.SetDisplayVisibility(False)
     self.logic.seed_segmentation.SetDisplayVisibility(False)

@@ -69,9 +69,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     self.goToFourUpLayout()
 
-  def applyApplicationStyle(self):
-    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
-
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)

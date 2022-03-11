@@ -668,9 +668,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.setSidePanelVisible(sidePanelVisible)
     NNUtils.setSliceViewBackgroundColor('#434343')
 
-  def applyApplicationStyle(self):
-    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
-
 
 class RegistrationLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
