@@ -130,7 +130,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def enter(self):
 
     # Hides other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PatientsBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False

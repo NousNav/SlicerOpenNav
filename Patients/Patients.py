@@ -31,6 +31,7 @@ class Patients(ScriptedLoadableModule):
 class PatientsWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     super().__init__(parent)
+    self.VolumeNodeTag = None
 
   def setup(self):
     super().setup()
@@ -44,11 +45,31 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
+    # Bottom toolbar
+    self.bottomToolBar = qt.QToolBar("PatientsBottomToolBar")
+    self.bottomToolBar.setObjectName("PatientsBottomToolBar")
+    self.bottomToolBar.movable = False
+    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
+    self.backButton = qt.QPushButton("Back")
+    self.backButton.name = 'PatientsBackButton'
+    self.backButton.visible = False
+    self.bottomToolBar.addWidget(self.backButton)
+    spacer = qt.QWidget()
+    policy = spacer.sizePolicy
+    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+    spacer.setSizePolicy(policy)
+    spacer.name = "PatientsBottomToolbarSpacer"
+    self.bottomToolBar.addWidget(spacer)
+    self.advanceButton = qt.QPushButton("Go To Planning")
+    self.advanceButton.name = 'PatientsAdvanceButton'
+    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButton)
+    self.bottomToolBar.visible = False
+
+    # Default
+    self.advanceButtonAction.enabled = False
+
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
-
-    # Begin listening for new volumes
-    self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onNodeAdded)
 
   def enter(self):
     # Hides other toolbars
@@ -59,13 +80,17 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
 
     # Show current
+    self.bottomToolBar.visible = True
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
-    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = True
 
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelDark.qss"))
+
+    # Begin listening for new volumes
+    if self.VolumeNodeTag is None:
+      self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onNodeAdded)
 
     self.goToFourUpLayout()
 
@@ -115,7 +140,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     if node.GetDisplayNode() is None:
       node.CreateDefaultDisplayNodes()
     node.GetDisplayNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey")
-    slicer.modules.HomeWidget.advanceButton.enabled = True
+    self.advanceButtonAction.enabled = True
 
     displayNode = node.GetDisplayNode()
     range = node.GetImageData().GetScalarRange()

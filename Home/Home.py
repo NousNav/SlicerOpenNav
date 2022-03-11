@@ -70,8 +70,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.navigationWidget = slicer.modules.navigation.createNewWidgetRepresentation()
     self.ui.NavigationTab.layout().addWidget(self.navigationWidget)
 
-    self.advanceButton.clicked.connect(lambda: self.primaryTabBar.setCurrentIndex(self.planningTabIndex))
-    self.backButton.clicked.connect(lambda: slicer.util.selectModule('Home'))
+    self.patientsWidget.self().advanceButton.clicked.connect(lambda: self.primaryTabBar.setCurrentIndex(self.planningTabIndex))
+    self.patientsWidget.self().backButton.clicked.connect(lambda: slicer.util.selectModule('Home'))
 
     self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
     self.onPrimaryTabChanged(self.patientsTabIndex)
@@ -148,25 +148,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
     self.secondaryToolBar.addWidget(self.secondaryTabWidget)
 
-    # Bottom toolbar
-    self.bottomToolBar = qt.QToolBar("BottomToolBar")
-    self.bottomToolBar.setObjectName("BottomToolBar")
-    self.bottomToolBar.movable = False
-    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButton = qt.QPushButton("Back")
-    self.backButton.name = 'BackButton'
-    self.backButton.visible = False
-    self.bottomToolBar.addWidget(self.backButton)
-    spacer = qt.QWidget()
-    policy = spacer.sizePolicy
-    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
-    spacer.setSizePolicy(policy)
-    self.bottomToolBar.addWidget(spacer)
-    self.advanceButton = qt.QPushButton("Go To Planning")
-    self.advanceButton.name = 'AdvanceButton'
-    self.advanceButton.enabled = False
-    self.bottomToolBar.addWidget(self.advanceButton)
-
     # Side Widget
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
     dockWidget.name = 'SidePanelDockWidget'
@@ -231,7 +212,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     keepToolbars = [
       slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'),
       slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar')
       ]
     slicer.util.setToolbarsVisible(False, keepToolbars)
 

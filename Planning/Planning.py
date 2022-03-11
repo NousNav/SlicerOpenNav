@@ -150,16 +150,17 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def enter(self):
     # Hide other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'BottomToolBar').visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'PatientsBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
 
-     # Show current
+    # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
     self.bottomToolBar.visible = True
     self.planningTabBar.visible = True
 
+    # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))

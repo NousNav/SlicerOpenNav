@@ -100,15 +100,7 @@ QWidget#SecondaryCenteredWidget {
 }
 
 /* Bottom ToolBar */
-QToolBar#BottomToolBar {
-    background-color: #2a2a2a;
-    margin: 0px;
-    padding: 0px;
-    border: none;
-    min-height: 20px;
-}
-
-/* Bottom ToolBar */
+QToolBar#PatientsBottomToolBar,
 QToolBar#NavigationBottomToolBar,
 QToolBar#RegistrationBottomToolBar,
 QToolBar#PlanningBottomToolBar {
@@ -119,6 +111,7 @@ QToolBar#PlanningBottomToolBar {
     min-height: 20px;
 }
 
+QWidget#PatientsBottomToolBar, QWidget#PatientsBottomToolbarSpacer,
 QWidget#RegistrationBottomToolBar, QWidget#RegistrationBottomToolbarSpacer,
 QWidget#NavigationnBottomToolBar, QWidget#NavigationBottomToolbarSpacer,
 QWidget#PlanningBottomToolBar, QWidget#PlanningBottomToolbarSpacer {
@@ -129,9 +122,12 @@ QWidget#PlanningBottomToolBar, QWidget#PlanningBottomToolbarSpacer {
     min-height: 20px;
 }
 
+QToolBar#PatientsBottomToolBar, QWidget#PatientsBottomToolBar, QWidget#PatientsBottomToolbarSpacer {
+    background-color: #2a2a2a;
+}
 
 /* Bottom ToolBar Buttons*/
-QPushButton#AdvanceButton,
+QPushButton#PatientsAdvanceButton,
 QPushButton#RegistrationAdvanceButton,
 QPushButton#NavigationAdvanceButton,
 QPushButton#PlanningAdvanceButton {
@@ -147,7 +143,7 @@ QPushButton#PlanningAdvanceButton {
     color: #fafafa;
 }
 
-QPushButton#AdvanceButton:disabled,
+QPushButton#PatientsAdvanceButton:disabled,
 QPushButton#RegistrationAdvanceButton:disabled,
 QPushButton#NavigationAdvanceButton:disabled,
 QPushButton#PlanningAdvanceButton:disabled {
@@ -163,14 +159,14 @@ QPushButton#PlanningAdvanceButton:disabled {
     color: #b7b7b7;
 }
 
-QPushButton#AdvanceButton:pressed,
+QPushButton#PatientsAdvanceButton:pressed,
 QPushButton#RegistrationAdvanceButton:pressed,
 QPushButton#NavigationAdvanceButton:pressed,
 QPushButton#PlanningAdvanceButton:pressed {
     background-color: #316d71;
 }
 
-QPushButton#BackButton,
+QPushButton#PatientsBackButton,
 QPushButton#RegistrationBackButton,
 QPushButton#NavigationBackButton,
 QPushButton#PlanningBackButton {
@@ -186,7 +182,7 @@ QPushButton#PlanningBackButton {
     color: #fafafa;
 }
 
-QPushButton#BackButton:pressed,
+QPushButton#PatientsBackButton:pressed,
 QPushButton#RegistrationBackButton:pressed,
 QPushButton#NavigationBackButton:pressed,
 QPushButton#PlanningBackButton:pressed {
