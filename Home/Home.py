@@ -309,34 +309,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     NNUtils.setMainPanelVisible(True)
     NNUtils.setSidePanelVisible(False)
 
-  def goToRedSliceLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
-
-  def goToPictureLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    NNUtils.setSliceWidgetSlidersVisible(False)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
-
-  def goToRegistrationCameraViewLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    NNUtils.setSliceWidgetSlidersVisible(False)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(True)
-
-  def go3DViewLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(True)
-
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
