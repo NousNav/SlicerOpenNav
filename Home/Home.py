@@ -76,6 +76,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryTabBar.setCurrentIndex(self.patientsTabIndex)
     self.onPrimaryTabChanged(self.patientsTabIndex)
 
+    self.setCustomUIVisible(True)
+
     # Apply style
     self.applyApplicationStyle()
 
@@ -138,7 +140,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
-    self.settingsUI.CustomUICheckBox.toggled.connect(self.toggleUI)
+    self.settingsUI.CustomUICheckBox.toggled.connect(self.setCustomUIVisible)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
 
@@ -157,7 +159,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dockWidget.setWidget(self.SidePanelWidget)
     dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)
     slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea , dockWidget)
-    self.hideSlicerUI()
 
   def onPrimaryTabChanged(self, index):
     print('Primary tab changed')
@@ -191,38 +192,28 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     else:
       slicer.app.styleSheet = ''
 
-  def toggleUI(self, visible):
-
-    if visible:
-      self.hideSlicerUI()
-    else:
-      self.showSlicerUI()
-
   def raiseSettings(self, unused):
     self.settingsDialog.exec()
 
-  def hideSlicerUI(self):
-    slicer.util.setDataProbeVisible(False)
-    slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
-    slicer.util.setModuleHelpSectionVisible(False)
-    slicer.util.setModulePanelTitleVisible(False)
-    slicer.util.setPythonConsoleVisible(False)
-    slicer.util.setApplicationLogoVisible(False)
-    slicer.util.setToolbarsVisible(True)
+  def setCustomUIVisible(self, visible):
+    self.setSlicerUIVisible(not visible)
+
+  def setSlicerUIVisible(self, visible):
+    slicer.util.setDataProbeVisible(visible)
+    slicer.util.setMenuBarsVisible(visible, ignore=['MainToolBar', 'ViewToolBar'])
+    slicer.util.setModuleHelpSectionVisible(visible)
+    slicer.util.setModulePanelTitleVisible(visible)
+    slicer.util.setPythonConsoleVisible(visible)
+    slicer.util.setApplicationLogoVisible(visible)
     keepToolbars = [
       slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar'),
       slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryToolBar'),
       ]
-    slicer.util.setToolbarsVisible(False, keepToolbars)
-
-  def showSlicerUI(self):
-    slicer.util.setDataProbeVisible(True)
-    slicer.util.setMenuBarsVisible(True)
-    slicer.util.setModuleHelpSectionVisible(True)
-    slicer.util.setModulePanelTitleVisible(True)
-    slicer.util.setPythonConsoleVisible(True)
-    slicer.util.setToolbarsVisible(True)
-    slicer.util.setApplicationLogoVisible(True)
+    keepToolbars.extend(
+      [slicer.util.findChild(slicer.util.mainWindow(), f"{name}BottomToolBar") for name in [
+        "Patients", "Planning", "Navigation", "Registration"]]
+    )
+    slicer.util.setToolbarsVisible(visible, keepToolbars)
 
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
