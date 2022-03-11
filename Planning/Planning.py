@@ -140,15 +140,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     )
 
   def applyApplicationStyle(self):
-    # Style
-    self.applyStyle([slicer.app], 'Home.qss')
-
-  def applyStyle(self, widgets, styleSheetName):
-    stylesheetfile = self.resourcePath(styleSheetName)
-    with open(stylesheetfile,"r") as fh:
-      style = fh.read()
-      for widget in widgets:
-        widget.styleSheet = style
+    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
   def exit(self):
     self.logic.skin_segmentation.SetDisplayVisibility(False)
@@ -173,7 +165,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
     self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
     self.onTabChanged(self.segmentSkinTabIndex)

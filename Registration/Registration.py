@@ -140,9 +140,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = True
     self.registrationTabBar.visible = True
 
+    # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
     self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex)
     self.onTabChanged(self.prepRegistrationTabIndex)
@@ -668,15 +669,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.setSliceViewBackgroundColor('#434343')
 
   def applyApplicationStyle(self):
-    # Style
-    self.applyStyle([slicer.app], 'Home.qss')
-
-  def applyStyle(self, widgets, styleSheetName):
-    stylesheetfile = self.resourcePath(styleSheetName)
-    with open(stylesheetfile,"r") as fh:
-      style = fh.read()
-      for widget in widgets:
-        widget.styleSheet = style
+    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
 
 class RegistrationLogic(ScriptedLoadableModuleLogic):

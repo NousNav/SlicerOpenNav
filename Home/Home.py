@@ -113,15 +113,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.modules.DICOMWidget.browserWidget.close()
 
   def applyApplicationStyle(self):
-    # Style
-    self.applyStyle([slicer.app], 'Home.qss')
-
-  def applyStyle(self, widgets, styleSheetName):
-    stylesheetfile = self.resourcePath(styleSheetName)
-    with open(stylesheetfile,"r") as fh:
-      style = fh.read()
-      for widget in widgets:
-        widget.styleSheet = style
+    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
   def setupNodes(self):
     # Set up the layout / 3D View
@@ -260,7 +252,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelDark.qss')
+    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelDark.qss"))
 
   def toggleStyle(self,visible):
     if visible:

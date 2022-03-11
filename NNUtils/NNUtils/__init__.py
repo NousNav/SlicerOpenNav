@@ -114,3 +114,10 @@ def setSliceViewBackgroundColor(color):
 def centerCam():
   controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
   controller.resetFocalPoint()
+
+
+def applyStyle(widgets, styleSheetFilePath):
+  with open(styleSheetFilePath, "r") as fh:
+    styleSheet = fh.read()
+    for widget in widgets:
+      widget.styleSheet = styleSheet

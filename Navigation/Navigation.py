@@ -82,9 +82,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
 
+    # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    self.applyStyle([sidePanel, modulePanel], 'PanelLight.qss')
+    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
     try:
       masterNode = slicer.modules.PlanningWidget.logic.master_volume
@@ -99,15 +100,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.goToNavLayout(masterNode)
 
   def applyApplicationStyle(self):
-    # Style
-    self.applyStyle([slicer.app], 'Home.qss')
-
-  def applyStyle(self, widgets, styleSheetName):
-    stylesheetfile = self.resourcePath(styleSheetName)
-    with open(stylesheetfile,"r") as fh:
-      style = fh.read()
-      for widget in widgets:
-        widget.styleSheet = style
+    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
   def goToNavLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()
