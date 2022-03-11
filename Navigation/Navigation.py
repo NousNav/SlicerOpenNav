@@ -1,4 +1,3 @@
-import qt
 import slicer
 from slicer.ScriptedLoadableModule import *
 
@@ -49,23 +48,13 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Bottom toolbar
-    self.bottomToolBar = qt.QToolBar("NavigationBottomToolBar")
-    self.bottomToolBar.setObjectName("NavigationBottomToolBar")
-    self.bottomToolBar.movable = False
-    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButton = qt.QPushButton("Back (nav)")
-    self.backButton.name = 'NavigationBackButton'
-    self.bottomToolBar.addWidget(self.backButton)
-    spacer = qt.QWidget()
-    policy = spacer.sizePolicy
-    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
-    spacer.setSizePolicy(policy)
-    spacer.name = "NavigationBottomToolbarSpacer"
-    self.bottomToolBar.addWidget(spacer)
-    self.advanceButton = qt.QPushButton("Advance (nav)")
-    self.advanceButton.name = 'NavigationAdvanceButton'
-    self.bottomToolBar.addWidget(self.advanceButton)
-    self.bottomToolBar.visible = False
+    (
+      self.bottomToolBar,
+      self.backButton,
+      self.backButtonAction,
+      self.advanceButton,
+      self.advanceButtonAction,
+    ) = NNUtils.setupWorkflowToolBar("Navigation")
 
     self.navLayout = NavigationWidget.registerCustomLayouts(slicer.app.layoutManager().layoutLogic())
 

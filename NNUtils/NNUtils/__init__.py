@@ -4,6 +4,10 @@ import slicer
 from .parameter_node import parameterProperty, nodeReferenceProperty  # noqa: F401
 
 
+#
+# MRML
+#
+
 def getModality(node):
   shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
   node_item = shNode.GetItemByDataNode(node)
@@ -84,6 +88,10 @@ def setSliceViewsPosition(pos):
     sliceNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])
 
 
+#
+# Widgets
+#
+
 def setMainPanelVisible(visible):
   modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'PanelDockWidget')
   modulePanel.visible = visible
@@ -92,6 +100,38 @@ def setMainPanelVisible(visible):
 def setSidePanelVisible(visible):
   sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
   sidePanel.visible = visible
+
+
+def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
+  """Add toolbar with a back and advance buttons.
+
+  If no text is specified, the button texts are respectively set to ``Back ({name})``
+  and ``Advance ({name})``.
+
+  Return a tuple of the form ``(toolBar, backButton, backButtonAction, advanceButton, advanceButtonAction)``
+  """
+  toolBar = qt.QToolBar(f"{name}BottomToolBar")
+  toolBar.setObjectName(f"{name}BottomToolBar")
+  toolBar.movable = False
+  slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+
+  backButton = qt.QPushButton(f"Back ({name})" if backButtonText is None else backButtonText)
+  backButton.name = f"{name}BackButton"
+  backButtonAction = toolBar.addWidget(backButton)
+
+  spacer = qt.QWidget()
+  policy = spacer.sizePolicy
+  policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+  spacer.setSizePolicy(policy)
+  spacer.name = f"{name}BottomToolbarSpacer"
+  toolBar.addWidget(spacer)
+
+  advanceButton = qt.QPushButton(f"Advance ({name})" if advanceButtonText is None else advanceButtonText)
+  advanceButton.name = f"{name}AdvanceButton"
+  advanceButtonAction = toolBar.addWidget(advanceButton)
+  toolBar.visible = False
+
+  return (toolBar, backButton, backButtonAction, advanceButton, advanceButtonAction)
 
 
 def setSliceWidgetOffsetSliderVisible(sliceWidget, visible):

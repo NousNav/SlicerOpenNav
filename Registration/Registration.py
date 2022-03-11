@@ -60,23 +60,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Bottom toolbar
-    self.bottomToolBar = qt.QToolBar("RegistrationBottomToolBar")
-    self.bottomToolBar.setObjectName("RegistrationBottomToolBar")
-    self.bottomToolBar.movable = False
-    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButtonReg = qt.QPushButton("Back (reg)")
-    self.backButtonReg.name = 'RegistrationBackButton'
-    self.backButtonAction = self.bottomToolBar.addWidget(self.backButtonReg)
-    spacer = qt.QWidget()
-    policy = spacer.sizePolicy
-    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
-    spacer.setSizePolicy(policy)
-    spacer.name = "RegistrationBottomToolbarSpacer"
-    self.bottomToolBar.addWidget(spacer)
-    self.advanceButtonReg = qt.QPushButton("Advance (reg)")
-    self.advanceButtonReg.name = 'RegistrationAdvanceButton'
-    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButtonReg)
-    self.bottomToolBar.visible = False
+    (
+      self.bottomToolBar,
+      self.backButtonReg,
+      self.backButtonAction,
+      self.advanceButtonReg,
+      self.advanceButtonAction,
+    ) = NNUtils.setupWorkflowToolBar("Registration")
 
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()

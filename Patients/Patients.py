@@ -46,26 +46,18 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Bottom toolbar
-    self.bottomToolBar = qt.QToolBar("PatientsBottomToolBar")
-    self.bottomToolBar.setObjectName("PatientsBottomToolBar")
-    self.bottomToolBar.movable = False
-    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButton = qt.QPushButton("Back")
-    self.backButton.name = 'PatientsBackButton'
-    self.backButton.visible = False
-    self.bottomToolBar.addWidget(self.backButton)
-    spacer = qt.QWidget()
-    policy = spacer.sizePolicy
-    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
-    spacer.setSizePolicy(policy)
-    spacer.name = "PatientsBottomToolbarSpacer"
-    self.bottomToolBar.addWidget(spacer)
-    self.advanceButton = qt.QPushButton("Go To Planning")
-    self.advanceButton.name = 'PatientsAdvanceButton'
-    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButton)
-    self.bottomToolBar.visible = False
+    (
+      self.bottomToolBar,
+      self.backButton,
+      self.backButtonAction,
+      self.advanceButton,
+      self.advanceButtonAction,
+    ) = NNUtils.setupWorkflowToolBar(
+      "Patients", backButtonText="Back", advanceButtonText="Go To Planning"
+    )
 
     # Default
+    self.backButton.visible = False
     self.advanceButtonAction.enabled = False
 
     # Make sure DICOM widget exists
@@ -80,8 +72,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
 
     # Show current
-    self.bottomToolBar.visible = True
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    self.bottomToolBar.visible = True
 
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')

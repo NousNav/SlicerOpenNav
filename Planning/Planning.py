@@ -93,23 +93,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.planningTabBar.currentChanged.connect(self.onTabChanged)
 
     # Bottom toolbar
-    self.bottomToolBar = qt.QToolBar("PlanningBottomToolBar")
-    self.bottomToolBar.setObjectName("PlanningBottomToolBar")
-    self.bottomToolBar.movable = False
-    slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, self.bottomToolBar)
-    self.backButtonPlan = qt.QPushButton("Back (plan)")
-    self.backButtonPlan.name = 'PlanningBackButton'
-    self.backButtonAction = self.bottomToolBar.addWidget(self.backButtonPlan)
-    spacer = qt.QWidget()
-    policy = spacer.sizePolicy
-    policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
-    spacer.setSizePolicy(policy)
-    spacer.name = "PlanningBottomToolbarSpacer"
-    self.bottomToolBar.addWidget(spacer)
-    self.advanceButtonPlan = qt.QPushButton("Advance (plan)")
-    self.advanceButtonPlan.name = 'PlanningAdvanceButton'
-    self.advanceButtonAction = self.bottomToolBar.addWidget(self.advanceButtonPlan)
-    self.bottomToolBar.visible = False
+    (
+      self.bottomToolBar,
+      self.backButtonPlan,
+      self.backButtonAction,
+      self.advanceButtonPlan,
+      self.advanceButtonAction,
+    ) = NNUtils.setupWorkflowToolBar("Planning")
 
     # Stacked widgets navigation changes
     self.CurrentPlanningIndex = -1
