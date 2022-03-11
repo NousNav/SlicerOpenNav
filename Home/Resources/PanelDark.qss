@@ -1,17 +1,16 @@
 QWidget{
     background-color: #2a2a2a;
-    color: #B7B7B7 ;
+    color: #B7B7B7;
 }
 
 QPushButton{
-    background-color: #434343; 
-    border: 2px #434343; 
-    border-radius: 3px; 
-    min-height: 20px; 
-    color: #B7B7B7
+    background-color: #434343;
+    border: 2px #434343;
+    border-radius: 3px;
+    min-height: 20px;
+    color: #B7B7B7;
 }
 
 QPushButton:pressed {
-    background-color: #343434; 
-    
+    background-color: #343434;
 }
