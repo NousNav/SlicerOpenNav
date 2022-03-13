@@ -445,6 +445,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.ClearToolToReferenceMatrices()
 
     self.ui.RMSLabelSpin.text = 'RMS Error: ' + str(RMSE)
+
+    if self.beep:
+      self.beep.play()
   
   def registrationStep7(self):
     # Set the layout and display an image
