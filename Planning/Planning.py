@@ -37,32 +37,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
 
-  def nextPlanningStep(self):
-    self.ui.PlanningWidget.setCurrentIndex( self.ui.PlanningWidget.currentIndex + 1)
-
-  def previousPlanningStep(self):
-    self.ui.PlanningWidget.setCurrentIndex( self.ui.PlanningWidget.currentIndex - 1)
-
-  def createNextPlanningButton(self):
-    btn = qt.QPushButton("Next Step")
-    btn.clicked.connect(self.nextPlanningStep)
-    return btn
-
-  def createPreviousPlanningButton(self):
-    btn = qt.QPushButton("Previous Step")
-    btn.clicked.connect(self.previousPlanningStep)
-    return btn
-
-  def createPlanningStepWidget(self, prevOn, nextOn):
-     w = qt.QWidget()
-     l = qt.QGridLayout()
-     w.setLayout(l)
-     if prevOn:
-       l.addWidget(self.createPreviousPlanningButton(), 0, 0 )
-     if nextOn:
-       l.addWidget(self.createNextPlanningButton(), 0, 1 )
-     return w
-
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
