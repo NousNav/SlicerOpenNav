@@ -38,18 +38,22 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     super().__init__(parent)
 
+    # Load widget from .ui file (created by Qt Designer)
+    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Registration.ui'))
+    self.layout.addWidget(self.uiWidget)
+    self.ui = slicer.util.childWidgetVariables(self.uiWidget)
+
     self.workflow = Home.Workflow(
       'registration',
-      widget=self.parent,
       nested=(
-        Home.Workflow('step1', setup=self.registrationStep1),
-        Home.Workflow('step2', setup=self.registrationStep2),
-        Home.Workflow('step3', setup=self.registrationStep3),
-        Home.Workflow('step4', setup=self.registrationStep4),
-        Home.Workflow('step5', setup=self.registrationStep5),
-        Home.Workflow('step6', setup=self.registrationStep6),
-        Home.Workflow('step7', setup=self.registrationStep7),
-        Home.Workflow('step8', setup=self.registrationStep8),
+        Home.Workflow('step1', setup=self.registrationStep1, widget=self.ui.RegistrationStep1),  # Patient prep
+        Home.Workflow('step2', setup=self.registrationStep2, widget=self.ui.RegistrationStep2),  # Tracking devices
+        Home.Workflow('step3', setup=self.registrationStep3, widget=self.ui.RegistrationStep3),
+        Home.Workflow('step4', setup=self.registrationStep4, widget=self.ui.RegistrationStep4),  # Camera
+        Home.Workflow('step5', setup=self.registrationStep5, widget=self.ui.RegistrationStep5),  # Calibrate
+        Home.Workflow('step6', setup=self.registrationStep6, widget=self.ui.RegistrationStep6),
+        Home.Workflow('step7', setup=self.registrationStep7, widget=self.ui.RegistrationStep7),  # Register patient
+        Home.Workflow('step8', setup=self.registrationStep8, widget=self.ui.RegistrationStep8),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -57,11 +61,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-
-    # Load widget from .ui file (created by Qt Designer)
-    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Registration.ui'))
-    self.layout.addWidget(self.uiWidget)
-    self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     self.AlignmentSideWidget = slicer.util.loadUI(self.resourcePath('UI/AlignmentSideWidget.ui'))
     self.AlignmentSideWidgetui = slicer.util.childWidgetVariables(self.AlignmentSideWidget)
@@ -92,7 +91,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()
     self.registrationTabBar.setObjectName("RegistrationTabBar")
-    self.registrationTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
     secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
@@ -106,7 +104,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     addSecondaryTab("step4", "Camera")
     addSecondaryTab("step5", "Calibrate")
     addSecondaryTab("step7", "Register patient")
-    self.registrationTabBar.currentChanged.connect(self.onTabChanged)
 
     import OptiTrack
     self.optitrack = OptiTrack.OptiTrackLogic()
@@ -160,9 +157,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
-    self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex)
-    self.onTabChanged(self.prepRegistrationTabIndex)
-
     qt.QTimer.singleShot(1000, self.startOptiTrack)
 
   def startOptiTrack(self):
@@ -199,8 +193,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.advanceButtonReg.enabled = True
       print('enable advance')
 
-  def onTabChanged(self, index):
-
+  def stepSetup(self):
     self.tools.showToolMarkers = False
     self.tools.updateToolsDisplay()
 
@@ -210,22 +203,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.cameraTimer:
       self.cameraTimer.stop()
 
-    if index == self.prepRegistrationTabIndex:
-      self.registrationStep1()
-
-    if index == self.trackingTabIndex:
-      self.registrationStep2()
-
-    if index == self.cameraTabIndex:
-      self.registrationStep4()
-
-    if index == self.calibrateRegistrationTabIndex:
-      self.registrationStep5()
-
-    if index == self.registerPatientTabIndex:
-      self.registrationStep7()
-
   def registrationStep1(self):
+
+    self.stepSetup()
 
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep1.png'])
@@ -236,16 +216,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = False
     self.advanceButtonAction.visible = True
 
-    # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
-
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.trackingTabIndex))
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep1)
-
   def registrationStep2(self):
+
+    self.stepSetup()
 
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep2.png'])
@@ -256,19 +229,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-    # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
-    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.prepRegistrationTabIndex))
-    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep3())
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep2)
-
   def registrationStep3(self):
 
-    # update toolbar needed for untabbed step
-    self.registrationTabBar.setCurrentIndex(self.trackingTabIndex)
+    self.stepSetup()
 
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep3.jpg'])
@@ -279,16 +242,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-    # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
-    self.backButtonReg.clicked.connect(lambda:self.registrationStep2())
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep3)
-
   def registrationStep4(self):
+
+    self.stepSetup()
 
     # set the layout and display an image
     self.goToRegistrationCameraViewLayout()
@@ -309,16 +265,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-    # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
-    self.backButtonReg.clicked.connect(lambda:self.registrationStep3())
-    self.advanceButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep4)
-
   def registrationStep5(self):
+
+    self.stepSetup()
 
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep5.png'], True)
@@ -339,15 +288,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
 
     # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.PivotCalibrationButton)
-    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.cameraTabIndex))
-    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep6())
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep5)
 
   def onPivotCalibrationButton(self):
     # setup pivot cal
@@ -402,6 +344,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
 
   def registrationStep6(self):
+
+    self.stepSetup()
+
     # set the layout and display an image
     self.goToPictureLayout(self.pictures['RegistrationStep6.png'], True)
     self.AlignmentSideWidget.visible = True
@@ -417,15 +362,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
     # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.SpinCalibrationButton)
-    self.advanceButtonReg.clicked.connect(
-        lambda: self.registrationTabBar.setCurrentIndex(self.registerPatientTabIndex))
     self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
-
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep6)
 
   def onSpinCalibrationButton(self):
     # setup spin cal
@@ -489,15 +427,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
 
     # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.CollectButton)
-    self.backButtonReg.clicked.connect(lambda:self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex))
     self.ui.CollectButton.clicked.connect(self.onCollectButton)
-    self.advanceButtonReg.clicked.connect(lambda: self.registrationStep8())
 
     # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep7)
     self.landmarks.startNextLandmark()
 
   def registrationStep8(self):
@@ -525,24 +458,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
 
     # set the button actions
-    self.disconnectAll(self.advanceButtonReg)
-    self.disconnectAll(self.backButtonReg)
     self.disconnectAll(self.ui.CollectButton)
+    self.disconnectAll(self.backButtonReg)
     self.backButtonReg.clicked.connect(lambda: self.restartRegistration())
-    self.advanceButtonReg.clicked.connect(lambda: self.openNextModule())
 
     self.advanceButtonReg.enabled = True
 
-    # set the frame in stacked widget
-    self.ui.RegistrationWidget.setCurrentWidget(self.ui.RegistrationStep8)
-
   def restartRegistration(self):
     print('Restarting')
-    self.registrationTabBar.setCurrentIndex(self.calibrateRegistrationTabIndex)
-
-  def openNextModule(self):
-    home = slicer.modules.HomeWidget
-    home.logic.gotoNext()
+    self.workflow.gotoByName(("nn", "registration", "step5"))
 
   def fidicialOnlyRegistration(self):
 

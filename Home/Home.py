@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import qt
 import slicer
 import typing
@@ -74,9 +75,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
-
-    self.advanceButton.clicked.connect(self.logic.gotoNext)
-    self.backButton.clicked.connect(self.logic.gotoPrev)
 
     self.setCustomUIVisible(True)
 
@@ -221,6 +219,9 @@ class Step:
     self.nextStep = None
     self.prevStep = None
 
+  def __str__(self) -> str:
+     return "step({})".format(",".join(self.names))
+
   @classmethod
   def one(cls, name, setup, teardown):
     return Step((name,), (setup,), (teardown,))
@@ -300,31 +301,17 @@ class Workflow:
 
       yield Step.one(self.name, setup, teardown)
     else:
-      toolBar = qt.QToolBar()
-      toolBar.setObjectName(self.name + '-toolbar')
-      toolBar.visible = False
-      slicer.util.mainWindow().addToolBar(toolBar)
-
-      tabBar = qt.QTabBar()
-      tabBar.setObjectName(self.name + '-tabbar')
-      toolBar.addWidget(tabBar)
-
-      # centerArea.layout().addWidget(tabBar)
 
       for nested in self.nested:
-        def setup(idx=tabBar.addTab(nested.name)):
-          toolBar.visible = True
-          tabBar.currentIndex = idx
 
+        def setup(idx=None):
           if self.widget:
             stack.setCurrentWidget(self.widget)
           if self.setup:
             self.setup()
 
         def teardown():
-          toolBar.visible = False
           if self.teardown:
-
             self.teardown()
 
         if self.engine:
@@ -383,16 +370,75 @@ class HomeLogic(ScriptedLoadableModuleLogic):
       prevStep.nextStep = nextStep
       nextStep.prevStep = prevStep
 
+    # Collect steps
+    self.primarySteps = OrderedDict()
+    self.secondarySteps = OrderedDict()
+    for step in self.steps:
+      primaryStepName = step.names[1]
+      if primaryStepName not in self.primarySteps.keys():
+        self.primarySteps[primaryStepName] = step
+        self.secondarySteps[primaryStepName] = OrderedDict()
+      if len(step.names) == 3:
+        secondaryStepName = step.names[2]
+        self.secondarySteps[primaryStepName][secondaryStepName] = step
+
+    # Connect back/advance buttons
+    for stepName in self.primarySteps.keys():
+      backButton = slicer.util.findChild(slicer.util.mainWindow(), f"{stepName.capitalize()}BackButton")
+      backButton.clicked.connect(self.gotoPrev)
+      advanceButton = slicer.util.findChild(slicer.util.mainWindow(), f"{stepName.capitalize()}AdvanceButton")
+      advanceButton.clicked.connect(self.gotoNext)
+
+    # Setup primary tab bar
+    primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
+    for name, step in self.primarySteps.items():
+      tabIndex = primaryTabBar.addTab(name.capitalize())
+      primaryTabBar.setTabData(tabIndex, name)
+    # ... and ensure relevant step is shown if clicked
+    primaryTabBar.currentChanged.connect(lambda tabIndex: self.goto(self.primarySteps[primaryTabBar.tabData(tabIndex)]))
+
+    def secondaryTabChanged(steps, tabBar):
+      def gotoStep(tabIndex):
+        self.goto(steps[tabBar.tabData(tabIndex)])
+      return gotoStep
+
+    # Setup secondary tab bars
+    for primaryStepName, secondary in self.secondarySteps.items():
+      try:
+        secondaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), f"{primaryStepName.capitalize()}TabBar")
+      except (IndexError, RuntimeError):
+        continue
+      # ... and ensure relevant step is shown if clicked
+      secondaryTabBar.currentChanged.connect(secondaryTabChanged(secondary, secondaryTabBar))
+
     # Initialize workflow selecting first step
     self.goto(self.steps[0])
 
+  def _lookupSecondaryStepTabIndex(self, primaryStepName, secondaryStepName):
+    for tabIndex, stepName in enumerate(self.secondarySteps[primaryStepName].keys()):
+      if stepName == secondaryStepName:
+        return tabIndex
+    return None
+
   def goto(self, dst: Step):
     slicer.util.selectModule('Home')
+
+    print(dst)
 
     if dst is None:
       return
 
     src = self.current
+
+    # Update workflowToolBar
+    primaryStepName = dst.names[1]
+    if len(dst.names) == 3:
+      secondaryStepName = dst.names[2]
+      try:
+        secondaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), f"{primaryStepName.capitalize()}TabBar")
+        secondaryTabBar.currentIndex = self._lookupSecondaryStepTabIndex(primaryStepName, secondaryStepName)
+      except (IndexError, RuntimeError):
+        pass
 
     # Collect and execute actions (including teardown and setup)
     # associated with the current transition.
@@ -402,9 +448,6 @@ class HomeLogic(ScriptedLoadableModuleLogic):
         action()
 
     self._currentName = dst.names
-
-    slicer.modules.HomeWidget.backButton.visible = dst.prevStep is not None
-    slicer.modules.HomeWidget.advanceButton.visible = dst.nextStep is not None
 
   def gotoNext(self):
     self.goto(self.nextStep)

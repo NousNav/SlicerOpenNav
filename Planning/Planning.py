@@ -38,14 +38,18 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     super().__init__(parent)
 
+    # Load widget from .ui file (created by Qt Designer)
+    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Planning.ui'))
+    self.layout.addWidget(self.uiWidget)
+    self.ui = slicer.util.childWidgetVariables(self.uiWidget)
+
     self.workflow = Home.Workflow(
       'planning',
-      widget=self.parent,
       nested=(
-        Home.Workflow('skin', setup=self.planningStep1),
-        Home.Workflow('target', setup=self.planningStep2),
-        Home.Workflow('trajectory', setup=self.planningStep3),
-        Home.Workflow('landmarks', setup=self.planningStep4),
+        Home.Workflow('skin', setup=self.planningStep1, widget=self.ui.PlanningStep1),
+        Home.Workflow('target', setup=self.planningStep2, widget=self.ui.PlanningStep2),
+        Home.Workflow('trajectory', setup=self.planningStep3, widget=self.ui.PlanningStep3),
+        Home.Workflow('landmarks', setup=self.planningStep4, widget=self.ui.PlanningStep4),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -53,11 +57,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-
-    # Load widget from .ui file (created by Qt Designer)
-    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Planning.ui'))
-    self.layout.addWidget(self.uiWidget)
-    self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     # Create logic class
     self.logic = PlanningLogic()
@@ -81,7 +80,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     addSecondaryTab("target", "Segment the Target")
     addSecondaryTab("trajectory", "Plan the Trajectory")
     addSecondaryTab("landmarks", "Define Landmarks")
-    self.planningTabBar.currentChanged.connect(self.onTabChanged)
 
     # Bottom toolbar
     (
@@ -91,10 +89,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       self.advanceButtonPlan,
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Planning")
-
-    # Stacked widgets navigation changes
-    self.CurrentPlanningIndex = -1
-    self.ui.PlanningWidget.currentChanged.connect(self.onPlanningChanged)
 
     self.ui.skinThresholdSlider.setValue(30)
     self.ui.skinSmoothingSlider.setValue(3)
@@ -146,9 +140,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
-    self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex)
-    self.onTabChanged(self.segmentSkinTabIndex)
-
     # set slice viewer background
     volume = self.logic.master_volume
     if volume is None:
@@ -172,21 +163,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.landmarkLogic.landmarks.SetDisplayVisibility(True)
 
-  def onTabChanged(self, index):
-    self.tableManager.advanceButton = None
-
-    if index == self.segmentSkinTabIndex:
-      self.planningStep1()
-
-    if index == self.segmentTargetTabIndex:
-      self.planningStep2()
-
-    if index == self.trajectoryTabIndex:
-      self.planningStep3()
-
-    if index == self.landmarksTabIndex:
-      self.planningStep4()
-
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
@@ -201,79 +177,57 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       pass
 
   def planningStep1(self):
-    self.disconnectAll(self.advanceButtonPlan)
-    self.disconnectAll(self.backButtonPlan)
+    self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
     self.backButtonPlan.text = 'Return to Patients'
-    self.backButtonPlan.clicked.connect(lambda: self.openPreviousModule())
 
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Segment the Target'
-    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentTargetTabIndex))
+
     self.logic.skin_segmentation.SetDisplayVisibility(True)
-    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep1)
 
     volume = self.logic.master_volume
     if volume is None:
       self.advanceButtonPlan.enabled = False
 
   def planningStep2(self):
-    self.disconnectAll(self.advanceButtonPlan)
-    self.disconnectAll(self.backButtonPlan)
+    self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
     self.backButtonPlan.text = 'Segment the Skin'
-    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
 
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Plan the Trajectory'
-    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.trajectoryTabIndex))
+
     self.logic.seed_segmentation.SetDisplayVisibility(True)
-    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep2)
 
   def planningStep3(self):
-    self.disconnectAll(self.advanceButtonPlan)
-    self.disconnectAll(self.backButtonPlan)
+    self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
     self.backButtonPlan.text = 'Segment the Target'
-    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
 
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Define Landmarks'
-    self.advanceButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.landmarksTabIndex))
+
     self.logic.trajectory_markup.SetDisplayVisibility(True)
-    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep3)
 
   def planningStep4(self):
-    self.disconnectAll(self.advanceButtonPlan)
-    self.disconnectAll(self.backButtonPlan)
+    self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
     self.backButtonPlan.text = 'Plan the Trajectory'
-    self.backButtonPlan.clicked.connect(lambda: self.planningTabBar.setCurrentIndex(self.segmentSkinTabIndex))
 
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = ''
-    self.advanceButtonPlan.clicked.connect(self.openNextModule)
+
     self.tableManager.advanceButton = self.advanceButtonPlan
     try:
       landmarks = slicer.util.getNode('LandmarkDefinitions')
       landmarks.SetDisplayVisibility(True)
     except:
       pass
-    self.ui.PlanningWidget.setCurrentWidget(self.ui.PlanningStep4)
-
-  def openNextModule(self):
-    home = slicer.modules.HomeWidget
-    home.logic.gotoNext()
-
-  def openPreviousModule(self):
-    home = slicer.modules.HomeWidget
-    home.primaryTabBar.setCurrentIndex(home.patientsTabIndex)
-
-    print('we should move to patients now...')
 
   def createSkinSegmentation(self):
     volume = self.logic.master_volume
@@ -341,13 +295,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def setTrajectory(self):
     self.logic.placeTrajectory()
-
-  def onPlanningChanged(self, tabIndex):
-    if tabIndex == self.CurrentPlanningIndex:
-      return
-
-    # Update Current Tab
-    self.CurrentPlanningIndex = tabIndex
 
 
 def default_master_volume():
