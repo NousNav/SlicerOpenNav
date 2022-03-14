@@ -261,13 +261,27 @@ class Workflow:
     widget=None,
     setup=None,
     teardown=None,
-    nested=()
+    nested=(),
+    engine=None,
   ):
     self.name = name
     self.widget = widget
     self.setup = setup
     self.teardown = teardown
     self.nested = nested
+    self.engine = engine
+
+  def gotoNext(self):
+    if self.engine:
+      self.engine.gotoNext()
+
+  def gotoPrev(self):
+    if self.engine:
+      self.engine.gotoPrev()
+
+  def gotoByName(self, name):
+    if self.engine:
+      self.engine.gotoByName(name)
 
   def flatten(self, stack):
     if self.widget:
@@ -313,6 +327,9 @@ class Workflow:
 
             self.teardown()
 
+        if self.engine:
+          nested.engine = self.engine
+
         this = Step.one(self.name, setup, teardown)
 
         for step in nested.flatten(stack):
@@ -354,6 +371,8 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   def __init__(self, info: Workflow, stack):
     super().__init__()
 
+    info.engine = self
+
     self.stack = stack
 
     self.steps = list(info.flatten(stack))
@@ -392,3 +411,6 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
   def gotoPrev(self):
     self.goto(self.prevStep)
+
+  def gotoByName(self, name):
+    self.goto(self.names[name])
