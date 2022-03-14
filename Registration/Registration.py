@@ -92,16 +92,20 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()
     self.registrationTabBar.setObjectName("RegistrationTabBar")
-    self.prepRegistrationTabIndex = self.registrationTabBar.addTab("Patient prep")
-    self.trackingTabIndex = self.registrationTabBar.addTab("Tracking devices")
-    self.cameraTabIndex = self.registrationTabBar.addTab("Camera")
-    self.calibrateRegistrationTabIndex = self.registrationTabBar.addTab("Calibrate")
-    self.registerPatientTabIndex = self.registrationTabBar.addTab("Register patient")
     self.registrationTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
     secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
 
+    def addSecondaryTab(name, text=None):
+      tabIndex = self.registrationTabBar.addTab(text)
+      self.registrationTabBar.setTabData(tabIndex, name)
+
+    addSecondaryTab("step1", "Patient prep")
+    addSecondaryTab("step2", "Tracking devices")
+    addSecondaryTab("step4", "Camera")
+    addSecondaryTab("step5", "Calibrate")
+    addSecondaryTab("step7", "Register patient")
     self.registrationTabBar.currentChanged.connect(self.onTabChanged)
 
     import OptiTrack

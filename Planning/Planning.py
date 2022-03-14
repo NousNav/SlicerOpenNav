@@ -73,11 +73,14 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
     secondaryTabWidgetUI.CenterArea.layout().addWidget(self.planningTabBar)
 
-    self.segmentSkinTabIndex = self.planningTabBar.addTab("Segment the Skin")
-    self.segmentTargetTabIndex = self.planningTabBar.addTab("Segment the Target")
-    self.trajectoryTabIndex = self.planningTabBar.addTab("Plan the Trajectory")
-    self.landmarksTabIndex = self.planningTabBar.addTab("Define Landmarks")
+    def addSecondaryTab(name, text):
+      tabIndex = self.planningTabBar.addTab(text)
+      self.planningTabBar.setTabData(tabIndex, name)
 
+    addSecondaryTab("skin", "Segment the Skin")
+    addSecondaryTab("target", "Segment the Target")
+    addSecondaryTab("trajectory", "Plan the Trajectory")
+    addSecondaryTab("landmarks", "Define Landmarks")
     self.planningTabBar.currentChanged.connect(self.onTabChanged)
 
     # Bottom toolbar
