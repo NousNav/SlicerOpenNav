@@ -14,12 +14,12 @@ set(MODULE_PYTHON_RESOURCES
   Resources/UI/HardwareDialog.ui
   Resources/UI/AlignmentSideWidget.ui
   Resources/UI/LandmarkSideWidget.ui
-  Resources/Images/RegistrationStep1.png
-  Resources/Images/RegistrationStep2.png
-  Resources/Images/RegistrationStep3.jpg
-  Resources/Images/RegistrationStep4.png
-  Resources/Images/RegistrationStep5.png
-  Resources/Images/RegistrationStep6.png
+  Resources/Images/RegistrationStepPatientPrep.png
+  Resources/Images/RegistrationStepTrackingPrep.png
+  Resources/Images/RegistrationStepPointerPrep.jpg
+  Resources/Images/RegistrationStepAlignCamera.png
+  Resources/Images/RegistrationStepPivotCalibration.png
+  Resources/Images/RegistrationStepSpinCalibration.png
   Resources/Data/manny.vtk
   Resources/Data/beep.wav
   Resources/Icons/Done.svg

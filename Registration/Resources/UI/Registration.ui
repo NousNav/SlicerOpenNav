@@ -16,7 +16,7 @@
      <property name="currentIndex">
       <number>5</number>
      </property>
-     <widget class="QWidget" name="RegistrationStep1">
+     <widget class="QWidget" name="RegistrationStepPatientPrep">
       <layout class="QVBoxLayout" name="verticalLayout_1">
        <item>
         <widget class="QLabel" name="label">
@@ -50,7 +50,7 @@ Have the NousNav components ready for the next steps.
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep2">
+     <widget class="QWidget" name="RegistrationStepTrackingPrep">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QLabel" name="label_3">
@@ -84,7 +84,7 @@ reference array</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep3">
+     <widget class="QWidget" name="RegistrationStepPointerPrep">
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QLabel" name="label_5">
@@ -115,7 +115,7 @@ reference array</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep4">
+     <widget class="QWidget" name="RegistrationStepAlignCamera">
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QLabel" name="label_7">
@@ -146,7 +146,7 @@ reference array</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep5">
+     <widget class="QWidget" name="RegistrationStepPivotCalibration">
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <widget class="QLabel" name="label_9">
@@ -193,7 +193,7 @@ about the center
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep6">
+     <widget class="QWidget" name="RegistrationStepSpinCalibration">
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
         <widget class="QLabel" name="label_16">
@@ -240,7 +240,7 @@ about its axis
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep7">
+     <widget class="QWidget" name="RegistrationStepLandmarkRegistration">
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
         <widget class="QLabel" name="label_11">
@@ -286,7 +286,7 @@ listed on the right.</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="RegistrationStep8">
+     <widget class="QWidget" name="RegistrationStepVerifyRegistration">
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
         <widget class="QLabel" name="label_13">

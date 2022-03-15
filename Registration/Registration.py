@@ -46,14 +46,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.workflow = Home.Workflow(
       'registration',
       nested=(
-        Home.Workflow('step1', setup=self.registrationStep1, widget=self.ui.RegistrationStep1),  # Patient prep
-        Home.Workflow('step2', setup=self.registrationStep2, widget=self.ui.RegistrationStep2),  # Tracking devices
-        Home.Workflow('step3', setup=self.registrationStep3, widget=self.ui.RegistrationStep3),
-        Home.Workflow('step4', setup=self.registrationStep4, widget=self.ui.RegistrationStep4),  # Camera
-        Home.Workflow('step5', setup=self.registrationStep5, widget=self.ui.RegistrationStep5),  # Calibrate
-        Home.Workflow('step6', setup=self.registrationStep6, widget=self.ui.RegistrationStep6),
-        Home.Workflow('step7', setup=self.registrationStep7, widget=self.ui.RegistrationStep7),  # Register patient
-        Home.Workflow('step8', setup=self.registrationStep8, widget=self.ui.RegistrationStep8),
+        Home.Workflow("patient-prep", setup=self.registrationStepPatientPrep, widget=self.ui.RegistrationStepPatientPrep),
+        Home.Workflow("tracking-prep", setup=self.registrationStepTrackingPrep, widget=self.ui.RegistrationStepTrackingPrep),
+        Home.Workflow("pointer-prep", setup=self.registrationStepPointerPrep, widget=self.ui.RegistrationStepPointerPrep),
+        Home.Workflow("align-camera", setup=self.registrationStepAlignCamera, widget=self.ui.RegistrationStepAlignCamera),
+        Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration, widget=self.ui.RegistrationStepPivotCalibration),
+        Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration, widget=self.ui.RegistrationStepSpinCalibration),
+        Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration, widget=self.ui.RegistrationStepLandmarkRegistration),
+        Home.Workflow("verify-registration", setup=self.registrationStepVerifyRegistration, widget=self.ui.RegistrationStepVerifyRegistration),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -100,11 +100,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       tabIndex = self.registrationTabBar.addTab(text)
       self.registrationTabBar.setTabData(tabIndex, name)
 
-    addSecondaryTab("step1", "Patient prep")
-    addSecondaryTab("step2", "Tracking devices")
-    addSecondaryTab("step4", "Camera")
-    addSecondaryTab("step5", "Calibrate")
-    addSecondaryTab("step7", "Register patient")
+    addSecondaryTab("patient-prep", "Patient prep")
+    addSecondaryTab("tracking-prep", "Tracking devices")
+    addSecondaryTab("align-camera", "Camera")
+    addSecondaryTab("pivot-calibration", "Calibrate")
+    addSecondaryTab("landmark-registration", "Register patient")
 
     import OptiTrack
     self.optitrack = OptiTrack.OptiTrackLogic()
@@ -200,12 +200,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.cameraTimer:
       self.cameraTimer.stop()
 
-  def registrationStep1(self):
+  def registrationStepPatientPrep(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep1.png'])
+    self.goToPictureLayout(self.pictures['RegistrationStepPatientPrep.png'])
 
     # set the button labels
     self.backButtonReg.text = ''
@@ -213,12 +213,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = False
     self.advanceButtonAction.visible = True
 
-  def registrationStep2(self):
+  def registrationStepTrackingPrep(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep2.png'])
+    self.goToPictureLayout(self.pictures['RegistrationStepTrackingPrep.png'])
 
     # set the button labels
     self.backButtonReg.text = 'Back'
@@ -226,12 +226,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-  def registrationStep3(self):
+  def registrationStepPointerPrep(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep3.jpg'])
+    self.goToPictureLayout(self.pictures['RegistrationStepPointerPrep.jpg'])
 
     # set the button labels
     self.backButtonReg.text = 'Back'
@@ -239,12 +239,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-  def registrationStep4(self):
+  def registrationStepAlignCamera(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToRegistrationCameraViewLayout()
+    self.goToPictureLayout(self.pictures['RegistrationStepAlignCamera.png'], True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -262,12 +262,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
-  def registrationStep5(self):
+  def registrationStepPivotCalibration(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep5.png'], True)
+    self.goToPictureLayout(self.pictures['RegistrationStepPivotCalibration.png'], True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -340,12 +340,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.GetDisplayNode().SetVisibility(False)
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
 
-  def registrationStep6(self):
+  def registrationStepSpinCalibration(self):
 
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStep6.png'], True)
+    self.goToPictureLayout(self.pictures['RegistrationStepSpinCalibration.png'], True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -400,7 +400,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.beep:
       self.beep.play()
   
-  def registrationStep7(self):
+  def registrationStepLandmarkRegistration(self):
     # Set the layout and display an image
     self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = False
@@ -430,7 +430,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the frame in stacked widget
     self.landmarks.startNextLandmark()
 
-  def registrationStep8(self):
+  def registrationStepVerifyRegistration(self):
     # set the layout and display an image
     try:
       masterNode = slicer.modules.PlanningWidget.logic.master_volume
@@ -463,7 +463,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def restartRegistration(self):
     print('Restarting')
-    self.workflow.gotoByName(("nn", "registration", "step5"))
+    self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
   def fidicialOnlyRegistration(self):
 
@@ -561,12 +561,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def preloadPictures(self):
     pictureNames = [
-      'RegistrationStep1.png'
-      , 'RegistrationStep2.png'
-      , 'RegistrationStep3.jpg'
-      , 'RegistrationStep4.png'
-      , 'RegistrationStep5.png'
-      , 'RegistrationStep6.png'
+      "RegistrationStepPatientPrep.png",
+      "RegistrationStepTrackingPrep.png",
+      "RegistrationStepPointerPrep.jpg",
+      "RegistrationStepAlignCamera.png",
+      "RegistrationStepPivotCalibration.png",
+      "RegistrationStepSpinCalibration.png",
       ]
     self.pictures = {}
     properties = {}
