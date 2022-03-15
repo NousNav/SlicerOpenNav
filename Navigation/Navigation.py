@@ -88,6 +88,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     self.goToNavLayout(masterNode)
 
+  def exit(self):
+    pass
+
   def goToNavLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(self.navLayout)
