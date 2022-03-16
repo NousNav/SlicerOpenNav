@@ -72,10 +72,15 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
     self.rebuildMaps()
     self.landmarks.CreateDefaultDisplayNodes()
 
+    self.reconnect()
+
+  def reconnect(self):
+    self.removeObservers()
+
     for event in [
       slicer.vtkMRMLMarkupsNode.PointAddedEvent,
       slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
-      slicer.vtkMRMLMarkupsNode.PointRemovedEvent
+      slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
     ]:
       self.addObserver(self.landmarks, event, self.rebuildMaps)
 
@@ -168,10 +173,14 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
 
     self.updateLandmarksDisplay()
 
+    self.reconnect()
+
+  def reconnect(self):
+    self.removeObservers()
     for event in [
       slicer.vtkMRMLMarkupsNode.PointAddedEvent,
       slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
-      slicer.vtkMRMLMarkupsNode.PointRemovedEvent
+      slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
     ]:
       self.addObserver(self.logic.landmarks, event, self.onPointsChanged)
 

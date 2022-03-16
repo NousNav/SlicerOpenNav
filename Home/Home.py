@@ -1,9 +1,15 @@
 from collections import OrderedDict
-import qt
-import slicer
 import typing
 
-from slicer.ScriptedLoadableModule import *
+import qt
+import slicer
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleWidget,
+  ScriptedLoadableModuleLogic,
+)
+
 from slicer.util import VTKObservationMixin
 
 import NNUtils
@@ -397,27 +403,35 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  _currentName: typing.Tuple[str] = NNUtils.parameterProperty('CURRENT_STEP_NAME', default=None)
+  _currentNameCache: typing.Optional[typing.Tuple[str]]
+  _currentName: typing.Optional[typing.Tuple[str]] = NNUtils.parameterProperty('CURRENT_STEP_NAME', default=None)
 
   @property
-  def current(self) -> Step:
-    name = self._currentName
-    if name is None:
+  def current(self) -> typing.Optional[Step]:
+    if self._currentName is None:
       return None
 
-    return self.names[tuple(name)]
+    return self.names[tuple(self._currentName)]
 
   @current.setter
   def current(self, value: Step):
-    self._currentName = tuple(value.names)
+    names = tuple(value.names)
+    self._currentName = names
+    self._currentNameCache = names
 
   @property
   def nextStep(self):
-    return self.current.nextStep
+    current = self.current
+    if current is None:
+      return None
+    return current.nextStep
 
   @property
   def prevStep(self):
-    return self.current.prevStep
+    current = self.current
+    if current is None:
+      return None
+    return current.prevStep
 
   def __init__(self, info: Workflow, stack):
     super().__init__()
@@ -476,7 +490,24 @@ class HomeLogic(ScriptedLoadableModuleLogic):
       secondaryTabBar.currentChanged.connect(secondaryTabChanged(secondary, secondaryTabBar))
 
     # Initialize workflow selecting first step
+    self._currentNameCache = None
     self.goto(self.steps[0])
+
+    slicer.app.ioManager().newFileLoaded.connect(self.onNewFileLoaded)
+
+  def onNewFileLoaded(self, params):
+    if params['fileType'] == 'SceneFile':
+      print('Scene Loaded!')
+
+      self.resyncCurrent()
+      slicer.modules.PlanningWidget.landmarkLogic.reconnect()
+      slicer.modules.PlanningWidget.tableManager.reconnect()
+      slicer.modules.PlanningWidget.tableManager.updateLandmarksDisplay()
+
+  def resyncCurrent(self):
+    dst = self.current
+    self._currentName = self._currentNameCache
+    self.goto(dst)
 
   def _lookupPrimaryStepTabIndex(self, primaryStepName):
     try:
@@ -516,8 +547,8 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     print(src, '->', dst)  # transitioning from src (source) to dst (destination)
 
-    # set new current name now to prevent recursion when setting tab index.
-    self._currentName = dst.names
+    # set new current now to prevent recursion when setting tab index.
+    self.current = dst
 
     # Update workflowToolBar
     primaryStepName = dst.names[1]
