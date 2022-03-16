@@ -141,7 +141,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
-    # self.goToFourUpLayout()
+    NNUtils.goToFourUpLayout()
 
   def enter(self):
     # Show current
@@ -437,7 +437,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     except:
       masterNode = None
       print('No master volume node is loaded')
-    self.goToFourUpLayout(masterNode)
+    NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
 
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = False
@@ -577,17 +577,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       imageNode.hidden = True
       self.pictures[image] = imageNode
 
-  def goToFourUpLayout(self, node=None):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
-    NNUtils.setSliceViewBackgroundColor('#000000')
-    slicer.util.setSliceViewerLayers(foreground=node, background=None, label=None, fit=True)
-
   def goToRegistrationCameraViewLayout(self):
-
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
     NNUtils.setSliceWidgetSlidersVisible(False)
