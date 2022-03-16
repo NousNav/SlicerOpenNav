@@ -81,6 +81,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Apply style
     self.applyApplicationStyle()
 
+    # Initialize navigation layout
+    NNUtils.initializeNavigationLayout()
+
   def applyApplicationStyle(self):
     NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
