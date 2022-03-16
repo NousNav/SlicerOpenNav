@@ -91,6 +91,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()
     self.registrationTabBar.setObjectName("RegistrationTabBar")
+    self.registrationTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
     secondaryTabWidgetUI.CenterArea.layout().addWidget(self.registrationTabBar)
@@ -134,19 +135,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.cameraTimer.stop()
 
   def exit(self):
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
+    self.registrationTabBar.visible = False
+    self.bottomToolBar.visible = False
+
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
     # self.goToFourUpLayout()
-    print('hide')
 
   def enter(self):
-
-    # Hides other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'PatientsBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
-
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
     self.bottomToolBar.visible = True

@@ -67,14 +67,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.navLayout = NavigationWidget.registerCustomLayouts(slicer.app.layoutManager().layoutLogic())
 
   def enter(self):
-
-    # Hides other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'PatientsBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
-
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
@@ -97,7 +89,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     self.goToNavLayout(masterNode)
 
   def exit(self):
-    pass
+    # Hide current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
+    self.bottomToolBar.visible = False
 
   def goToNavLayout(self, node=None):
     layoutManager = slicer.app.layoutManager()

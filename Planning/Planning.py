@@ -115,6 +115,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     )
 
   def exit(self):
+    # Hide current
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
+    self.bottomToolBar.visible = False
+    self.planningTabBar.visible = False
+
     self.logic.skin_segmentation.SetDisplayVisibility(False)
     self.logic.seed_segmentation.SetDisplayVisibility(False)
     self.logic.trajectory_markup.SetDisplayVisibility(False)
@@ -124,12 +129,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       pass
 
   def enter(self):
-    # Hide other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'PatientsBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
-
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
     self.bottomToolBar.visible = True

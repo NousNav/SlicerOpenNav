@@ -72,15 +72,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
   def enter(self):
-    # Hides other toolbars
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'PlanningTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationBottomToolBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'RegistrationTabBar').visible = False
-    slicer.util.findChild(slicer.util.mainWindow(), 'NavigationBottomToolBar').visible = False
-
     # Show current
-    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = True
 
     # Styling
@@ -94,15 +87,17 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     self.goToFourUpLayout()
 
+  def exit(self):
+    # Hide current
+    self.bottomToolBar.visible = False
+    slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
+
   def goToFourUpLayout(self):
     layoutManager = slicer.app.layoutManager()
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
     NNUtils.setSliceWidgetSlidersVisible(True)
     NNUtils.setMainPanelVisible(True)
     NNUtils.setSidePanelVisible(False)
-
-  def exit(self):
-    pass
 
   def onClose(self, o, e):
     pass
