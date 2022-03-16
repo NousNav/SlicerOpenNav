@@ -410,12 +410,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
 
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-      pointerToHeadFrame.SetAndObserveTransformNodeID(None)
-    except:
-      print("Warning!! Tracker not connected")
-
     # set the button labels
     self.backButtonReg.text = 'Recalibrate'
     self.landmarks.updateAdvanceButton()
@@ -510,6 +504,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onCollectButton(self):
     print('Attempt collection')
+
+    print('Unobserve registration transform')
+    try:
+      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+      pointerToHeadFrame.SetAndObserveTransformNodeID(None)
+    except:
+      print("Warning!! Tracker not connected")
+
     try:
       tipToPointer = slicer.util.getNode('TipToPointer')
       samplePoint = [0,0,0]
@@ -523,6 +525,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         self.beep.play()
     except:
       print('Could not get tip node')
+
+    print('Reobserve registration transform')
+    try:
+      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
+      transformNode = slicer.util.getNode('HeadFrameToImage')
+      pointerToHeadFrame.SetAndObserveTransformNodeID(transformNode.GetID())
+    except:
+      print("No previous registration")
 
   def setupToolTables(self):
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
