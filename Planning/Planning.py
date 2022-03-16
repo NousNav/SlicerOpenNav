@@ -95,9 +95,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Bottom toolbar
     (
       self.bottomToolBar,
-      self.backButtonPlan,
+      self.backButton,
       self.backButtonAction,
-      self.advanceButtonPlan,
+      self.advanceButton,
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Planning")
 
@@ -185,26 +185,26 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
-    self.backButtonPlan.text = 'Return to Patients'
+    self.backButton.text = 'Return to Patients'
 
     self.advanceButtonAction.visible = True
-    self.advanceButtonPlan.text = 'Segment the Target'
+    self.advanceButton.text = 'Segment the Target'
 
     if self.logic.skin_segmentation is not None:
       self.logic.skin_segmentation.SetDisplayVisibility(True)
 
     volume = self.logic.master_volume
     if volume is None:
-      self.advanceButtonPlan.enabled = False
+      self.advanceButton.enabled = False
 
   def planningStep2(self):
     self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
-    self.backButtonPlan.text = 'Segment the Skin'
+    self.backButton.text = 'Segment the Skin'
 
     self.advanceButtonAction.visible = True
-    self.advanceButtonPlan.text = 'Plan the Trajectory'
+    self.advanceButton.text = 'Plan the Trajectory'
 
     if self.logic.seed_segmentation is not None:
       self.logic.seed_segmentation.SetDisplayVisibility(True)
@@ -213,10 +213,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
-    self.backButtonPlan.text = 'Segment the Target'
+    self.backButton.text = 'Segment the Target'
 
     self.advanceButtonAction.visible = True
-    self.advanceButtonPlan.text = 'Define Landmarks'
+    self.advanceButton.text = 'Define Landmarks'
 
     if self.logic.trajectory_markup is not None:
       self.logic.trajectory_markup.SetDisplayVisibility(True)
@@ -225,12 +225,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.backButtonAction.visible = True
-    self.backButtonPlan.text = 'Plan the Trajectory'
+    self.backButton.text = 'Plan the Trajectory'
 
     self.advanceButtonAction.visible = True
-    self.advanceButtonPlan.text = ''
+    self.advanceButton.text = ''
 
-    self.tableManager.advanceButton = self.advanceButtonPlan
+    self.tableManager.advanceButton = self.advanceButton
     try:
       landmarks = slicer.util.getNode('LandmarkDefinitions')
       landmarks.SetDisplayVisibility(True)
