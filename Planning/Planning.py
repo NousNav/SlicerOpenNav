@@ -149,7 +149,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
     NNUtils.setSliceViewBackgroundColor('#000000')
-    self.goToFourUpLayout()
+    NNUtils.goToFourUpLayout(volumeNode=volume)
 
     # Set threshold slider extremes and default
     volumeDisplay = self.logic.master_volume.GetDisplayNode()
@@ -161,13 +161,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.skinThresholdSlider.setValue( min + window / 10 )
 
     self.landmarkLogic.landmarks.SetDisplayVisibility(True)
-
-  def goToFourUpLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
 
   def disconnectAll(self, widget):
     try:

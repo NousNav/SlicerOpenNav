@@ -50,6 +50,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Remove uneeded UI elements, add toolbars
     self.modifyWindowUI()
 
+    # Initialize navigation layout
+    NNUtils.initializeNavigationLayout()
+
     innerTabBar = qt.QTabBar()
     self.secondaryTabWidgetUI.CenterArea.layout().addWidget(innerTabBar)
 
@@ -80,9 +83,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Apply style
     self.applyApplicationStyle()
-
-    # Initialize navigation layout
-    NNUtils.initializeNavigationLayout()
 
   def applyApplicationStyle(self):
     NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))

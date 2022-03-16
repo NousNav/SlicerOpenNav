@@ -85,19 +85,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     if self.VolumeNodeTag is None:
       self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onNodeAdded)
 
-    self.goToFourUpLayout()
+    NNUtils.goToFourUpLayout(volumeNode='keep-current')
 
   def exit(self):
     # Hide current
     self.bottomToolBar.visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
-
-  def goToFourUpLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
-    NNUtils.setSliceWidgetSlidersVisible(True)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(False)
 
   def onClose(self, o, e):
     pass
