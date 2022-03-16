@@ -250,7 +250,7 @@ class Step:
       return
 
     # find the first index i where self.names and other.names differ
-    for i, (l, r) in enumerate(zip(lhs.names, rhs.names)):
+    for i, (l, r) in enumerate(zip(lhs.names, rhs.names)):  # noqa: B007
       if l != r:
         break
     else:
@@ -438,7 +438,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     # Setup primary tab bar
     primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
-    for name, step in self.primarySteps.items():
+    for name in self.primarySteps.keys():
       tabIndex = primaryTabBar.addTab(name.capitalize())
       primaryTabBar.setTabData(tabIndex, name)
     # ... and ensure relevant step is shown if clicked
