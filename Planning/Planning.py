@@ -516,6 +516,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     """
     self.editor_widget.setActiveEffectByName('Grow from seeds')
     effect = self.editor_widget.activeEffect()
+    if effect.self().getPreviewNode() is None:
+      return
     effect.self().onApply()
 
     # Make sure both segments are visible
