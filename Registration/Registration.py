@@ -205,7 +205,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.cameraTimer:
       self.cameraTimer.stop()
 
-  @NNUtils.backButton(visible=False)
+  @NNUtils.backButton(text="Return to Planning")
   @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
 
