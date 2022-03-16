@@ -1,3 +1,5 @@
+import functools
+
 import qt
 import slicer
 
@@ -131,6 +133,40 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   toolBar.visible = False
 
   return (toolBar, backButton, backButtonAction, advanceButton, advanceButtonAction)
+
+
+def backButton(text="", visible=True, enabled=True):
+  """Decorator for enabling/disabling the `back` button and updating its text
+  and visibility.
+
+  By default, `visible` and `enabled` properties are set to `True`.
+  """
+  def inner(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwds):
+      self.backButton.text = text
+      self.backButtonAction.enabled = enabled
+      self.backButtonAction.visible = visible
+      return func(self, *args, **kwds)
+    return wrapper
+  return inner
+
+
+def advanceButton(text="", visible=True, enabled=True):
+  """Decorator for enabling/disabling the `advance` button and updating its text
+  and visibility.
+
+  By default, `visible` and `enabled` properties are set to `True`.
+  """
+  def inner(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwds):
+      self.advanceButton.text = text
+      self.advanceButtonAction.enabled = enabled
+      self.advanceButtonAction.visible = visible
+      return func(self, *args, **kwds)
+    return wrapper
+  return inner
 
 
 def setSliceWidgetOffsetSliderVisible(sliceWidget, visible):

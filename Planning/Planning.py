@@ -3,6 +3,7 @@ import pathlib
 
 import qt
 import slicer
+
 import slicer.modules
 
 from slicer.ScriptedLoadableModule import (
@@ -181,14 +182,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     except Exception:
       pass
 
+  @NNUtils.backButton(text="Return to Patients")
+  @NNUtils.advanceButton(text="Segment the Target")
   def planningStep1(self):
     self.tableManager.advanceButton = None
-
-    self.backButtonAction.visible = True
-    self.backButton.text = 'Return to Patients'
-
-    self.advanceButtonAction.visible = True
-    self.advanceButton.text = 'Segment the Target'
 
     if self.logic.skin_segmentation is not None:
       self.logic.skin_segmentation.SetDisplayVisibility(True)
@@ -197,39 +194,25 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     if volume is None:
       self.advanceButton.enabled = False
 
+  @NNUtils.backButton(text="Segment the Skin")
+  @NNUtils.advanceButton(text="Plan the Trajectory")
   def planningStep2(self):
     self.tableManager.advanceButton = None
-
-    self.backButtonAction.visible = True
-    self.backButton.text = 'Segment the Skin'
-
-    self.advanceButtonAction.visible = True
-    self.advanceButton.text = 'Plan the Trajectory'
 
     if self.logic.seed_segmentation is not None:
       self.logic.seed_segmentation.SetDisplayVisibility(True)
 
+  @NNUtils.backButton(text="Segment the Target")
+  @NNUtils.advanceButton(text="Define Landmarks")
   def planningStep3(self):
     self.tableManager.advanceButton = None
-
-    self.backButtonAction.visible = True
-    self.backButton.text = 'Segment the Target'
-
-    self.advanceButtonAction.visible = True
-    self.advanceButton.text = 'Define Landmarks'
 
     if self.logic.trajectory_markup is not None:
       self.logic.trajectory_markup.SetDisplayVisibility(True)
 
+  @NNUtils.backButton(text="Plan the Trajectory")
+  @NNUtils.advanceButton(text="")
   def planningStep4(self):
-    self.tableManager.advanceButton = None
-
-    self.backButtonAction.visible = True
-    self.backButton.text = 'Plan the Trajectory'
-
-    self.advanceButtonAction.visible = True
-    self.advanceButton.text = ''
-
     self.tableManager.advanceButton = self.advanceButton
     try:
       landmarks = slicer.util.getNode('LandmarkDefinitions')

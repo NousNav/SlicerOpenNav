@@ -205,6 +205,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.cameraTimer:
       self.cameraTimer.stop()
 
+  @NNUtils.backButton(visible=False)
+  @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
 
     self.stepSetup()
@@ -212,12 +214,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
 
-    # set the button labels
-    self.backButton.text = ''
-    self.advanceButton.text = 'Setup NousNav'
-    self.backButtonAction.visible = False
-    self.advanceButtonAction.visible = True
-
+  @NNUtils.backButton(text="Back")
+  @NNUtils.advanceButton(text="Press when done")
   def registrationStepTrackingPrep(self):
 
     self.stepSetup()
@@ -225,12 +223,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
-    # set the button labels
-    self.backButton.text = 'Back'
-    self.advanceButton.text = 'Press when done'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
-
+  @NNUtils.backButton(text="Back")
+  @NNUtils.advanceButton(text="Press when done")
   def registrationStepPointerPrep(self):
 
     self.stepSetup()
@@ -238,12 +232,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
 
-    # set the button labels
-    self.backButton.text = 'Back'
-    self.advanceButton.text = 'Press when done'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
-
+  @NNUtils.backButton(text="Back")
+  @NNUtils.advanceButton(text="Press when done")
   def registrationStepAlignCamera(self):
 
     self.stepSetup()
@@ -261,12 +251,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
 
-    # set the button labels
-    self.backButton.text = 'Back'
-    self.advanceButton.text = 'Press when done'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
-
+  @NNUtils.backButton(text="Back")
+  @NNUtils.advanceButton(text="Press when done")
   def registrationStepPivotCalibration(self):
 
     self.stepSetup()
@@ -282,12 +268,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.ui.RMSLabel.text = ''
     self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
-
-    # set the button labels
-    self.backButton.text = 'Back'
-    self.advanceButton.text = 'Press when done'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
 
     # set the button actions
     self.disconnectAll(self.ui.PivotCalibrationButton)
@@ -347,6 +327,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
     self.needleModel.SaveWithSceneOff()
 
+  @NNUtils.backButton(text="Back")
+  @NNUtils.advanceButton(text="Press when done")
   def registrationStepSpinCalibration(self):
 
     self.stepSetup()
@@ -355,12 +337,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepSpinCalibration.png"], sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
-
-    # set the button labels
-    self.backButton.text = 'Back'
-    self.advanceButton.text = 'Press when done'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
 
     self.ui.RMSLabelSpin.text = ''
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
@@ -406,7 +382,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if self.beep:
       self.beep.play()
-  
+
+  @NNUtils.backButton(text="Recalibrate")
+  @NNUtils.advanceButton(text="")
   def registrationStepLandmarkRegistration(self):
     # Set the layout and display an image
     NNUtils.goToRegistrationCameraViewLayout()
@@ -419,10 +397,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     # set the button labels
-    self.backButton.text = 'Recalibrate'
     self.landmarks.updateAdvanceButton()
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
@@ -431,6 +406,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the frame in stacked widget
     self.landmarks.startNextLandmark()
 
+  @NNUtils.backButton(text="Start over")
+  @NNUtils.advanceButton(text="Accept", enabled=False)
   def registrationStepVerifyRegistration(self):
     # set the layout and display an image
     try:
@@ -448,12 +425,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     self.fidicialOnlyRegistration()
-
-    # set the button labels
-    self.backButton.text = 'Start over'
-    self.advanceButton.text = 'Accept'
-    self.backButtonAction.visible = True
-    self.advanceButtonAction.visible = True
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)

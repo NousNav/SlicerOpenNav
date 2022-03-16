@@ -66,12 +66,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       self.backButtonAction,
       self.advanceButton,
       self.advanceButtonAction,
-    ) = NNUtils.setupWorkflowToolBar(
-      "Patients", backButtonText="Back", advanceButtonText="Go To Planning"
-    )
+    ) = NNUtils.setupWorkflowToolBar("Patients")
 
     # Default
-    self.backButton.visible = False
     self.advanceButtonAction.enabled = False
 
     # Make sure DICOM widget exists
@@ -79,6 +76,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     self.ui.loadPlanButton.clicked.connect(self.onLoadPlanButtonClicked)
 
+  @NNUtils.backButton(text="Back", visible=False)
+  @NNUtils.advanceButton(text="Go To Planning")
   def enter(self):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
