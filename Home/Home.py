@@ -239,9 +239,25 @@ class Step:
       self.teardowns + other.teardowns,
     )
 
+  @staticmethod
+  def common_prefix_len(left_seq, right_seq):
+    """Find the length of the common prefix of two iterables.
+
+    If there is no common prefix, or one of the two iterables is empty, then return 0.
+    """
+    count = 0
+    for left, right in zip(left_seq, right_seq):
+      if left != right:
+        break
+      count += 1
+    return count
+
   @classmethod
   def transition(cls, lhs, rhs):
-    """Find the actions needed to transition from self to other. Teardown self, then setup other."""
+    """Find the actions needed to transition from lhs to rhs.
+
+    Teardown lhs, then setup rhs.
+    """
     if not lhs or not rhs:
       if lhs:
         yield from reversed(lhs.teardowns)
@@ -249,15 +265,12 @@ class Step:
         yield from rhs.setups
       return
 
-    # find the first index i where self.names and other.names differ
-    for i, (l, r) in enumerate(zip(lhs.names, rhs.names)):  # noqa: B007
-      if l != r:
-        break
-    else:
-      return # the lhs and rhs are the same; no action needed.
+    common_count = cls.common_prefix_len(lhs.names, rhs.names)
+    unique_teardowns = lhs.teardowns[common_count:]
+    unique_setups = rhs.setups[common_count:]
 
-    yield from reversed(lhs.teardowns[i:])  # teardown in reverse order; context is a stack.
-    yield from rhs.setups[i:]
+    yield from reversed(unique_teardowns)  # teardown in reverse order; context is a stack.
+    yield from unique_setups
 
 
 class Workflow:
