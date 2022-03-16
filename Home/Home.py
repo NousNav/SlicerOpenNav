@@ -414,29 +414,66 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     # Initialize workflow selecting first step
     self.goto(self.steps[0])
 
+  def _lookupPrimaryStepTabIndex(self, primaryStepName):
+    try:
+      primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
+    except (IndexError, RuntimeError):
+      return None
+
+    for tabIndex in range(primaryTabBar.count):
+      stepName = primaryTabBar.tabData(tabIndex)
+      if stepName == primaryStepName:
+        return tabIndex
+
+    return None
+
   def _lookupSecondaryStepTabIndex(self, primaryStepName, secondaryStepName):
-    for tabIndex, stepName in enumerate(self.secondarySteps[primaryStepName].keys()):
+    try:
+      secondaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), f'{primaryStepName.capitalize()}TabBar')
+    except (IndexError, RuntimeError):
+      return None
+
+    for tabIndex in range(secondaryTabBar.count):
+      stepName = secondaryTabBar.tabData(tabIndex)
       if stepName == secondaryStepName:
         return tabIndex
+
     return None
 
   def goto(self, dst: Step):
     slicer.util.selectModule('Home')
 
-    print(dst)
-
     if dst is None:
       return
 
     src = self.current
+    if src and (src.names == dst.names):
+      return
+
+    print(src, '->', dst)
+
+    # set new current name now to prevent recursion when setting tab index.
+    self._currentName = dst.names
 
     # Update workflowToolBar
     primaryStepName = dst.names[1]
+    try:
+      primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
+      index = self._lookupPrimaryStepTabIndex(primaryStepName)
+      if index is not None:
+        print('primary tab index', index)
+        primaryTabBar.currentIndex = index
+    except (IndexError, RuntimeError):
+      pass
+
     if len(dst.names) == 3:
       secondaryStepName = dst.names[2]
       try:
         secondaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), f"{primaryStepName.capitalize()}TabBar")
-        secondaryTabBar.currentIndex = self._lookupSecondaryStepTabIndex(primaryStepName, secondaryStepName)
+        index = self._lookupSecondaryStepTabIndex(primaryStepName, secondaryStepName)
+        if index is not None:
+          print('secondary tab index', index)
+          secondaryTabBar.currentIndex = index
       except (IndexError, RuntimeError):
         pass
 
@@ -446,8 +483,6 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     for action in actions:
       if action:
         action()
-
-    self._currentName = dst.names
 
   def gotoNext(self):
     self.goto(self.nextStep)
