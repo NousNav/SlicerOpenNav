@@ -249,6 +249,13 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QPushButton" name="savePlanButton">
+         <property name="text">
+          <string>Save Plan</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>

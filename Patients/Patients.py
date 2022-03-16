@@ -1,16 +1,22 @@
-import ctk
 import logging
 import os.path
+import pathlib
+
+import ctk
 import qt
+import vtk
 import slicer
 import slicer.modules
 import slicer.util
-import vtk
 
-from slicer.ScriptedLoadableModule import *
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleWidget,
+  ScriptedLoadableModuleLogic,
+)
 
-import NNUtils
 import Home
+import NNUtils
 
 
 class Patients(ScriptedLoadableModule):
@@ -70,6 +76,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
+
+    self.ui.loadPlanButton.clicked.connect(self.onLoadPlanButtonClicked)
 
   def enter(self):
     # Show current
@@ -151,6 +159,22 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       # to allow the volume loading to fully complete.
       # TODO: no event for volume loading done?
       qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
+
+  def onLoadPlanButtonClicked(self):
+    homedir = pathlib.Path.home()
+
+    dialog = qt.QFileDialog()
+    plan_path = dialog.getOpenFileName(slicer.util.mainWindow(), 'Open NousNav Plan', str(homedir), '*.mrb')
+    if not plan_path:
+      return
+
+    plan_path = pathlib.Path(plan_path)
+    if plan_path.suffix != '.mrb':
+      plan_path = plan_path.with_suffix('.mrb')
+
+    print(f'loading plan: {plan_path}')
+
+    slicer.util.loadScene(str(plan_path))
 
 
 class PatientsLogic(ScriptedLoadableModuleLogic):

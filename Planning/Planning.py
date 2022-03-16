@@ -1,12 +1,21 @@
+import pathlib
+import logging
+
 import qt
 import slicer
-from slicer.ScriptedLoadableModule import *
 import slicer.modules
-import logging
-import NNUtils
-import Home
 
-from LandmarkManager import PlanningLandmarkTableManager, LandmarkManagerLogic
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleWidget,
+  ScriptedLoadableModuleLogic,
+)
+
+import Home
+import NNUtils
+
+from LandmarkManager import PlanningLandmarkTableManager
+from LandmarkManager import LandmarkManagerLogic
 
 
 class Planning(ScriptedLoadableModule):
@@ -113,6 +122,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
         'Done': qt.QIcon(self.resourcePath('Icons/Done.svg')),
       }
     )
+
+    self.ui.savePlanButton.clicked.connect(self.onSavePlanButtonClicked)
 
   def exit(self):
     # Hide current
@@ -287,6 +298,22 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def setTrajectory(self):
     self.logic.placeTrajectory()
+
+  def onSavePlanButtonClicked(self):
+    homedir = pathlib.Path.home()
+
+    dialog = qt.QFileDialog()
+    plan_path = dialog.getSaveFileName(slicer.util.mainWindow(), 'Save NousNav Plan', homedir, '*.mrb')
+    if not plan_path:
+      return
+
+    plan_path = pathlib.Path(plan_path)
+    if plan_path.suffix != '.mrb':
+      plan_path = plan_path.with_suffix('.mrb')
+
+    print(f'saving plan: {plan_path}')
+
+    slicer.util.saveScene(str(plan_path))
 
 
 def default_master_volume():
