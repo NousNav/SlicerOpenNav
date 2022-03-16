@@ -88,9 +88,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Bottom toolbar
     (
       self.bottomToolBar,
-      self.backButtonReg,
+      self.backButton,
       self.backButtonAction,
-      self.advanceButtonReg,
+      self.advanceButton,
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Registration")
 
@@ -123,7 +123,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.cameraTimer = None
     self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
 
-    self.advanceButtonReg.enabled = False
+    self.advanceButton.enabled = False
 
     self.beep = None
     try:
@@ -169,7 +169,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
       self.hardwareSelector.open()
     else:
-        self.advanceButtonReg.enabled = True
+        self.advanceButton.enabled = True
 
   def launchOptiTrack(self):
 
@@ -192,7 +192,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if not self.optitrack.isRunning:
       qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
     else:
-      self.advanceButtonReg.enabled = True
+      self.advanceButton.enabled = True
       print('enable advance')
 
   def stepSetup(self):
@@ -213,8 +213,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
 
     # set the button labels
-    self.backButtonReg.text = ''
-    self.advanceButtonReg.text = 'Setup NousNav'
+    self.backButton.text = ''
+    self.advanceButton.text = 'Setup NousNav'
     self.backButtonAction.visible = False
     self.advanceButtonAction.visible = True
 
@@ -226,8 +226,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
     # set the button labels
-    self.backButtonReg.text = 'Back'
-    self.advanceButtonReg.text = 'Press when done'
+    self.backButton.text = 'Back'
+    self.advanceButton.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -239,8 +239,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
 
     # set the button labels
-    self.backButtonReg.text = 'Back'
-    self.advanceButtonReg.text = 'Press when done'
+    self.backButton.text = 'Back'
+    self.advanceButton.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -262,8 +262,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
 
     # set the button labels
-    self.backButtonReg.text = 'Back'
-    self.advanceButtonReg.text = 'Press when done'
+    self.backButton.text = 'Back'
+    self.advanceButton.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -284,8 +284,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
 
     # set the button labels
-    self.backButtonReg.text = 'Back'
-    self.advanceButtonReg.text = 'Press when done'
+    self.backButton.text = 'Back'
+    self.advanceButton.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -357,8 +357,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.LandmarkSideWidget.visible = False
 
     # set the button labels
-    self.backButtonReg.text = 'Back'
-    self.advanceButtonReg.text = 'Press when done'
+    self.backButton.text = 'Back'
+    self.advanceButton.text = 'Press when done'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
@@ -413,13 +413,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = True
 
-    self.landmarks.advanceButtonReg = self.advanceButtonReg
+    self.landmarks.advanceButtonReg = self.advanceButton
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
 
     # set the button labels
-    self.backButtonReg.text = 'Recalibrate'
+    self.backButton.text = 'Recalibrate'
     self.landmarks.updateAdvanceButton()
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
@@ -450,17 +450,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.fidicialOnlyRegistration()
 
     # set the button labels
-    self.backButtonReg.text = 'Start over'
-    self.advanceButtonReg.text = 'Accept'
+    self.backButton.text = 'Start over'
+    self.advanceButton.text = 'Accept'
     self.backButtonAction.visible = True
     self.advanceButtonAction.visible = True
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
-    self.disconnectAll(self.backButtonReg)
-    self.backButtonReg.clicked.connect(lambda: self.restartRegistration())
+    self.disconnectAll(self.backButton)
+    self.backButton.clicked.connect(lambda: self.restartRegistration())
 
-    self.advanceButtonReg.enabled = True
+    self.advanceButton.enabled = True
 
   def restartRegistration(self):
     print('Restarting')
@@ -573,7 +573,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
     self.landmarks.addLandmark('Right outer canthus', [46.786, 252.705, -149.633])
     # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])
-    self.landmarks.advanceButtonReg = self.advanceButtonReg
+    self.landmarks.advanceButtonReg = self.advanceButton
 
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()
