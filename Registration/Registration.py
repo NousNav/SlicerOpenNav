@@ -176,7 +176,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
       self.hardwareSelector.open()
     else:
-        self.advanceButton.enabled = True
+      self.advanceButton.enabled = True
 
   def launchOptiTrack(self):
 
@@ -441,7 +441,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
 
-    self.fidicialOnlyRegistration()
+    self.fiducialOnlyRegistration()
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
@@ -473,7 +473,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     print('Restarting registration')
     self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
-  def fidicialOnlyRegistration(self):
+  def fiducialOnlyRegistration(self):
     try:
       pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
     except:
