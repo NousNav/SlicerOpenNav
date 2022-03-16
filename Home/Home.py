@@ -212,6 +212,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 class Step:
+  """Contains actions required to enter/exit a single step in the workflow.
+
+  See help(Workflow) for more information.
+  """
+
   def __init__(self, names, setups, teardowns):
     self.names = names
     self.setups = setups
@@ -256,6 +261,48 @@ class Step:
 
 
 class Workflow:
+  """
+  Each `Workflow` object has several optional attributes: `widget`, `setup`, `teardown`, `nested`. When the user leaves
+  a stage in the workflow, invoke `teardown()`. When the user enters a stage in the workflow, make `widget` current and
+  invoke `setup()`. These hooks allow the workflow definition to specify all "phases" of the workflow in one place.
+  Navigating _within_ the `nested` workflows should not invoke setup or teardown of the parent.
+
+  The recursive workflow structure is flattened into a linear sequence of Step objects. For example:
+
+    [
+      Step(('nn', 'patients'),
+           (None, patients.enter),   # setup steps
+           (None, patients.exit)),   # teardown steps
+      Step(('nn', 'planning',     'skin'),
+           (None, planning.enter, planning.planningStep1),
+           (None, planning.exit,  None)),
+      Step(('nn', 'planning',     'target'),
+           (None, planning.enter, planning.planningStep2),
+           (None, planning.exit,  None)),
+      Step(('nn', 'planning',     'trajectory'),
+           (None, planning.enter, planning.planningStep3),
+           (None, planning.exit,  None)),
+      Step(('nn', 'planning',     'landmarks'),
+           (None, planning.enter, planning.planningStep4),
+           (None, planning.exit,  None)),
+    ]
+
+  The linear sequence provides a clear definition of "previous" and "next" steps to be used in the bottom navigation
+  bar.
+
+  When navigating from `('nn', 'planning', 'target')` to `('nn', 'planning', 'landmarks')`, the common prefix
+  `('nn', 'planning')` is removed and only the target teardown is invoked, and the landmarks setup are invoked
+  (if present). enter/exit of the planning widget is unnecessary.
+
+  When navigating from `('nn', 'planning', 'target')` to `('nn', 'patients')`, the common prefix `('nn',)` is removed.
+  Then _both_ the target and planning teardowns are invoked, and the patients setup is invoked.
+
+  `Step.transition` yields the sequence of setup/teardown functions that should be invoked, and `HomeLogic.goto`
+   actually performs the navigation between steps.
+
+  See https://github.com/NousNav/NousNav/pull/180 for more information.
+  """
+
   def __init__(
     self,
     name,
