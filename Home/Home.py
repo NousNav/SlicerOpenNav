@@ -240,34 +240,35 @@ class Step:
     )
 
   @staticmethod
-  def common_prefix_len(left_seq, right_seq):
+  def common_prefix_len(src_seq, dst_seq):
     """Find the length of the common prefix of two iterables.
 
     If there is no common prefix, or one of the two iterables is empty, then return 0.
     """
     count = 0
-    for left, right in zip(left_seq, right_seq):
-      if left != right:
+    for src_elem, dst_elem in zip(src_seq, dst_seq):
+      if src_elem != dst_elem:
         break
       count += 1
     return count
 
   @classmethod
-  def transition(cls, lhs, rhs):
-    """Find the actions needed to transition from lhs to rhs.
+  def transition(cls, src, dst):
+    """Find the actions needed to transition from src (source) to dst (destination).
 
-    Teardown lhs, then setup rhs.
+    Teardown src, then setup dst.
     """
-    if not lhs or not rhs:
-      if lhs:
-        yield from reversed(lhs.teardowns)
-      if rhs:
-        yield from rhs.setups
+
+    if not src or not dst:
+      if src:
+        yield from reversed(src.teardowns)
+      if dst:
+        yield from dst.setups
       return
 
-    common_count = cls.common_prefix_len(lhs.names, rhs.names)
-    unique_teardowns = lhs.teardowns[common_count:]
-    unique_setups = rhs.setups[common_count:]
+    common_count = cls.common_prefix_len(src.names, dst.names)
+    unique_teardowns = src.teardowns[common_count:]
+    unique_setups = dst.setups[common_count:]
 
     yield from reversed(unique_teardowns)  # teardown in reverse order; context is a stack.
     yield from unique_setups
@@ -510,7 +511,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     if src and (src.names == dst.names):
       return
 
-    print(src, '->', dst)
+    print(src, '->', dst)  # transitioning from src (source) to dst (destination)
 
     # set new current name now to prevent recursion when setting tab index.
     self._currentName = dst.names
