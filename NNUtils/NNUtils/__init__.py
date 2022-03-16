@@ -200,6 +200,7 @@ def setupSliceViewer(sliceWidget):
 
 
 def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisible=False):
+  goToFourUpLayout()
   layoutManager = slicer.app.layoutManager()
   layoutManager.setLayout(getNavigationLayoutID())
   setMainPanelVisible(mainPanelVisible)
@@ -225,6 +226,27 @@ def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=Fa
   setSidePanelVisible(sidePanelVisible)
   setSliceViewBackgroundColor("#000000")
   slicer.util.setSliceViewerLayers(foreground=volumeNode, background=None, label=None, fit=True)
+
+
+def goToRegistrationCameraViewLayout():
+  deactivateReslicing()
+  layoutManager = slicer.app.layoutManager()
+  layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
+  setSliceWidgetSlidersVisible(False)
+  setMainPanelVisible(True)
+  setSidePanelVisible(True)
+
+
+def goToPictureLayout(image=None, sidePanelVisible=False):
+  deactivateReslicing()
+  if image is not None:
+    slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
+  layoutManager = slicer.app.layoutManager()
+  layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+  setSliceWidgetSlidersVisible(False)
+  setMainPanelVisible(True)
+  setSidePanelVisible(sidePanelVisible)
+  setSliceViewBackgroundColor('#434343')
 
 
 def activateReslicing(driverNode):

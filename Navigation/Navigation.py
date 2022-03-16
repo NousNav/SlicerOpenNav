@@ -90,7 +90,6 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
-    NNUtils.deactivateReslicing()
 
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()

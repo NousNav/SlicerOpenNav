@@ -141,7 +141,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
-    NNUtils.goToFourUpLayout()
 
   def enter(self):
     # Show current
@@ -205,7 +204,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepPatientPrep.png'])
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
 
     # set the button labels
     self.backButtonReg.text = ''
@@ -218,7 +217,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepTrackingPrep.png'])
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
     # set the button labels
     self.backButtonReg.text = 'Back'
@@ -231,7 +230,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepPointerPrep.jpg'])
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
 
     # set the button labels
     self.backButtonReg.text = 'Back'
@@ -244,7 +243,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToRegistrationCameraViewLayout()
+    NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -267,7 +266,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepPivotCalibration.png'], True)
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPivotCalibration.png"], sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -345,7 +344,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepSpinCalibration.png'], True)
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepSpinCalibration.png"], sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -402,7 +401,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   
   def registrationStepLandmarkRegistration(self):
     # Set the layout and display an image
-    self.goToRegistrationCameraViewLayout()
+    NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = True
 
@@ -576,23 +575,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       imageNode = slicer.util.loadVolume(self.resourcePath('Images/' + image), properties)
       imageNode.hidden = True
       self.pictures[image] = imageNode
-
-  def goToRegistrationCameraViewLayout(self):
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-    NNUtils.setSliceWidgetSlidersVisible(False)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(True)
-
-  def goToPictureLayout(self, image = None, sidePanelVisible = False):
-    if image is not None:
-      slicer.util.setSliceViewerLayers(foreground=image, background=None, label=None, fit=True)
-    layoutManager = slicer.app.layoutManager()
-    layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-    NNUtils.setSliceWidgetSlidersVisible(False)
-    NNUtils.setMainPanelVisible(True)
-    NNUtils.setSidePanelVisible(sidePanelVisible)
-    NNUtils.setSliceViewBackgroundColor('#434343')
 
 
 class RegistrationLogic(ScriptedLoadableModuleLogic):
