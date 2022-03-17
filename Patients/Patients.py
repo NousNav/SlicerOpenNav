@@ -85,6 +85,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     if self.VolumeNodeTag is None:
       self.VolumeNodeTag = slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onNodeAdded)
 
+    # Passing the special value "keep-current" ensure the layer is not modified
+    # See https://slicer.readthedocs.io/en/latest/developer_guide/slicer.html#slicer.util.setSliceViewerLayers
     NNUtils.goToFourUpLayout(volumeNode='keep-current')
 
   def exit(self):
