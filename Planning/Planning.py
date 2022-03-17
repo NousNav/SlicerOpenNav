@@ -302,10 +302,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.placeTrajectory()
 
   def onSavePlanButtonClicked(self):
-    homedir = pathlib.Path.home()
+    default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)
 
     dialog = qt.QFileDialog()
-    plan_path = dialog.getSaveFileName(slicer.util.mainWindow(), 'Save NousNav Plan', homedir, '*.mrb')
+    plan_path = dialog.getSaveFileName(
+      slicer.util.mainWindow(),
+      'Save NousNav Plan',
+      default_dir,
+      '*.mrb',
+    )
     if not plan_path:
       return
 

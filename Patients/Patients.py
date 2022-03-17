@@ -161,10 +161,15 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
 
   def onLoadPlanButtonClicked(self):
-    homedir = pathlib.Path.home()
+    default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)
 
     dialog = qt.QFileDialog()
-    plan_path = dialog.getOpenFileName(slicer.util.mainWindow(), 'Open NousNav Plan', str(homedir), '*.mrb')
+    plan_path = dialog.getOpenFileName(
+      slicer.util.mainWindow(),
+      'Open NousNav Plan',
+      default_dir,
+      '*.mrb',
+    )
     if not plan_path:
       return
 
