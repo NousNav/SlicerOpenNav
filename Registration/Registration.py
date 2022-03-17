@@ -59,7 +59,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration, widget=self.ui.RegistrationStepPivotCalibration),
         Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration, widget=self.ui.RegistrationStepSpinCalibration),
         Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration, widget=self.ui.RegistrationStepLandmarkRegistration),
-        Home.Workflow("verify-registration", setup=self.registrationStepVerifyRegistration, widget=self.ui.RegistrationStepVerifyRegistration),
+        Home.Workflow(
+          "verify-registration",
+          setup=self.registrationStepVerifyRegistration,
+          widget=self.ui.RegistrationStepVerifyRegistration,
+          teardown=self.registrationStepAcceptRegistration,
+          ),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -428,10 +433,19 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
-    self.disconnectAll(self.backButton)
-    self.backButton.clicked.connect(lambda: self.restartRegistration())
 
+    self.setRestartRegistrationButtonEnabled(True)
+
+  def setRestartRegistrationButtonEnabled(self, enabled):
+    self.disconnectAll(self.backButton)
     self.advanceButton.enabled = True
+    if enabled:
+      self.backButton.clicked.connect(self.restartRegistration)
+    else:
+      self.backButton.clicked.connect(self.workflow.gotoPrev)
+
+  def registrationStepAcceptRegistration(self):
+    self.setRestartRegistrationButtonEnabled(False)
 
   def restartRegistration(self):
     print('Restarting')
