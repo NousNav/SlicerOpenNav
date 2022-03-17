@@ -270,6 +270,7 @@ class Landmarks:
     self.model = slicer.util.loadModel(self.resourcePath('Data/manny.vtk'))
     self.model.GetDisplayNode().SetVisibility(False)
     self.model.GetDisplayNode().SetOpacity(0.5)
+    self.model.SaveWithSceneOff()
 
     self.landmarksDisplay = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
     self.landmarksDisplay.GetMarkupsDisplayNode().SetVisibility(False)
@@ -278,6 +279,7 @@ class Landmarks:
     self.landmarksDisplay.GetMarkupsDisplayNode().SetTextScale(0)
     self.landmarksDisplay.GetMarkupsDisplayNode().SetGlyphScale(7)
     self.landmarksDisplay.SetLocked(True)
+    self.landmarksDisplay.SaveWithSceneOff()
     self.showLandmarks = False
 
   def updateAdvanceButton(self):

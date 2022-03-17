@@ -337,6 +337,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       tipToPointer = slicer.util.getNode('TipToPointer')
     except:
       tipToPointer = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLinearTransformNode', 'TipToPointer')
+      tipToPointer.SaveWithSceneOff()
     properties = {}
     properties['show'] = False
     createModelsLogic = slicer.modules.createmodels.logic()
@@ -344,6 +345,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.GetDisplayNode().SetColor(255,255,0)
     self.needleModel.GetDisplayNode().SetVisibility(False)
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
+    self.needleModel.SaveWithSceneOff()
 
   def registrationStepSpinCalibration(self):
 
@@ -544,9 +546,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
     node.AddFiducial(0,0,0, 'Pointer')
+    node.SaveWithSceneOff()
     node.GetDisplayNode().SetGlyphScale(13)
     node2 = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Reference Frame')
     node2.AddFiducial(0,0,0, 'Reference Frame')
+    node2.SaveWithSceneOff()
     node2.GetDisplayNode().SetGlyphScale(13)
 
     self.tools.addTool('PointerToTracker', 'Pointer', node)
@@ -589,6 +593,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     properties['singleFile'] = True
     for image in pictureNames:
       imageNode = slicer.util.loadVolume(self.resourcePath('Images/' + image), properties)
+      imageNode.SaveWithSceneOff()
       imageNode.hidden = True
       self.pictures[image] = imageNode
 
