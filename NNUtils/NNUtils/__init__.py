@@ -229,42 +229,38 @@ def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=Fa
 
 def activateReslicing(driverNode):
   driver = slicer.modules.volumereslicedriver.logic()
-  redView = slicer.util.getNode("vtkMRMLSliceNodeRed")
-  yellowView = slicer.util.getNode("vtkMRMLSliceNodeYellow")
-  greenView = slicer.util.getNode("vtkMRMLSliceNodeGreen")
-  blueView = slicer.util.getNode("vtkMRMLSliceNodeBlue")
-  orangeView = slicer.util.getNode("vtkMRMLSliceNodeOrange")
-  driver.SetModeForSlice(driver.MODE_AXIAL, redView)
-  driver.SetDriverForSlice(driverNode.GetID(), redView)
-  driver.SetModeForSlice(driver.MODE_SAGITTAL, yellowView)
-  driver.SetDriverForSlice(driverNode.GetID(), yellowView)
-  driver.SetModeForSlice(driver.MODE_CORONAL, greenView)
-  driver.SetDriverForSlice(driverNode.GetID(), greenView)
-  driver.SetModeForSlice(driver.MODE_INPLANE, blueView)
-  driver.SetDriverForSlice(driverNode.GetID(), blueView)
-  driver.SetRotationForSlice(-45.0, blueView)
-  driver.SetModeForSlice(driver.MODE_INPLANE90, orangeView)
-  driver.SetDriverForSlice(driverNode.GetID(), orangeView)
+
+  def _activate(sliceViewNodeID, mode):
+    sliceViewNode = slicer.util.getNode(sliceViewNodeID)
+    driver.SetModeForSlice(mode, sliceViewNode)
+    driver.SetDriverForSlice(driverNode.GetID(), sliceViewNode)
+
+  _activate("vtkMRMLSliceNodeRed", driver.MODE_AXIAL)
+  _activate("vtkMRMLSliceNodeYellow", driver.MODE_SAGITTAL)
+  _activate("vtkMRMLSliceNodeGreen", driver.MODE_CORONAL)
+  _activate("vtkMRMLSliceNodeBlue", driver.MODE_INPLANE)
+  _activate("vtkMRMLSliceNodeOrange", driver.MODE_INPLANE90)
+
+  blueSliceViewNode = slicer.util.getNode("vtkMRMLSliceNodeBlue")
+  driver.SetRotationForSlice(-45.0, blueSliceViewNode)
 
 
 def deactivateReslicing():
   driver = slicer.modules.volumereslicedriver.logic()
-  redView = slicer.util.getNode("vtkMRMLSliceNodeRed")
-  yellowNode = slicer.util.getNode("vtkMRMLSliceNodeYellow")
-  greenView = slicer.util.getNode("vtkMRMLSliceNodeGreen")
-  blueView = slicer.util.getNode("vtkMRMLSliceNodeBlue")
-  orangeView = slicer.util.getNode("vtkMRMLSliceNodeOrange")
-  driver.SetModeForSlice(driver.MODE_NONE, redView)
-  driver.SetDriverForSlice("", redView)
-  driver.SetModeForSlice(driver.MODE_NONE, yellowNode)
-  driver.SetDriverForSlice("", yellowNode)
-  driver.SetModeForSlice(driver.MODE_NONE, greenView)
-  driver.SetDriverForSlice("", greenView)
-  driver.SetModeForSlice(driver.MODE_NONE, blueView)
-  driver.SetDriverForSlice("", blueView)
-  driver.SetRotationForSlice(0, blueView)
-  driver.SetModeForSlice(driver.MODE_NONE, orangeView)
-  driver.SetDriverForSlice("", orangeView)
+
+  def _deactivate(sliceViewNodeID):
+    sliceViewNode = slicer.util.getNode(sliceViewNodeID)
+    driver.SetModeForSlice(driver.MODE_NONE, sliceViewNode)
+    driver.SetDriverForSlice("", sliceViewNode)
+
+  _deactivate("vtkMRMLSliceNodeRed")
+  _deactivate("vtkMRMLSliceNodeYellow")
+  _deactivate("vtkMRMLSliceNodeGreen")
+  _deactivate("vtkMRMLSliceNodeBlue")
+  _deactivate("vtkMRMLSliceNodeOrange")
+
+  blueSliceViewNode = slicer.util.getNode("vtkMRMLSliceNodeBlue")
+  driver.SetRotationForSlice(0, blueSliceViewNode)
 
 
 def getNavigationLayoutID():
