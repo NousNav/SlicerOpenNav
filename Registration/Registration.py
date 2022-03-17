@@ -244,7 +244,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    self.goToPictureLayout(self.pictures['RegistrationStepAlignCamera.png'], True)
+    self.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
