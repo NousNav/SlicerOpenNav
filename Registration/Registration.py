@@ -1,12 +1,18 @@
 import qt
 import slicer
 import vtk
-from slicer.ScriptedLoadableModule import *
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
 
 import NNUtils
 import Home
+
 from LandmarkManager import Landmarks
-import RegistrationUtils.Tools as Tools
+from RegistrationUtils import Tools
 
 
 class Registration(ScriptedLoadableModule):

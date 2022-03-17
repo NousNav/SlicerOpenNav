@@ -1,8 +1,12 @@
 import logging
-import vtk, qt, ctk, slicer
-import numpy as np
 
-import TrackingDevices.Interface as TrackingInterface
+import ctk
+import numpy as np
+import qt
+import slicer
+import vtk
+
+from TrackingDevices import Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice
 
 

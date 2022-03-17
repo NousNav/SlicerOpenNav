@@ -1,9 +1,14 @@
 import ctk
 import qt
 import slicer
-from slicer.ScriptedLoadableModule import *
 
-import TrackingDevices.Interface as TrackingInterface
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
+
+from TrackingDevices import Interface as TrackingInterface
 
 
 class Tracking(ScriptedLoadableModule):

@@ -4,10 +4,10 @@ import pathlib
 
 import ctk
 import qt
-import vtk
 import slicer
 import slicer.modules
 import slicer.util
+import vtk
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,

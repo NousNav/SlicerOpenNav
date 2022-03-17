@@ -1,8 +1,14 @@
 import os
+
 import ctk
 import qt
 import slicer
-from slicer.ScriptedLoadableModule import *
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
 
 
 #

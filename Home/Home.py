@@ -1,15 +1,15 @@
-from collections import OrderedDict
 import typing
+
+from collections import OrderedDict
 
 import qt
 import slicer
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,
-  ScriptedLoadableModuleWidget,
   ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
 )
-
 from slicer.util import VTKObservationMixin
 
 import NNUtils

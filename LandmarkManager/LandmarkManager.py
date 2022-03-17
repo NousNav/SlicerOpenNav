@@ -1,10 +1,16 @@
 import os.path
-from enum import Enum
 
+from enum import Enum
 from typing import List, Dict
+
 import qt
 import slicer
-from slicer.ScriptedLoadableModule import *
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
 from slicer.util import VTKObservationMixin
 
 import NNUtils
@@ -38,9 +44,6 @@ class LandmarkManagerWidget(ScriptedLoadableModuleWidget):
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/LandmarkManager.ui'))
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
-
-    # Create logic class
-    self.logic = PlanningLandmarkLogic(self.moduleName)
 
   def enter(self):
     pass

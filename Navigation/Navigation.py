@@ -1,5 +1,10 @@
 import slicer
-from slicer.ScriptedLoadableModule import *
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
 
 import NNUtils
 import Home

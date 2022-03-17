@@ -1,12 +1,11 @@
 import qt
 import slicer
 
-from .parameter_node import parameterProperty, nodeReferenceProperty  # noqa: F401
+from .parameter_node import (  # noqa: F401
+  parameterProperty,
+  nodeReferenceProperty,
+)
 
-
-#
-# MRML
-#
 
 def getModality(node):
   shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)

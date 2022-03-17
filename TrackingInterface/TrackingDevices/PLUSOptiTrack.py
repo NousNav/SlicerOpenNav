@@ -1,11 +1,12 @@
 import logging
+import os
+
 import ctk
 import qt
 import slicer
 import vtk
-import os
 
-import TrackingDevices.Interface as TrackingInterface
+from TrackingDevices import Interface as TrackingInterface
 from TrackingDevices.Interface import TrackingDevice
 
 

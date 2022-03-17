@@ -1,5 +1,7 @@
 from abc import ABC
-import vtk, slicer
+
+import slicer
+import vtk
 
 
 class TrackingDevice(ABC):

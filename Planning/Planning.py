@@ -1,5 +1,5 @@
-import pathlib
 import logging
+import pathlib
 
 import qt
 import slicer
@@ -14,8 +14,10 @@ from slicer.ScriptedLoadableModule import (
 import Home
 import NNUtils
 
-from LandmarkManager import PlanningLandmarkTableManager
-from LandmarkManager import LandmarkManagerLogic
+from LandmarkManager import (
+  LandmarkManagerLogic,
+  PlanningLandmarkTableManager,
+)
 
 
 class Planning(ScriptedLoadableModule):

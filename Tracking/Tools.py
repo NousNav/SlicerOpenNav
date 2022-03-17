@@ -1,13 +1,19 @@
 import os
+
+import numpy as np
 import qt
 import slicer
 import vtk
-from slicer.ScriptedLoadableModule import *
-import numpy as np
+
+from slicer.ScriptedLoadableModule import (
+  ScriptedLoadableModule,
+  ScriptedLoadableModuleLogic,
+  ScriptedLoadableModuleWidget,
+)
 
 from TrackingDevices import NDIDevices
 from TrackingDevices import PLUSOptiTrack
-import TrackingDevices.Interface as TrackingInterface
+from TrackingDevices import Interface as TrackingInterface
 
 
 class Tools(ScriptedLoadableModule):
