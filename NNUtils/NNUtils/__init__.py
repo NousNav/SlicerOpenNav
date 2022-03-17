@@ -200,7 +200,12 @@ def setupSliceViewer(sliceWidget):
 
 
 def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisible=False):
+
+  # Switching to FourUpLayout is a workaround to ensure
+  # the layout the NavigationLayout is properly displayed
+  # with all view properly sized.
   goToFourUpLayout()
+
   layoutManager = slicer.app.layoutManager()
   layoutManager.setLayout(getNavigationLayoutID())
   setMainPanelVisible(mainPanelVisible)
