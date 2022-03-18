@@ -134,9 +134,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
 
-    self.logic.skin_segmentation.SetDisplayVisibility(False)
-    self.logic.seed_segmentation.SetDisplayVisibility(False)
-    self.logic.trajectory_markup.SetDisplayVisibility(False)
+    if self.logic.skin_segmentation:
+      self.logic.skin_segmentation.SetDisplayVisibility(False)
+
+    if self.logic.seed_segmentation:
+      self.logic.seed_segmentation.SetDisplayVisibility(False)
+
+    if self.logic.trajectory_markup:
+      self.logic.trajectory_markup.SetDisplayVisibility(False)
+
     try:
       self.landmarkLogic.landmarks.SetDisplayVisibility(False)
     except:
@@ -187,7 +193,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep1(self):
     self.tableManager.advanceButton = None
 
-    if self.logic.skin_segmentation is not None:
+    if self.logic.skin_segmentation:
       self.logic.skin_segmentation.SetDisplayVisibility(True)
 
     volume = self.logic.master_volume
@@ -199,7 +205,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep2(self):
     self.tableManager.advanceButton = None
 
-    if self.logic.seed_segmentation is not None:
+    if self.logic.seed_segmentation:
       self.logic.seed_segmentation.SetDisplayVisibility(True)
 
   @NNUtils.backButton(text="Segment the Target")
@@ -207,7 +213,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep3(self):
     self.tableManager.advanceButton = None
 
-    if self.logic.trajectory_markup is not None:
+    if self.logic.trajectory_markup:
       self.logic.trajectory_markup.SetDisplayVisibility(True)
 
   @NNUtils.backButton(text="Plan the Trajectory")

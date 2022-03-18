@@ -493,8 +493,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.mrmlScene.RemoveNode(fromMarkupsNode)
     slicer.mrmlScene.RemoveNode(toMarkupsNode)
 
-    slicer.modules.PlanningWidget.logic.skin_segmentation.SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    planningLogic = slicer.modules.PlanningWidget.logic
+
+    if planningLogic.skin_segmentation:
+      planningLogic.skin_segmentation.SetDisplayVisibility(True)
+      planningLogic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
   def onCollectButton(self):
     print('Attempt collection')

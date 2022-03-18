@@ -79,15 +79,22 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
 
+    planningLogic = slicer.modules.PlanningWidget.logic
+
     try:
-      masterNode = slicer.modules.PlanningWidget.logic.master_volume
+      masterNode = planningLogic.master_volume
     except:
       masterNode = None
       print('No master volume node loaded')
 
-    slicer.modules.PlanningWidget.logic.seed_segmentation.SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.skin_segmentation.SetDisplayVisibility(True)
-    slicer.modules.PlanningWidget.logic.trajectory_markup.SetDisplayVisibility(True)
+    if planningLogic.seed_segmentation:
+      planningLogic.seed_segmentation.SetDisplayVisibility(True)
+
+    if planningLogic.skin_segmentation:
+      planningLogic.skin_segmentation.SetDisplayVisibility(True)
+
+    if planningLogic.trajectory_markup:
+      planningLogic.trajectory_markup.SetDisplayVisibility(True)
 
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
 
