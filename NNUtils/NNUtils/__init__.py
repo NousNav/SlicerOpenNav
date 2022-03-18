@@ -104,8 +104,10 @@ def setSidePanelVisible(visible):
 
 
 def addCssClass(widget, class_):
+  # Retrieve list of classes
   classes = set(widget.property("cssClass") if widget.property("cssClass") else [])
-  classes.add(class_)
+  # Append given class or list of classes depending on the type of the `class_` parameter
+  classes |= set([class_] if isinstance(class_, str) else class_)
   widget.setProperty("cssClass", list(classes))
 
 
@@ -125,7 +127,7 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
 
   backButton = qt.QPushButton(f"Back ({name})" if backButtonText is None else backButtonText)
   backButton.name = f"{name}BackButton"
-  addCssClass(backButton, "bottom-toolbar__back-button")
+  addCssClass(backButton, ["bottom-toolbar__button", "bottom-toolbar__back-button"])
   backButtonAction = toolBar.addWidget(backButton)
 
   spacer = qt.QWidget()
@@ -138,7 +140,7 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
 
   advanceButton = qt.QPushButton(f"Advance ({name})" if advanceButtonText is None else advanceButtonText)
   advanceButton.name = f"{name}AdvanceButton"
-  addCssClass(advanceButton, "bottom-toolbar__advance-button")
+  addCssClass(advanceButton, ["bottom-toolbar__button", "bottom-toolbar__advance-button"])
   advanceButtonAction = toolBar.addWidget(advanceButton)
   toolBar.visible = False
 

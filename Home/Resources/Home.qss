@@ -119,7 +119,7 @@ QWidget[cssClass~="bottom-toolbar--color-dark"] > QWidget[cssClass~="bottom-tool
 }
 
 /* Bottom ToolBar Buttons*/
-QPushButton[cssClass~="bottom-toolbar__advance-button"] {
+QPushButton[cssClass~="bottom-toolbar__button"] {
     border-width: 2px;
     min-height: 40px;
     min-width: 180px;
@@ -143,17 +143,6 @@ QPushButton[cssClass~="bottom-toolbar__advance-button"]:disabled {
 
 QPushButton[cssClass~="bottom-toolbar__advance-button"]:pressed {
     background-color: #316d71;
-}
-
-QPushButton[cssClass~="bottom-toolbar__back-button"] {
-    border-width: 2px;
-    border-radius: 3px;
-    min-height: 40px;
-    min-width: 180px;
-    font: 12px bold;
-    margin-right: 20px;
-    margin-top: 10px;
-    margin-bottom: 10px;
 }
 
 QPushButton[cssClass~="bottom-toolbar__back-button"] {
