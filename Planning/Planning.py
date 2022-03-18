@@ -455,10 +455,18 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       display.SetActiveColor(1.0, 0.7, 0.7)  # hover: paler selected color
       self.trajectory_entry_markup = node
 
-    self.addObserver(self.trajectory_target_markup, slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.updateTrajectory)
-    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointModifiedEvent, self.updateTrajectory)
-    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointRemovedEvent, self.updateTrajectory)
-    self.addObserver(self.trajectory_entry_markup, slicer.vtkMRMLMarkupsNode.PointAddedEvent, self.updateTrajectory)
+    self.reconnect()
+
+  def reconnect(self):
+    self.removeObservers()
+
+    for event in [
+      slicer.vtkMRMLMarkupsNode.PointAddedEvent,
+      slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
+      slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
+    ]:
+      self.addObserver(self.trajectory_target_markup, event, self.updateTrajectory)
+      self.addObserver(self.trajectory_entry_markup, event, self.updateTrajectory)
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.

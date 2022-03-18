@@ -520,6 +520,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
       print('Scene Loaded!')
 
       self.resyncCurrent()
+      slicer.modules.PlanningWidget.logic.reconnect()
       slicer.modules.PlanningWidget.landmarkLogic.reconnect()
       slicer.modules.PlanningWidget.tableManager.reconnect()
       slicer.modules.PlanningWidget.tableManager.updateLandmarksDisplay()
