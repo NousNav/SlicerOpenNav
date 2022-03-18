@@ -190,7 +190,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Segment the Target'
 
-    self.logic.skin_segmentation.SetDisplayVisibility(True)
+    if self.logic.skin_segmentation is not None:
+      self.logic.skin_segmentation.SetDisplayVisibility(True)
 
     volume = self.logic.master_volume
     if volume is None:
@@ -205,7 +206,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Plan the Trajectory'
 
-    self.logic.seed_segmentation.SetDisplayVisibility(True)
+    if self.logic.seed_segmentation is not None:
+      self.logic.seed_segmentation.SetDisplayVisibility(True)
 
   def planningStep3(self):
     self.tableManager.advanceButton = None
@@ -216,7 +218,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.visible = True
     self.advanceButtonPlan.text = 'Define Landmarks'
 
-    self.logic.trajectory_markup.SetDisplayVisibility(True)
+    if self.logic.trajectory_markup is not None:
+      self.logic.trajectory_markup.SetDisplayVisibility(True)
 
   def planningStep4(self):
     self.tableManager.advanceButton = None
@@ -239,6 +242,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
+
+    self.logic.setupSkinSegmentationNode()
 
     segmentation = self.logic.skin_segmentation
     segment = self.logic.SKIN_SEGMENT
@@ -263,6 +268,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
 
+    self.logic.setupSeedSegmentationNode()
+
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
 
@@ -274,6 +281,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
+
+    self.logic.setupSeedSegmentationNode()
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
@@ -368,6 +377,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
+  def setupSkinSegmentationNode(self):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLSegmentationNode",
@@ -383,6 +393,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 0.5)
       self.skin_segmentation = node
 
+  def setupSeedSegmentationNode(self):
     if not self.seed_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLSegmentationNode",
@@ -402,6 +413,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
       ))
       self.seed_segmentation = node
 
+  def setupTrajectoryMarkupNode(self):
     if not self.trajectory_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
         'vtkMRMLMarkupsLineNode',
@@ -540,6 +552,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic):
 
   def placeTrajectory(self):
     """ Select the trajectory line markup and enter markup placement mode."""
+
+    self.setupTrajectoryMarkupNode()
 
     trajectory = self.trajectory_markup
 
