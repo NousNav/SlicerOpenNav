@@ -496,7 +496,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     slicer.app.ioManager().newFileLoaded.connect(self.onNewFileLoaded)
 
   def onNewFileLoaded(self, params):
-    if params['fileType'] == 'SceneFile':
+    if params.get('fileType', None) == 'SceneFile':
       print('Scene Loaded!')
 
       self.resyncCurrent()
