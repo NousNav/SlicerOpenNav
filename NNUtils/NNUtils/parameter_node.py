@@ -163,7 +163,7 @@ def nodeReferenceProperty(
       params.SetNodeReferenceID(reference_role, nodeID)
       return node
     elif class_ is not MISSING:
-      node = slicer.mrmlScene.AddNewNodeByClass(class_)
+      node = slicer.mrmlScene.AddNewNodeByClass(class_, reference_role)
       if node is None:
         nodeID = None
       else:
