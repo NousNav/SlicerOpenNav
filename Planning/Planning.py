@@ -79,6 +79,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Planning Tab Bar
     self.planningTabBar = qt.QTabBar()
     self.planningTabBar.setObjectName("PlanningTabBar")
+    NNUtils.addCssClass(self.planningTabBar, "secondary-tabbar")
     self.planningTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)

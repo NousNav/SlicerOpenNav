@@ -102,6 +102,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()
     self.registrationTabBar.setObjectName("RegistrationTabBar")
+    NNUtils.addCssClass(self.registrationTabBar, "secondary-tabbar")
     self.registrationTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)

@@ -62,9 +62,7 @@ QWidget#PrimaryCenteredWidget {
 }
 
 /* Secondary ToolBar */
-QTabBar#RegistrationTabBar::tab,
-QTabBar#NavigationTabBar::tab,
-QTabBar#PlanningTabBar::tab {
+QTabBar[cssClass~="secondary-tabbar"]::tab {
     height: 30px;
     margin: 0px;
     padding: 0px;
@@ -73,15 +71,11 @@ QTabBar#PlanningTabBar::tab {
     min-width: 200px;
 }
 
-QTabBar#RegistrationTabBar::tab:selected,
-QTabBar#NavigationTabBar::tab:selected,
-QTabBar#PlanningTabBar::tab:selected {
+QTabBar[cssClass~="secondary-tabbar"]::tab:selected {
     color: #5ac2c9;
 }
 
-QTabBar#RegistrationTabBar::tab:!selected,
-QTabBar#NavigationTabBar::tab:!selected,
-QTabBar#PlanningTabBar::tab:!selected {
+QTabBar[cssClass~="secondary-tabbar"]::tab:!selected {
     color: #B7B7B7;
 }
 
