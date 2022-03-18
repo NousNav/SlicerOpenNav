@@ -100,10 +100,8 @@ QWidget#SecondaryCenteredWidget {
 }
 
 /* Bottom ToolBar */
-QToolBar#PatientsBottomToolBar,
-QToolBar#NavigationBottomToolBar,
-QToolBar#RegistrationBottomToolBar,
-QToolBar#PlanningBottomToolBar {
+QWidget[cssClass~="bottom-toolbar"],
+QWidget[cssClass~="bottom-toolbar__spacer"]{
     background-color: #434343;
     margin: 0px;
     padding: 0px;
@@ -111,26 +109,13 @@ QToolBar#PlanningBottomToolBar {
     min-height: 20px;
 }
 
-QWidget#PatientsBottomToolBar, QWidget#PatientsBottomToolbarSpacer,
-QWidget#RegistrationBottomToolBar, QWidget#RegistrationBottomToolbarSpacer,
-QWidget#NavigationnBottomToolBar, QWidget#NavigationBottomToolbarSpacer,
-QWidget#PlanningBottomToolBar, QWidget#PlanningBottomToolbarSpacer {
-    background-color: #434343;
-    margin: 0px;
-    padding: 0px;
-    border: none;
-    min-height: 20px;
-}
 
 QToolBar#PatientsBottomToolBar, QWidget#PatientsBottomToolBar, QWidget#PatientsBottomToolbarSpacer {
     background-color: #2a2a2a;
 }
 
 /* Bottom ToolBar Buttons*/
-QPushButton#PatientsAdvanceButton,
-QPushButton#RegistrationAdvanceButton,
-QPushButton#NavigationAdvanceButton,
-QPushButton#PlanningAdvanceButton {
+QPushButton[cssClass~="bottom-toolbar__advance-button"] {
     background-color: #5ac2c9;
     border: 2px #5ac2c9;
     border-radius: 3px;
@@ -143,10 +128,7 @@ QPushButton#PlanningAdvanceButton {
     color: #fafafa;
 }
 
-QPushButton#PatientsAdvanceButton:disabled,
-QPushButton#RegistrationAdvanceButton:disabled,
-QPushButton#NavigationAdvanceButton:disabled,
-QPushButton#PlanningAdvanceButton:disabled {
+QPushButton[cssClass~="bottom-toolbar__advance-button"]:disabled {
     background-color: #666666;
     border: 2px #666666;
     border-radius: 3px;
@@ -159,17 +141,11 @@ QPushButton#PlanningAdvanceButton:disabled {
     color: #b7b7b7;
 }
 
-QPushButton#PatientsAdvanceButton:pressed,
-QPushButton#RegistrationAdvanceButton:pressed,
-QPushButton#NavigationAdvanceButton:pressed,
-QPushButton#PlanningAdvanceButton:pressed {
+QPushButton[cssClass~="bottom-toolbar__advance-button"]:pressed {
     background-color: #316d71;
 }
 
-QPushButton#PatientsBackButton,
-QPushButton#RegistrationBackButton,
-QPushButton#NavigationBackButton,
-QPushButton#PlanningBackButton {
+QPushButton[cssClass~="bottom-toolbar__back-button"] {
     background-color: #666666;
     border: 2px #666666;
     border-radius: 3px;
@@ -182,10 +158,7 @@ QPushButton#PlanningBackButton {
     color: #fafafa;
 }
 
-QPushButton#PatientsBackButton:pressed,
-QPushButton#RegistrationBackButton:pressed,
-QPushButton#NavigationBackButton:pressed,
-QPushButton#PlanningBackButton:pressed {
+QPushButton[cssClass~="bottom-toolbar__back-button"]:pressed {
     background-color: #343434;
 }
 

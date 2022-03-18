@@ -103,6 +103,12 @@ def setSidePanelVisible(visible):
   sidePanel.visible = visible
 
 
+def addCssClass(widget, class_):
+  classes = set(widget.property("cssClass") if widget.property("cssClass") else [])
+  classes.add(class_)
+  widget.setProperty("cssClass", list(classes))
+
+
 def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   """Add toolbar with a back and advance buttons.
 
@@ -113,11 +119,13 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   """
   toolBar = qt.QToolBar(f"{name}BottomToolBar")
   toolBar.setObjectName(f"{name}BottomToolBar")
+  addCssClass(toolBar, "bottom-toolbar")
   toolBar.movable = False
   slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, toolBar)
 
   backButton = qt.QPushButton(f"Back ({name})" if backButtonText is None else backButtonText)
   backButton.name = f"{name}BackButton"
+  addCssClass(backButton, "bottom-toolbar__back-button")
   backButtonAction = toolBar.addWidget(backButton)
 
   spacer = qt.QWidget()
@@ -125,10 +133,12 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
   spacer.setSizePolicy(policy)
   spacer.name = f"{name}BottomToolbarSpacer"
+  addCssClass(spacer, "bottom-toolbar__spacer")
   toolBar.addWidget(spacer)
 
   advanceButton = qt.QPushButton(f"Advance ({name})" if advanceButtonText is None else advanceButtonText)
   advanceButton.name = f"{name}AdvanceButton"
+  addCssClass(advanceButton, "bottom-toolbar__advance-button")
   advanceButtonAction = toolBar.addWidget(advanceButton)
   toolBar.visible = False
 
