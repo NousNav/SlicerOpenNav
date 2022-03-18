@@ -488,6 +488,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     except:
       self.transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLinearTransformNode")
       self.transformNode.SetName("HeadFrameToImage")
+      self.transformNode.SaveWithSceneOff()
 
     # Create your fiducial wizard node and set the input parameters
     fiducialRegNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')

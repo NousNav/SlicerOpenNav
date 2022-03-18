@@ -181,6 +181,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     try:
         node = slicer.util.getNode(toolName)
         node.CreateDefaultDisplayNodes()
+        node.SaveWithSceneOff()
         # node.GetDisplayNode().SetEditorVisibility(True)
         return True
     except:
