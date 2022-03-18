@@ -20,31 +20,31 @@ QPushButton:pressed {
 
 /* Primary ToolBar */
 QTabBar#PrimaryTabBar::tab {
+    border: none;
+    border-top: 4px solid;
+    border-bottom: 2px solid;
+    font-size: 14px;
     height: 30px;
     margin: 0px;
+    min-height: 20px;
+    min-width: 200px;
     padding: 0px;
-    font: 14px;
 }
 
 QTabBar#PrimaryTabBar::tab:selected {
     background-color: #2a2a2a;
-    border: none;
-    border-top: 4px solid #5ac2c9;
-    border-bottom: 2px solid #2a2a2a;
-    min-height: 20px;
-    min-width: 200px;
-    font: bold 14px;
+    border-top-color: #5ac2c9;
+    border-bottom-color: #2a2a2a;
     color: #5ac2c9;
+    font-weight: bold;
 }
 
 QTabBar#PrimaryTabBar::tab:!selected {
     background-color: #121212;
-    border: none;
-    border-top: 4px solid #121212;
-    border-bottom: 2px solid #434343;
-    min-height: 20px;
-    min-width: 200px;
+    border-top-color: #121212;
+    border-bottom-color: #434343;
     color: #FAFAFA;
+    font-weight: normal;
 }
 
 QToolBar#PrimaryToolBar {
