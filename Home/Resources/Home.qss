@@ -102,15 +102,19 @@ QWidget#SecondaryCenteredWidget {
 /* Bottom ToolBar */
 QWidget[cssClass~="bottom-toolbar"],
 QWidget[cssClass~="bottom-toolbar__spacer"]{
-    background-color: #434343;
     margin: 0px;
     padding: 0px;
     border: none;
     min-height: 20px;
 }
 
+QWidget[cssClass~="bottom-toolbar--color-light"],
+QWidget[cssClass~="bottom-toolbar--color-light"] > QWidget[cssClass~="bottom-toolbar__spacer"] {
+    background-color: #434343;
+}
 
-QToolBar#PatientsBottomToolBar, QWidget#PatientsBottomToolBar, QWidget#PatientsBottomToolbarSpacer {
+QWidget[cssClass~="bottom-toolbar--color-dark"],
+QWidget[cssClass~="bottom-toolbar--color-dark"] > QWidget[cssClass~="bottom-toolbar__spacer"] {
     background-color: #2a2a2a;
 }
 

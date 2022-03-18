@@ -142,6 +142,9 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   advanceButtonAction = toolBar.addWidget(advanceButton)
   toolBar.visible = False
 
+  # Default
+  addCssClass(toolBar, "bottom-toolbar--color-light")
+
   return (toolBar, backButton, backButtonAction, advanceButton, advanceButtonAction)
 
 

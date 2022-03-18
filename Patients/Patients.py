@@ -68,6 +68,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Patients")
 
+    NNUtils.addCssClass(self.bottomToolBar, "bottom-toolbar--color-dark")
+
     # Default
     self.advanceButtonAction.enabled = False
 
