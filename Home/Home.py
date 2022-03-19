@@ -48,6 +48,24 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    # |----------------------------------------------------------------------------------------------------|
+    # |                                                                                                    |
+    # | (NousNavLabel)                     (CenteredWidget)                                                |
+    # |                              PrimaryTab1 | ... | PrimaryTabN                            [Settings] |
+    # |                                                                                                    |
+    # |                                (SecondaryCenteredWidget)                                           |
+    # |                         SecondaryTab1  | SecondaryTab2 | ... | SecondaryTabN                       |
+    # |----------------------------------------------------------------------------|-----------------------|
+    # | (ModulePanel) |                                                            | (SidePanelDockWidget) |
+    # |               |                                                            |                       |
+    # |               |                (CentralWidgetLayoutFrame)                  |                       |
+    # .               .                                                            .                       .
+    # .               .                                                            .                       .
+    # |               |                                                            |                       |
+    # |----------------------------------------------------------------------------------------------------|
+    # | [Back Button]                  (<StepName>BottomToolBar)                          [Advance Button] |
+    # |----------------------------------------------------------------------------------------------------|
+
     # Load widget from .ui file (created by Qt Designer)
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Home.ui'))
     self.layout.addWidget(self.uiWidget)
