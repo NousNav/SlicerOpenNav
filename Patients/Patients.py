@@ -108,7 +108,18 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     pass
 
   def setupDICOMBrowser(self):
-    # Make sure that the DICOM widget exists
+    """Instantiate the DICOM widget and connect the Patients step DICOM buttons.
+
+    .. warning::
+
+        This function is expected to be called only once and it will log an error
+        message and return otherwise.
+    """
+
+    if hasattr(slicer.modules, "DICOMWidget"):
+      logging.error("error: DICOMWidget is already instantiated: PatientsWidget.setupDICOMBrowser() should be called only once.")
+      return
+
     slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
