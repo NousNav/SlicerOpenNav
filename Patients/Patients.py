@@ -101,6 +101,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
 
+    PatientsWidget.setDICOMBrowserVisible(False)
+
   def onClose(self, o, e):
     pass
 
@@ -121,25 +123,34 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       return
 
     slicer.modules.dicom.widgetRepresentation()
-    self.ui.DICOMToggleButton.toggled.connect(self.toggleDICOMBrowser)
-    self.ui.ImportDICOMButton.clicked.connect(self.onDICOMImport)
+    self.ui.DICOMToggleButton.clicked.connect(PatientsWidget.toggleDICOMBrowser)
+    self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
 
     # For some reason, the browser is instantiated as not hidden. Close
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
-    slicer.modules.DICOMWidget.browserWidget.closed.connect(self.resetDICOMToggle)
 
-  def onDICOMImport(self):
-    slicer.modules.DICOMWidget.browserWidget.dicomBrowser.openImportDialog()
-    self.ui.DICOMToggleButton.checked = qt.Qt.Checked
+  @staticmethod
+  def onDICOMImport():
+    # Show the DICOM browser
+    PatientsWidget.setDICOMBrowserVisible(True)
 
-  def resetDICOMToggle(self):
-    self.ui.DICOMToggleButton.checked = qt.Qt.Unchecked
-    slicer.util.selectModule('Home')
+    # ... then open the DICOM import dialog
+    dicomBrowser = slicer.modules.DICOMWidget.browserWidget.dicomBrowser
+    dicomBrowser.openImportDialog()
 
-  def toggleDICOMBrowser(self, show):
-    if show:
+    # If user click "cancel", hide the DICOM browser
+    if dicomBrowser.importDialog().result() == qt.QDialog.Rejected:
+      PatientsWidget.setDICOMBrowserVisible(False)
+
+  @staticmethod
+  def toggleDICOMBrowser():
+    PatientsWidget.setDICOMBrowserVisible(slicer.modules.DICOMWidget.browserWidget.isHidden())
+
+  @staticmethod
+  def setDICOMBrowserVisible(visible):
+    if visible:
       slicer.modules.DICOMWidget.onOpenBrowserWidget()
     else:
       slicer.modules.DICOMWidget.browserWidget.close()
