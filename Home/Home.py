@@ -59,9 +59,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Initialize navigation layout
     NNUtils.initializeNavigationLayout()
 
-    innerTabBar = qt.QTabBar()
-    self.secondaryTabWidgetUI.CenterArea.layout().addWidget(innerTabBar)
-
     patients = slicer.modules.patients.createNewWidgetRepresentation()
     planning = slicer.modules.planning.createNewWidgetRepresentation()
     registration = slicer.modules.registration.createNewWidgetRepresentation()
@@ -148,7 +145,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Tabs for secondary toolbars - navigation and registration
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
     self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
-    self.secondaryTabWidgetUI = slicer.util.childWidgetVariables(self.secondaryTabWidget)
     self.secondaryToolBar.addWidget(self.secondaryTabWidget)
 
     # Side Widget
