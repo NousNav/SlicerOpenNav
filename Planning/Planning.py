@@ -158,7 +158,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelLight.qss"))
+    for widget in [modulePanel ,sidePanel]:
+      NNUtils.setCssClass(widget, "widget--color-light")
+      NNUtils.polish(widget)
 
     # set slice viewer background
     volume = self.logic.master_volume

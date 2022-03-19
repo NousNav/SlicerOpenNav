@@ -88,7 +88,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    NNUtils.applyStyle([sidePanel, modulePanel], self.resourcePath("PanelDark.qss"))
+    for widget in [modulePanel, sidePanel]:
+      NNUtils.setCssClass(widget, "widget--color-dark")
+      NNUtils.polish(widget)
 
     # Begin listening for new volumes
     if self.VolumeNodeTag is None:

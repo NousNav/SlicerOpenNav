@@ -111,6 +111,20 @@ def addCssClass(widget, class_):
   widget.setProperty("cssClass", list(classes))
 
 
+def removeCssClass(widget, class_):
+  # Retrieve list of classes
+  classes = set(widget.property("cssClass") if widget.property("cssClass") else [])
+  # Remove class or list of classes
+  classes -= set([class_] if isinstance(class_, str) else class_)
+  widget.setProperty("cssClass", list(classes))
+
+
+def setCssClass(widget, class_):
+  # Remove duplicates if any
+  classes = set([class_] if isinstance(class_, str) else class_)
+  widget.setProperty("cssClass", list(classes))
+
+
 def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   """Add toolbar with a back and advance buttons.
 
@@ -204,6 +218,19 @@ def setSliceViewBackgroundColor(color):
 def centerCam():
   controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
   controller.resetFocalPoint()
+
+
+def polish(widget):
+  """Re-polish widget and all its children.
+
+  This function may be called after setting dynamic properties
+  to ensure the application stylesheet is applied.
+  """
+  for child in slicer.util.findChildren(widget):
+    try:
+      widget.style().polish(child)
+    except ValueError:
+      pass
 
 
 def applyStyle(widgets, styleSheetFilePath):
