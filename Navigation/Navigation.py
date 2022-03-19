@@ -49,16 +49,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
-    # Load widget from .ui file (created by Qt Designer)
-    self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Navigation.ui'))
-    self.layout.addWidget(self.uiWidget)
-    self.ui = slicer.util.childWidgetVariables(self.uiWidget)
-
     # Create logic class
     self.logic = NavigationLogic()
-
-    # Dark palette does not propogate on its own?
-    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Bottom toolbar
     (
