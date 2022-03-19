@@ -196,9 +196,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     if self.logic.skin_segmentation:
       self.logic.skin_segmentation.SetDisplayVisibility(True)
 
-    volume = self.logic.master_volume
-    if volume is None:
-      self.advanceButton.enabled = False
+    self.advanceButton.enabled = self.logic.master_volume is not None
 
   @NNUtils.backButton(text="Segment the Skin")
   @NNUtils.advanceButton(text="Plan the Trajectory")
