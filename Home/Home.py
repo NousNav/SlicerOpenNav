@@ -1,4 +1,5 @@
 import typing
+import weakref
 
 from collections import OrderedDict
 
@@ -117,7 +118,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     pass
 
   def cleanup(self):
-    pass
+    self.logic = None
 
   def modifyWindowUI(self):
 
@@ -354,19 +355,22 @@ class Workflow:
     self.setup = setup
     self.teardown = teardown
     self.nested = nested
-    self.engine = engine
+    self.engine = weakref.ref(engine) if engine else None
+
+  def __del__(self):
+    print(f"Deleting {self} ({self.name})" )
 
   def gotoNext(self):
     if self.engine:
-      self.engine.gotoNext()
+      self.engine().gotoNext()
 
   def gotoPrev(self):
     if self.engine:
-      self.engine.gotoPrev()
+      self.engine().gotoPrev()
 
   def gotoByName(self, name):
     if self.engine:
-      self.engine.gotoByName(name)
+      self.engine().gotoByName(name)
 
   def flatten(self, stack):
     if self.widget:
@@ -398,8 +402,7 @@ class Workflow:
           if self.teardown:
             self.teardown()
 
-        if self.engine:
-          nested.engine = self.engine
+        nested.engine = self.engine if isinstance(self.engine, (weakref.ReferenceType, type(None))) else weakref.ref(self.engine)
 
         this = Step.one(self.name, setup, teardown)
 
@@ -508,6 +511,9 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     self.goto(self.steps[0])
 
     slicer.app.ioManager().newFileLoaded.connect(self.onNewFileLoaded)
+
+  def __del__(self):
+    print(f"Deleting {self}" )
 
   def onNewFileLoaded(self, params):
     if params.get('fileType', None) == 'SceneFile':
