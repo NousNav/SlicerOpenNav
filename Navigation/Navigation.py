@@ -1,4 +1,5 @@
 import slicer
+import qt
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,
@@ -91,6 +92,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       planningLogic.trajectory_markup.SetDisplayVisibility(True)
 
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
+
+    self.cameraTimer = qt.QTimer()
+    self.cameraTimer.timeout.connect(self.tools.checkTools)
+    self.cameraTimer.start(100)
 
   def exit(self):
     # Hide current
