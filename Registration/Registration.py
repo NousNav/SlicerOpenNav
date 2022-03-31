@@ -457,7 +457,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     planningLogic = slicer.modules.PlanningWidget.logic
 
-    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False,trajectory=False)
 
   def restartRegistration(self):
     print('Restarting')

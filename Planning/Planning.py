@@ -139,7 +139,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False)
     
     try:
       self.landmarkLogic.landmarks.SetDisplayVisibility(False)
@@ -286,6 +286,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
@@ -300,6 +301,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
@@ -309,11 +311,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def previewTarget(self):
     self.logic.endEffect()
+    self.logic.setupTargetSegmentationNode()
     volume = self.logic.master_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
-    segmentation = self.logic.seed_segmentation
+    segmentation = self.logic.target_segmentation
+    self.logic.copySeedSegmentsToTargetSegmentationNode()
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
+
     self.logic.setEditorTargets(volume, segmentation)
     self.logic.previewTargetSegmentation()
 
@@ -321,7 +327,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.applyTargetSegmentation()
     self.logic.endEffect()
 
-    segmentation = self.logic.seed_segmentation
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
+    segmentation = self.logic.target_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
   def setTrajectoryEntry(self):
@@ -378,6 +385,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   master_volume = NNUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
   skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
   seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
+  target_segmentation = NNUtils.nodeReferenceProperty("TARGET_SEGMENTATION", default=None)
   trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
   trajectory_target_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
   trajectory_entry_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
@@ -400,7 +408,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
-  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, trajectory=False):
+  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False):
     if self.skin_segmentation:
       self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
       
@@ -410,6 +418,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         self.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
     if self.seed_segmentation:
       self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
+    if self.target_segmentation:
+      self.target_segmentation.SetDisplayVisibility(targetSegmentation)
     if self.trajectory_markup:
       self.trajectory_markup.SetDisplayVisibility(trajectory)
     if self.trajectory_target_markup:
@@ -453,6 +463,23 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       ))
       self.seed_segmentation = node
 
+  def setupTargetSegmentationNode(self):
+    if not self.target_segmentation:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLSegmentationNode",
+        "NN_TARGET_SEGMENTATION",
+      )
+      node.CreateDefaultDisplayNodes()
+      self.target_segmentation = node
+  
+  def copySeedSegmentsToTargetSegmentationNode(self):
+    targetSegmentation = self.target_segmentation.GetSegmentation()
+    seedSegmentation = self.seed_segmentation.GetSegmentation()
+    targetSegmentation.RemoveAllSegments()
+    targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_INSIDE_SEGMENT)
+    targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_OUTSIDE_SEGMENT)
+
+  
   def setupTrajectoryMarkupNodes(self):
     if not self.trajectory_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
@@ -607,6 +634,11 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     """
     self.editor_widget.setActiveEffectByName('Grow from seeds')
     effect = self.editor_widget.activeEffect()
+    # Make sure both segments are visible
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+
     effect.setParameter('AutoUpdate', 0)
     effect.self().onPreview()
 
@@ -623,9 +655,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     effect.self().onApply()
 
     # Make sure both segments are visible
-    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
-    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
     self.editor_widget.setActiveEffectByName("Smoothing")
     effect = self.editor_widget.activeEffect()
@@ -634,7 +666,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     effect.self().onApply()
 
     # Rehide outside segment
-    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
   def beginPaint(self):
     """ Begin a paint effect. Be sure to use setEditorTargets beforehand, so

@@ -81,14 +81,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       masterNode = None
       print('No master volume node loaded')
 
-    if planningLogic.seed_segmentation:
-      planningLogic.seed_segmentation.SetDisplayVisibility(True)
-
-    if planningLogic.skin_segmentation:
-      planningLogic.skin_segmentation.SetDisplayVisibility(True)
-
-    if planningLogic.trajectory_markup:
-      planningLogic.trajectory_markup.SetDisplayVisibility(True)
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True)
 
     try:
       needleModel = slicer.util.getNode('PointerModel')
@@ -109,7 +102,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     planningLogic = slicer.modules.PlanningWidget.logic
 
-    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False)
     try:
       needleModel = slicer.util.getNode('PointerModel')
       needleModel.GetDisplayNode().SetVisibility(False)
