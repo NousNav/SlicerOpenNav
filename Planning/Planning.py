@@ -60,7 +60,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.workflow = Home.Workflow(
       'planning',
       nested=(
-        Home.Workflow('skin', setup=self.planningStep1, widget=self.ui.PlanningStep1),
+        Home.Workflow('skin', setup=self.planningStep1, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1),
         Home.Workflow('target', setup=self.planningStep2, widget=self.ui.PlanningStep2),
         Home.Workflow('trajectory', setup=self.planningStep3, widget=self.ui.PlanningStep3),
         Home.Workflow('landmarks', setup=self.planningStep4, widget=self.ui.PlanningStep4),
@@ -106,6 +106,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     ) = NNUtils.setupWorkflowToolBar("Planning")
 
     self.ui.skinThresholdSlider.setValue(30)
+    self.ui.skinThresholdSlider.valueChanged.connect(self.updateSkinSegmentationPreview)
     self.ui.skinSmoothingSlider.setValue(3)
     self.ui.skinApply.clicked.connect(self.createSkinSegmentation)
 
@@ -197,6 +198,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButton.enabled = self.logic.master_volume is not None
 
+    self.updateSkinSegmentationPreview()
+
+  def teardownPlanningStep1(self):
+    self.logic.endEffect()
+
   @NNUtils.backButton(text="Segment the Skin")
   @NNUtils.advanceButton(text="Plan the Trajectory")
   def planningStep2(self):
@@ -226,6 +232,24 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       landmarks.SetDisplayVisibility(True)
     except:
       pass
+
+  def updateSkinSegmentationPreview(self):
+    volume = self.logic.master_volume
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
+
+    self.logic.setupSkinSegmentationNode()
+
+    segmentation = self.logic.skin_segmentation
+    segment = self.logic.SKIN_SEGMENT
+
+    self.logic.setEditorTargets(volume, segmentation, segment)
+    # Only use a lower threshold and use the max value of volume as upper bound:
+    self.logic.updateSkinSegmentationPreview(
+      thresholdMin=self.ui.skinThresholdSlider.value,
+      thresholdMax=self.logic.master_volume.GetImageData().GetScalarRange()[1]
+    )
 
   def createSkinSegmentation(self):
     volume = self.logic.master_volume
@@ -490,6 +514,24 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if segmentID:
       self.editor_widget.setCurrentSegmentID(segmentID)
 
+  def updateSkinSegmentationPreview(self, thresholdMin=30,thresholdMax=1000):
+
+    """ Update the preview of skin segmentation effects. Be sure to use setEditorTargets
+     beforehand, so the effect is applied correctly.
+
+    Effects: Threshold
+    """
+
+    # Thresholding
+    effect = self.editor_widget.activeEffect()
+    if effect is None:
+      self.editor_widget.setActiveEffectByName("Threshold")
+      effect = self.editor_widget.activeEffect()
+      effect.activate()
+    
+    effect.setParameter("MinimumThreshold", thresholdMin)
+    effect.setParameter("MaximumThreshold", thresholdMax)
+  
   def applySkinSegmentation(
       self,
       thresholdMin=30,
