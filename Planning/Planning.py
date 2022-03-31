@@ -461,6 +461,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         "NN_OUTSIDE",
         [0.90, 0.10, 0.10],
       ))
+      node.GetDisplayNode().SetAllSegmentsVisibility2DFill(False)
+      node.GetDisplayNode().SetSliceIntersectionThickness(3)
       self.seed_segmentation = node
 
   def setupTargetSegmentationNode(self):
@@ -478,8 +480,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     targetSegmentation.RemoveAllSegments()
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_INSIDE_SEGMENT)
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_OUTSIDE_SEGMENT)
+    self.target_segmentation.GetDisplayNode().SetAllSegmentsVisibility2DFill(False)
+    self.target_segmentation.GetDisplayNode().SetSliceIntersectionThickness(3)
 
-  
   def setupTrajectoryMarkupNodes(self):
     if not self.trajectory_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
