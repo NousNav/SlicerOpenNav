@@ -346,6 +346,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
+    self.cameraTimer = qt.QTimer()
+    self.cameraTimer.timeout.connect(self.tools.checkTools)
+    self.cameraTimer.start(100)
+
     self.ui.RMSLabelSpin.text = ''
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
