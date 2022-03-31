@@ -330,6 +330,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     properties['show'] = False
     createModelsLogic = slicer.modules.createmodels.logic()
     self.needleModel = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
+    self.needleModel.SetName('PointerModel')
     self.needleModel.GetDisplayNode().SetColor(255,255,0)
     self.needleModel.GetDisplayNode().SetVisibility(False)
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
@@ -453,13 +454,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def registrationStepAcceptRegistration(self):
     self.setRestartRegistrationButtonEnabled(False)
+    self.needleModel.GetDisplayNode().SetVisibility(False)
+    self.needleModel.GetDisplayNode().SetVisibility2D(False)
+
+    planningLogic = slicer.modules.PlanningWidget.logic
+
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
 
   def restartRegistration(self):
     print('Restarting')
     self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
   def fidicialOnlyRegistration(self):
-
     try:
       pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
     except:

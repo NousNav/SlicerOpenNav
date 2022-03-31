@@ -138,15 +138,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
 
-    if self.logic.skin_segmentation:
-      self.logic.skin_segmentation.SetDisplayVisibility(False)
-
-    if self.logic.seed_segmentation:
-      self.logic.seed_segmentation.SetDisplayVisibility(False)
-
-    if self.logic.trajectory_markup:
-      self.logic.trajectory_markup.SetDisplayVisibility(False)
-
+    self.logic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
+    
     try:
       self.landmarkLogic.landmarks.SetDisplayVisibility(False)
     except:
@@ -198,9 +191,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Segment the Target")
   def planningStep1(self):
     self.tableManager.advanceButton = None
-
-    if self.logic.skin_segmentation:
-      self.logic.skin_segmentation.SetDisplayVisibility(True)
+    
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False)
+    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
     self.advanceButton.enabled = self.logic.master_volume is not None
 
@@ -209,20 +202,24 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep2(self):
     self.tableManager.advanceButton = None
 
-    if self.logic.seed_segmentation:
-      self.logic.seed_segmentation.SetDisplayVisibility(True)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
+    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
   def planningStep3(self):
     self.tableManager.advanceButton = None
 
-    if self.logic.trajectory_markup:
-      self.logic.trajectory_markup.SetDisplayVisibility(True)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=True)
+    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
   @NNUtils.backButton(text="Plan the Trajectory")
   @NNUtils.advanceButton(text="")
   def planningStep4(self):
+
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False)
+    self.landmarkLogic.landmarks.SetDisplayVisibility(True)
+
     self.tableManager.advanceButton = self.advanceButton
     try:
       landmarks = slicer.util.getNode('LandmarkDefinitions')
@@ -376,6 +373,18 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
+  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, trajectory=False):
+    if self.skin_segmentation:
+      self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
+    if self.seed_segmentation:
+      self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
+    if self.trajectory_markup:
+      self.trajectory_markup.SetDisplayVisibility(trajectory)
+    if self.trajectory_target_markup:
+      self.trajectory_target_markup.SetDisplayVisibility(trajectory)
+    if self.trajectory_entry_markup:
+      self.trajectory_entry_markup.SetDisplayVisibility(trajectory)
+  
   def setupSkinSegmentationNode(self):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(

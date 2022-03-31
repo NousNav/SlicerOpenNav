@@ -91,6 +91,13 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     if planningLogic.trajectory_markup:
       planningLogic.trajectory_markup.SetDisplayVisibility(True)
 
+    try:
+      needleModel = slicer.util.getNode('PointerModel')
+      needleModel.GetDisplayNode().SetVisibility(True)
+      needleModel.GetDisplayNode().SetVisibility2D(True)
+    except:
+      pass
+
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
 
     self.cameraTimer = qt.QTimer()
@@ -101,6 +108,16 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
+
+    planningLogic = slicer.modules.PlanningWidget.logic
+
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, trajectory=False)
+    try:
+      needleModel = slicer.util.getNode('PointerModel')
+      needleModel.GetDisplayNode().SetVisibility(False)
+      needleModel.GetDisplayNode().SetVisibility2D(False)
+    except:
+      pass
 
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()
