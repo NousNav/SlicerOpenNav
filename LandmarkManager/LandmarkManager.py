@@ -387,6 +387,8 @@ class Landmarks:
       self.currentLandmark.trackerPosition = pos
       self.currentLandmark = None
       self.startNextLandmark()
+    else:
+      print('Warning - landmark is none')
 
   def getTrackerPosition(self, name):
     for landmark in self.landmarks:
@@ -406,3 +408,10 @@ class Landmarks:
     elif landmark.state == LandmarkState.SKIPPED:
       landmark.state = LandmarkState.IN_PROGRESS
       self.startLandmark(landmark)
+
+  def clearLandmarks(self):
+    for landmark in self.landmarks:
+      landmark.state = LandmarkState.NOT_STARTED
+      landmark.trackerPosition = None
+
+    self.updateLandmarksDisplay()

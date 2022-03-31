@@ -127,6 +127,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupPivotCalibration()
 
     self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
+    self.transformNode = None
 
     self.advanceButton.enabled = False
 
@@ -394,6 +395,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = True
+
+    # Clear previous registration
+    if self.transformNode:
+      slicer.mrmlScene.RemoveNode(self.transformNode)
+      self.transformNode = None
+    self.landmarks.clearLandmarks()
 
     self.landmarks.advanceButton = self.advanceButton
     self.landmarks.showLandmarks = True
