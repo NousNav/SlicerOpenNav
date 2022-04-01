@@ -402,6 +402,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.transformNode = None
     self.landmarks.clearLandmarks()
 
+    self.tools.setToolsStatusCheckEnabled(True)
+
     self.landmarks.advanceButton = self.advanceButton
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
@@ -427,6 +429,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       masterNode = None
       print('No master volume node is loaded')
     NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
+
+    self.tools.setToolsStatusCheckEnabled(True)
 
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = False
