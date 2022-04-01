@@ -27,10 +27,27 @@ class Tools:
     self.optitrack = None
     self.showToolMarkers = False
 
+    self.checkToolsTimer = qt.QTimer()
+    self.checkToolsTimer.interval = 100
+    self.checkToolsTimer.timeout.connect(self.checkTools)
+
   def addTool(self, ID, name, geometry=None):
     newTool = Tool(ID, name, geometry)
     self.tools.append(newTool)
     self.updateToolsDisplay()
+
+  def setToolsStatusCheckEnabled(self, enabled):
+    """Check the status of the tracking tool every 100ms and
+    update the table summarizing the status of each tools.
+
+    See :func:`RegistrationUtils.Tools.checkTools`
+    and :func:`RegistrationUtils.Tools.updateToolsDisplay()`.
+    """
+    if enabled:
+      # If timer is already started, it will stop and restart it.
+      self.checkToolsTimer.start()
+    else:
+      self.checkToolsTimer.stop()
 
   def checkTools(self):
     if self.optitrack is None:

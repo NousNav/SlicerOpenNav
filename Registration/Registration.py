@@ -126,10 +126,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupLandmarkTables()
     self.setupPivotCalibration()
 
-    self.cameraTimer = qt.QTimer()
-    self.cameraTimer.interval = 100
-    self.cameraTimer.timeout.connect(self.tools.checkTools)
-
     self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
 
     self.advanceButton.enabled = False
@@ -146,7 +142,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def cleanup(self):
     self.optitrack.shutdown()
-    self.setTrackingStatusCheckEnabled(False)
+    self.tools.setToolsStatusCheckEnabled(False)
 
   def exit(self):
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
@@ -205,19 +201,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.advanceButton.enabled = True
       print('enable advance')
 
-  def setTrackingStatusCheckEnabled(self, enabled):
-    """Check the status of the tracking tool every 100ms and
-    update the table summarizing the status of each tools.
-
-    See :func:`RegistrationUtils.Tools.checkTools`
-    and :func:`RegistrationUtils.Tools.updateToolsDisplay()`.
-    """
-    if enabled:
-      # If timer is already started, it will stop and restart it.
-      self.cameraTimer.start()
-    else:
-      self.cameraTimer.stop()
-
   def stepSetup(self):
     self.tools.showToolMarkers = False
     self.tools.updateToolsDisplay()
@@ -225,7 +208,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
 
-    self.setTrackingStatusCheckEnabled(False)
+    self.tools.setToolsStatusCheckEnabled(False)
 
   @NNUtils.backButton(text="Return to Planning")
   @NNUtils.advanceButton(text="Setup NousNav")
@@ -267,7 +250,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.showToolMarkers = True
 
-    self.setTrackingStatusCheckEnabled(True)
+    self.tools.setToolsStatusCheckEnabled(True)
 
     qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
 
@@ -282,7 +265,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
-    self.setTrackingStatusCheckEnabled(True)
+    self.tools.setToolsStatusCheckEnabled(True)
 
     self.ui.RMSLabel.text = ''
     self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
@@ -357,7 +340,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
-    self.setTrackingStatusCheckEnabled(True)
+    self.tools.setToolsStatusCheckEnabled(True)
 
     self.ui.RMSLabelSpin.text = ''
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
