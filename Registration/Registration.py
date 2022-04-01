@@ -404,7 +404,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = False
     self.LandmarkSideWidget.visible = True
 
-    self.landmarks.advanceButtonReg = self.advanceButton
+    self.landmarks.advanceButton = self.advanceButton
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
@@ -574,7 +574,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
     self.landmarks.addLandmark('Right outer canthus', [46.786, 252.705, -149.633])
     # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])
-    self.landmarks.advanceButtonReg = self.advanceButton
+    self.landmarks.advanceButton = self.advanceButton
 
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()

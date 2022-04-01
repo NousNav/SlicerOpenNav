@@ -260,7 +260,7 @@ class Landmarks:
     self.landmarksNeeded = 3
     self.landmarksCollected = 0
     self.landmarksFinished = False
-    self.advanceButtonReg = None
+    self.advanceButton = None
 
     # TODO: improve method of looking up icons
     self.notStartedIcon = qt.QIcon(self.resourcePath('Icons/NotStarted.svg'))
@@ -285,14 +285,14 @@ class Landmarks:
   def updateAdvanceButton(self):
 
     landmarksRemaining = self.landmarksNeeded - self.landmarksCollected
-    self.advanceButtonReg.enabled = False
+    self.advanceButton.enabled = False
     if landmarksRemaining > 1:
-      self.advanceButtonReg.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks'
+      self.advanceButton.text = 'Touch ' + str(landmarksRemaining) + ' more landmarks'
     elif landmarksRemaining == 1:
-      self.advanceButtonReg.text = 'Touch 1 more landmark'
+      self.advanceButton.text = 'Touch 1 more landmark'
     else:
-      self.advanceButtonReg.text = 'Press to continue'
-      self.advanceButtonReg.enabled = True
+      self.advanceButton.text = 'Press to continue'
+      self.advanceButton.enabled = True
 
   def resourcePath(self, filename):
     scriptedModulesPath = os.path.dirname(slicer.util.modulePath(self.moduleName))
