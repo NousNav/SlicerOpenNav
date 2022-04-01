@@ -99,6 +99,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
 
+    tools = slicer.modules.RegistrationWidget.tools
+    tools.setToolsStatusCheckEnabled(True)
+
   def exit(self):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
@@ -113,6 +116,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       needleModel.GetDisplayNode().SetVisibility2D(False)
     except:
       pass
+
+    tools = slicer.modules.RegistrationWidget.tools
+    tools.setToolsStatusCheckEnabled(False)
 
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()
