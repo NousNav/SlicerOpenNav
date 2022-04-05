@@ -209,6 +209,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
   @NNUtils.backButton(text="Segment the Target")
@@ -217,6 +218,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=True)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
   @NNUtils.backButton(text="Plan the Trajectory")
@@ -224,6 +226,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep4(self):
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     self.landmarkLogic.landmarks.SetDisplayVisibility(True)
 
     self.tableManager.advanceButton = self.advanceButton
@@ -400,6 +403,11 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, trajectory=False):
     if self.skin_segmentation:
       self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
+      
+      # If turned on, make sure both are visible
+      if skinSegmentation:
+        self.skin_segmentation.GetDisplayNode().SetVisibility3D(True)
+        self.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
     if self.seed_segmentation:
       self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
     if self.trajectory_markup:
@@ -491,6 +499,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.reconnect()
 
   def reconnect(self):
+    self.endEffect()
     self.removeObservers()
 
     for event in [
