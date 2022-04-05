@@ -287,6 +287,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.logic.setupSeedSegmentationNode()
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
@@ -302,6 +303,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.logic.setupSeedSegmentationNode()
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
@@ -319,6 +321,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segmentation = self.logic.target_segmentation
     self.logic.copySeedSegmentsToTargetSegmentationNode()
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
     self.logic.setEditorTargets(volume, segmentation)
     self.logic.previewTargetSegmentation()
@@ -328,6 +331,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.endEffect()
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     segmentation = self.logic.target_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
@@ -461,8 +465,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         "NN_OUTSIDE",
         [0.90, 0.10, 0.10],
       ))
-      node.GetDisplayNode().SetAllSegmentsVisibility2DFill(False)
-      node.GetDisplayNode().SetSliceIntersectionThickness(3)
+
+      node.GetDisplayNode().SetOpacity2DFill(0.2)
+      node.GetDisplayNode().SetOpacity2DOutline(0.5)
+      node.GetDisplayNode().SetSliceIntersectionThickness(1)
       self.seed_segmentation = node
 
   def setupTargetSegmentationNode(self):
@@ -473,6 +479,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       )
       node.CreateDefaultDisplayNodes()
       self.target_segmentation = node
+      node.GetDisplayNode().SetVisibility2DFill(False)
+      node.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+      node.GetDisplayNode().SetSliceIntersectionThickness(1)
   
   def copySeedSegmentsToTargetSegmentationNode(self):
     targetSegmentation = self.target_segmentation.GetSegmentation()
@@ -480,8 +489,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     targetSegmentation.RemoveAllSegments()
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_INSIDE_SEGMENT)
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_OUTSIDE_SEGMENT)
-    self.target_segmentation.GetDisplayNode().SetAllSegmentsVisibility2DFill(False)
-    self.target_segmentation.GetDisplayNode().SetSliceIntersectionThickness(3)
 
   def setupTrajectoryMarkupNodes(self):
     if not self.trajectory_markup:
@@ -644,6 +651,19 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     effect.setParameter('AutoUpdate', 0)
     effect.self().onPreview()
+
+    # Rehide target segments:
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, False)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+
+    # Set preview style:
+    previewDisplayNode = slicer.util.getNode(self.target_segmentation.GetName()+" preview").GetDisplayNode()
+    previewDisplayNode.SetVisibility2DOutline(True)
+    previewDisplayNode.SetVisibility2DFill(False)
+    previewDisplayNode.SetOpacity2DOutline(1.)
+    previewDisplayNode.SetSliceIntersectionThickness(1)
+    previewDisplayNode.SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    previewDisplayNode.SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
   def applyTargetSegmentation(self, smoothingSize=3):
     """ Preview target segmentation effects. Be sure to use setEditorTargets
