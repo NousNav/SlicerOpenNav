@@ -462,8 +462,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.needleModel.GetDisplayNode().SetVisibility2D(False)
 
     planningLogic = slicer.modules.PlanningWidget.logic
-
-    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False,trajectory=False)
+    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False)
 
   def restartCalibration(self):
     print('Restarting calibration')

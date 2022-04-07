@@ -57,13 +57,16 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
+    # Create logic class
+    self.logic = PlanningLogic()
+
     self.workflow = Home.Workflow(
       'planning',
       nested=(
         Home.Workflow('skin', setup=self.planningStep1, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1),
-        Home.Workflow('target', setup=self.planningStep2, widget=self.ui.PlanningStep2),
-        Home.Workflow('trajectory', setup=self.planningStep3, widget=self.ui.PlanningStep3),
-        Home.Workflow('landmarks', setup=self.planningStep4, widget=self.ui.PlanningStep4),
+        Home.Workflow('target', setup=self.planningStep2, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2),
+        Home.Workflow('trajectory', setup=self.planningStep3, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3),
+        Home.Workflow('landmarks', setup=self.planningStep4, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -71,9 +74,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-
-    # Create logic class
-    self.logic = PlanningLogic()
 
     # Dark palette does not propogate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
@@ -139,7 +139,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
     
     try:
       self.landmarkLogic.landmarks.SetDisplayVisibility(False)
@@ -193,7 +193,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def planningStep1(self):
     self.tableManager.advanceButton = None
     
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
     self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
     self.advanceButton.enabled = self.logic.master_volume is not None
@@ -202,32 +203,31 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def teardownPlanningStep1(self):
     self.logic.endEffect()
+    self.logic.resetDefaultNodeAppearance()
 
   @NNUtils.backButton(text="Segment the Skin")
   @NNUtils.advanceButton(text="Plan the Trajectory")
   def planningStep2(self):
     self.tableManager.advanceButton = None
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
   def planningStep3(self):
     self.tableManager.advanceButton = None
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=True)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=True, landmarks=False)
+    self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
+    self.logic.target_segmentation.GetDisplayNode().SetVisibility(True)
+    self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.5)
 
   @NNUtils.backButton(text="Plan the Trajectory")
   @NNUtils.advanceButton(text="")
   def planningStep4(self):
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.landmarkLogic.landmarks.SetDisplayVisibility(True)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=True)
 
     self.tableManager.advanceButton = self.advanceButton
     try:
@@ -286,8 +286,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
@@ -302,8 +301,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
@@ -320,8 +318,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
     segmentation = self.logic.target_segmentation
     self.logic.copySeedSegmentsToTargetSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False, landmarks=False)
 
     self.logic.setEditorTargets(volume, segmentation)
     self.logic.previewTargetSegmentation()
@@ -330,8 +327,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.applyTargetSegmentation()
     self.logic.endEffect()
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False, landmarks=False)
     segmentation = self.logic.target_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
@@ -405,6 +401,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.SEED_INSIDE_SEGMENT = 'NN_INSIDE'
     self.SEED_OUTSIDE_SEGMENT = 'NN_OUTSIDE'
 
+    self.SMOOTHING_LEVEL_TARGET_SEGMENTATION = 3
+
     self.editor_widget = slicer.qMRMLSegmentEditorWidget()
     self.editor_widget.setMRMLScene(slicer.mrmlScene)
     # self.editor_widget.visible = True
@@ -412,14 +410,15 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentEditorNode')
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
-  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False):
+    self.landmarkLogic = LandmarkManagerLogic()
+
+  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
     if self.skin_segmentation:
       self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
-      
-      # If turned on, make sure both are visible
+      # Usually only 3D is desired:
       if skinSegmentation:
         self.skin_segmentation.GetDisplayNode().SetVisibility3D(True)
-        self.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
+        self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     if self.seed_segmentation:
       self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
     if self.target_segmentation:
@@ -430,7 +429,17 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.trajectory_target_markup.SetDisplayVisibility(trajectory)
     if self.trajectory_entry_markup:
       self.trajectory_entry_markup.SetDisplayVisibility(trajectory)
-  
+    if self.landmarkLogic.landmarks:
+      self.landmarkLogic.landmarks.SetDisplayVisibility(landmarks)
+
+  def resetDefaultNodeAppearance(self):
+    if self.skin_segmentation:
+      self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+      self.skin_segmentation.GetDisplayNode().SetOpacity3D(1.)
+    if self.target_segmentation:
+      self.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
+      self.target_segmentation.GetDisplayNode().SetVisibility(False)
+
   def setupSkinSegmentationNode(self):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
@@ -444,7 +453,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         "NN_SKIN",
         [0.40, 0.35, 0.35],
       ))
-      node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 0.5)
+      node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 1.)
       self.skin_segmentation = node
 
   def setupSeedSegmentationNode(self):
@@ -665,7 +674,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     previewDisplayNode.SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
     previewDisplayNode.SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
-  def applyTargetSegmentation(self, smoothingSize=3):
+  def applyTargetSegmentation(self):
     """ Preview target segmentation effects. Be sure to use setEditorTargets
      beforehand, so the effect is applied correctly.
 
@@ -685,7 +694,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_widget.setActiveEffectByName("Smoothing")
     effect = self.editor_widget.activeEffect()
     effect.setParameter('SmoothingMethod', 'MEDIAN')
-    effect.setParameter('KernelSizeMm', smoothingSize)
+    effect.setParameter('KernelSizeMm', self.SMOOTHING_LEVEL_TARGET_SEGMENTATION)
     effect.self().onApply()
 
     # Rehide outside segment
