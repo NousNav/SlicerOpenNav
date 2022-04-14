@@ -415,11 +415,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
     self.ui.CollectButton.clicked.connect(self.onCollectButton)
+    self.disconnectAll(self.backButton)
+    self.backButton.clicked.connect(self.restartCalibration)
 
     # set the frame in stacked widget
     self.landmarks.startNextLandmark()
 
-  @NNUtils.backButton(text="Start over")
+  @NNUtils.backButton(text="Redo registration")
   @NNUtils.advanceButton(text="Accept", enabled=False)
   def registrationStepVerifyRegistration(self):
     # set the layout and display an image
@@ -463,8 +465,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False,trajectory=False)
 
+  def restartCalibration(self):
+    print('Restarting calibration')
+    self.workflow.gotoByName(("nn", "registration", "pivot-calibration"))
+
   def restartRegistration(self):
-    print('Restarting')
+    print('Restarting registration')
     self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
   def fidicialOnlyRegistration(self):
