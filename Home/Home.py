@@ -204,6 +204,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         "Patients", "Planning", "Navigation", "Registration"]]
     )
     slicer.util.setToolbarsVisible(visible, keepToolbars)
+    if visible:
+      slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.DefaultContextMenu)
+    else:
+      slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.NoContextMenu)
+
 
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
