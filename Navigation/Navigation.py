@@ -98,8 +98,11 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       print('No master volume node loaded')
 
     planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
-    planningLogic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
-    planningLogic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
+    try:
+      planningLogic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
+      planningLogic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
+    except:
+      pass
 
     if slicer.modules.RegistrationWidget.logic.needle_model:
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(True)

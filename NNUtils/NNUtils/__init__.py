@@ -1,6 +1,7 @@
 import os, functools
 import qt
 import slicer
+import vtk
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -238,6 +239,36 @@ def setupSliceViewer(sliceWidget):
   slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
 
 
+def showSliceOrientationLabels(visible):
+  for name in slicer.app.layoutManager().sliceViewNames():
+    sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+    if sliceWidget.sliceOrientation == 'Axial' or sliceWidget.sliceOrientation == 'Coronal':
+      view = sliceWidget.sliceView()
+      if visible:
+        view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerRight, "L")
+        view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerLeft, "R")
+      else:
+        view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerRight, "")
+        view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerLeft, "")
+      view.cornerAnnotation().SetMaximumFontSize(60)
+      view.cornerAnnotation().SetMinimumFontSize(60)
+      view.cornerAnnotation().SetNonlinearFontScaleFactor(1)
+    else:
+      view = sliceWidget.sliceView()
+      view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerRight, "")
+      view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LowerLeft, "")
+
+
+def showSliceOrientationAxes(visible):
+  for name in slicer.app.layoutManager().sliceViewNames():
+    sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+    controller = sliceWidget.sliceController()
+    if visible:
+      controller.setOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeAxes)
+    else:
+      controller.setOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeNone)
+
+
 def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisible=False):
 
   # Switching to FourUpLayout is a workaround to ensure
@@ -259,6 +290,9 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
 
   except:
     print('Cannot find pointer node')
+
+  showSliceOrientationAxes(True)
+  showSliceOrientationLabels(False)
 
 
 def showCentralWidget(name):
@@ -287,6 +321,15 @@ def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=Fa
   setSliceViewBackgroundColor("#000000")
   slicer.util.setSliceViewerLayers(foreground=None, background=volumeNode, label=None, fit=True)
 
+  # reset slice orientations to default
+  slicer.app.layoutManager().sliceWidget("Red").sliceOrientation = 'Axial'
+  slicer.app.layoutManager().sliceWidget("Green").sliceOrientation = 'Coronal'
+  slicer.app.layoutManager().sliceWidget("Yellow").sliceOrientation = 'Sagittal'
+
+  setupSliceViewers()
+  showSliceOrientationLabels(True)
+  showSliceOrientationAxes(False)
+
 
 def goToRegistrationCameraViewLayout():
   deactivateReslicing()
@@ -305,6 +348,8 @@ def goToPictureLayout(image=None, sidePanelVisible=False):
   centralImageLabel.pixmap = image
   setMainPanelVisible(True)
   setSidePanelVisible(sidePanelVisible)
+  showSliceOrientationLabels(False)
+  showSliceOrientationAxes(False)
 
 
 # Usage example:
