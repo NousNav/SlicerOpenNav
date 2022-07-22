@@ -51,43 +51,6 @@ def center3DView(center):
                      oldPosition[2]+cameraOffset[2])
 
 
-def updateSliceViews(pos, rot):
-  sliceNode = slicer.app.layoutManager().sliceWidget('Yellow').mrmlSliceNode()
-  sliceNode.SetSliceToRASByNTP( rot[0, 0], rot[1, 0], rot[2, 0],
-                                rot[0, 1], rot[1, 1], rot[2, 1],
-                                pos[0], pos[1], pos[2], 0)
-  sliceNode.UpdateMatrices()
-
-  sliceNode = slicer.app.layoutManager().sliceWidget('Green').mrmlSliceNode()
-  sliceNode.SetSliceToRASByNTP( rot[0, 1], rot[1, 1], rot[2, 1],
-                                rot[0, 2], rot[1, 2], rot[2, 2],
-                                pos[0], pos[1], pos[2], 0)
-  sliceNode.UpdateMatrices()
-
-  sliceNode = slicer.app.layoutManager().sliceWidget('Red').mrmlSliceNode()
-  sliceNode.SetSliceToRASByNTP( rot[0, 2], rot[1, 2], rot[2, 2],
-                                rot[0, 0], rot[1, 0], rot[1, 0],
-                                pos[0], pos[1], pos[2], 0)
-  sliceNode.UpdateMatrices()
-
-
-def resetSliceViews():
-  nodeID = getActiveVolume()
-  if nodeID is None:
-    return
-  volumeNode = slicer.mrmlScene.GetNodeByID(nodeID)
-
-  for sliceID in ['Yellow', 'Green', 'Red']:
-    sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
-    sliceNode.RotateToVolumePlane(volumeNode)
-
-
-def setSliceViewsPosition(pos):
-  for sliceID in ['Yellow', 'Green', 'Red']:
-    sliceNode = slicer.app.layoutManager().sliceWidget(sliceID).mrmlSliceNode()
-    sliceNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])
-
-
 #
 # Widgets
 #
