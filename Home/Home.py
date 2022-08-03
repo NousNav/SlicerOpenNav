@@ -209,7 +209,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     else:
       slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.NoContextMenu)
 
-
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
