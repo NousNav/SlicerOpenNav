@@ -185,24 +185,22 @@ class ToolsWidget(ScriptedLoadableModuleWidget):
       calibrationDialog.setModal( False )
       calibrationDialog.setLayout(calibrationWidget.layout())
 
-      def doneFunction( tool ):
-        def doneFunc():
-          calibrationDialog.accept()
-          tool.updateModel()
-        return doneFunc
-      doneButton.clicked.connect(doneFunction(tool))
+      def calibrationDone(dlg, tool):
+        dlg.accept()
+        tool.updateModel()
 
-      def showFunction(cWidget, dlg, tool):
-        def showFunc():
-          inputBox = dlg.findChild(slicer.qMRMLNodeComboBox, "InputComboBox")
-          inputBox.setCurrentNode( tool.transformNode )
-          inputBox.setEnabled(False)
-          outputBox = dlg.findChild(slicer.qMRMLNodeComboBox, "OutputComboBox")
-          outputBox.setCurrentNode( tool.transformNodeTip )
-          outputBox.setEnabled(False)
-          dlg.show()
-        return showFunc
-      calibrateButton.clicked.connect( showFunction(calibrationWidget, calibrationDialog, tool) )
+      doneButton.clicked.connect(lambda state, dlg=calibrationDialog, tool=tool: calibrationDone(dlg, tool))
+
+      def showCalibrationDialog(dlg, tool):
+        inputBox = dlg.findChild(slicer.qMRMLNodeComboBox, "InputComboBox")
+        inputBox.setCurrentNode( tool.transformNode )
+        inputBox.setEnabled(False)
+        outputBox = dlg.findChild(slicer.qMRMLNodeComboBox, "OutputComboBox")
+        outputBox.setCurrentNode( tool.transformNodeTip )
+        outputBox.setEnabled(False)
+        dlg.show()
+
+      calibrateButton.clicked.connect(lambda state, dlg=calibrationDialog, tool=tool: showCalibrationDialog(dlg, tool))
 
       statusLabel = qt.QLabel(" Tracking Off ")
       statusLabel.setStyleSheet("background-color: red;")
