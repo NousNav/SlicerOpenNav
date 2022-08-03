@@ -125,6 +125,12 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     if slicer.modules.RegistrationWidget.logic.needle_model:
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(True)
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
+    if slicer.modules.RegistrationWidget.logic.odd_extensions:
+      slicer.modules.RegistrationWidget.logic.odd_extensions.GetDisplayNode().SetVisibility(True)
+      slicer.modules.RegistrationWidget.logic.odd_extensions.GetDisplayNode().SetVisibility2D(True)
+    if slicer.modules.RegistrationWidget.logic.even_extensions:
+      slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility(True)
+      slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility2D(True)
 
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
 
@@ -145,6 +151,12 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     if slicer.modules.RegistrationWidget.logic.needle_model:
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(False)
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility2D(False)
+    if slicer.modules.RegistrationWidget.logic.odd_extensions:
+      slicer.modules.RegistrationWidget.logic.odd_extensions.GetDisplayNode().SetVisibility(False)
+      slicer.modules.RegistrationWidget.logic.odd_extensions.GetDisplayNode().SetVisibility2D(False)
+    if slicer.modules.RegistrationWidget.logic.even_extensions:
+      slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility(False)
+      slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility2D(False)
 
     tools = slicer.modules.RegistrationWidget.tools
     tools.setToolsStatusCheckEnabled(False)

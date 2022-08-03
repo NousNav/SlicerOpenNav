@@ -206,10 +206,24 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       NNUtils.setCssClass(widget, "widget--color-light")
       NNUtils.polish(widget)
 
+    self.logic.setupSurfaceErrorComputation()
+    # find intersection between trajectory and skin surface
+    point = [0., 0., 0.]
+    par = [0., 0., 0.]
+    entry = self.planningLogic.trajectory_entry_markup.GetNthControlPointPositionVector(0)
+    target = self.planningLogic.trajectory_target_markup.GetNthControlPointPositionVector(0)
+    cell_id = vtk.reference(0)
+    self.logic.locator.IntersectWithLine(entry, target, 0.1, cell_id, point, par, cell_id, cell_id)
+    vec = np.array([target.GetX(), target.GetY(), target.GetZ()]) - np.array(point)
+    len = np.linalg.norm(vec)
+    print("Length of trajectory is: ", str(len))
+    # Default pointer extension length is length of trajectory between skin and target rounded up to next segment length:
+    nb_seg = math.ceil(len / self.logic.EXTENSION_SEGMENT_LENGTH_MM)
+    print("Creating pointer extension with " + str(nb_seg) + " segments")
+
+    self.logic.setupExtensionsModels(nb_seg)
     self.setupPivotCalibration()
     self.landmarks.syncLandmarks()
-
-    self.logic.setupSurfaceErrorComputation()
 
   def validate(self):
     print('Registration main validate called')
@@ -508,6 +522,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
     self.logic.setupPointerCalibration()
     self.logic.needle_model.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
+    self.logic.odd_extensions.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
+    self.logic.even_extensions.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -1033,6 +1049,8 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
+  EXTENSION_SEGMENT_LENGTH_MM = 10
+
   pointer_calibration = NNUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
   landmark_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
   surface_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION_REFINEMENT", default=None)
@@ -1046,6 +1064,8 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
   pointer_to_headframe = None
   needle_model = None
   locator = None
+  odd_extensions = None
+  even_extensions = None
 
   def setupPointerCalibration(self):
     if not self.pointer_calibration:
@@ -1095,8 +1115,10 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     if self.pointer_calibration and self.pointer_to_headframe:
       self.pointer_calibration.SetAndObserveTransformNodeID(self.pointer_to_headframe.GetID())
 
-    if self.needle_model and self.pointer_calibration:
+    if self.needle_model and self.odd_extensions and self.even_extensions and self.pointer_calibration:
       self.needle_model.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
+      self.odd_extensions.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
+      self.even_extensions.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
 
     if self.landmark_registration_transform and self.pointer_to_headframe:
       self.pointer_to_headframe.SetAndObserveTransformNodeID(self.landmark_registration_transform.GetID())
@@ -1106,12 +1128,127 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
   def setupNeedleModel(self):
     createModelsLogic = slicer.modules.createmodels.logic()
-    self.needle_model = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
+    self.needle_model = createModelsLogic.CreateNeedle(100.0, 1.0, 2.5, False)
     self.needle_model.GetDisplayNode().SetColor(220, 220, 0)
     self.needle_model.GetDisplayNode().SetVisibility(False)
     self.needle_model.GetDisplayNode().SetSliceIntersectionThickness(6)
     self.needle_model.SetName("NEEDLE_MODEL")
     self.needle_model.SaveWithSceneOff()
+
+  def setupExtensionsModels(self, length):
+    if self.odd_extensions is None and self.even_extensions is None:
+      # Setup:
+      nb_seg_odd = int(length / 2) + (length % 2)
+      nb_seg_even = int(length / 2)
+      createModelsLogic = slicer.modules.createmodels.logic()
+      self.odd_extensions = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLModelNode")
+      self.odd_extensions.SetName('ODD_EXTENSION_SEGMENTS')
+      self.even_extensions = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLModelNode")
+      self.even_extensions.SetName('EVEN_EXTENSION_SEGMENTS')
+
+      half_seg_transform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+      half_seg_transform.SetName("HalfSegTransform")
+      slicer.mrmlScene.AddNode(half_seg_transform)
+      half_seg_transform.SaveWithSceneOff()
+      half_seg_matrix = vtk.vtkMatrix4x4()
+      half_seg_matrix.SetElement(2, 3, self.EXTENSION_SEGMENT_LENGTH_MM/2)
+      half_seg_transform.SetMatrixTransformToParent(half_seg_matrix)
+
+      full_seg_transform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+      full_seg_transform.SetName("FullSegTransform")
+      full_seg_transform.SaveWithSceneOff()
+      full_seg_matrix = vtk.vtkMatrix4x4()
+      full_seg_matrix.SetElement(2, 3, self.EXTENSION_SEGMENT_LENGTH_MM)
+      full_seg_transform.SetMatrixTransformToParent(full_seg_matrix)
+
+      # todo?: not efficient, but most likely not a problem
+      # Create complete odd_extension model:
+      part = createModelsLogic.CreateCylinder(self.EXTENSION_SEGMENT_LENGTH_MM, 1.0)
+      part.SetAndObserveTransformNodeID(half_seg_transform.GetID())
+      part.HardenTransform()
+      self.odd_extensions.SetPolyDataConnection(part.GetPolyDataConnection())
+      part.Modified()
+      self.odd_extensions.Modified()
+      slicer.mrmlScene.RemoveNode(part)
+
+      temp = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLModelNode")
+      temp.SetName("TEMP")
+
+      for i in range(1,nb_seg_odd):
+        part = createModelsLogic.CreateCylinder(self.EXTENSION_SEGMENT_LENGTH_MM, 1.0)
+        part.SetAndObserveTransformNodeID(half_seg_transform.GetID())
+        part.HardenTransform()
+
+        for _ in range(i):
+          part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+          part.HardenTransform()
+          part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+          part.HardenTransform()
+
+        parameters = {}
+        parameters["Model1"] = part
+        parameters["Model2"] = self.odd_extensions
+        parameters["ModelOutput"] = temp
+        mergeModels = slicer.modules.mergemodels
+        slicer.cli.runSync(mergeModels, None, parameters)
+
+        self.odd_extensions.SetPolyDataConnection(temp.GetPolyDataConnection())
+        temp.Modified()
+        self.odd_extensions.Modified()
+        slicer.mrmlScene.RemoveNode(part)
+
+      slicer.mrmlScene.RemoveNode(temp)
+
+      self.odd_extensions.CreateDefaultDisplayNodes()
+      self.odd_extensions.GetDisplayNode().SetVisibility(False)
+      self.odd_extensions.GetDisplayNode().SetSliceIntersectionThickness(6)
+      self.odd_extensions.GetDisplayNode().SetColor(200, 0, 200)
+      self.odd_extensions.SaveWithSceneOff()
+
+      # Create complete even_extension model:
+      part = createModelsLogic.CreateCylinder(self.EXTENSION_SEGMENT_LENGTH_MM, 1.0)
+      part.SetAndObserveTransformNodeID(half_seg_transform.GetID())
+      part.HardenTransform()
+      part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+      part.HardenTransform()
+      self.even_extensions.SetPolyDataConnection(part.GetPolyDataConnection())
+      part.Modified()
+      self.even_extensions.Modified()
+      slicer.mrmlScene.RemoveNode(part)
+
+      temp = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLModelNode")
+      temp.SetName("TEMP")
+      for i in range(1,nb_seg_even):
+        part = createModelsLogic.CreateCylinder(self.EXTENSION_SEGMENT_LENGTH_MM, 1.0)
+        part.SetAndObserveTransformNodeID(half_seg_transform.GetID())
+        part.HardenTransform()
+        part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+        part.HardenTransform()
+        for _ in range(i):
+          part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+          part.HardenTransform()
+          part.SetAndObserveTransformNodeID(full_seg_transform.GetID())
+          part.HardenTransform()
+
+        parameters = {}
+        parameters["Model1"] = part
+        parameters["Model2"] = self.even_extensions
+        parameters["ModelOutput"] = temp
+        mergeModels = slicer.modules.mergemodels
+        slicer.cli.runSync(mergeModels, None, parameters)
+
+        self.even_extensions.SetPolyDataConnection(temp.GetPolyDataConnection())
+        temp.Modified()
+        self.even_extensions.Modified()
+        slicer.mrmlScene.RemoveNode(part)
+
+      slicer.mrmlScene.RemoveNode(temp)
+
+      self.even_extensions.CreateDefaultDisplayNodes()
+      self.even_extensions.GetDisplayNode().SetVisibility(False)
+      self.even_extensions.GetDisplayNode().SetSliceIntersectionThickness(6)
+      self.even_extensions.GetDisplayNode().SetColor(0, 200, 200)
+      self.even_extensions.SaveWithSceneOff()
 
   def setupSurfaceErrorComputation(self):
     self.locator = vtk.vtkCellLocator()
