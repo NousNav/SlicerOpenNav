@@ -63,13 +63,17 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.workflow = Home.Workflow(
       'planning',
       nested=(
-        Home.Workflow('skin', setup=self.planningStep1, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1),
-        Home.Workflow('target', setup=self.planningStep2, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2),
-        Home.Workflow('trajectory', setup=self.planningStep3, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3),
-        Home.Workflow('landmarks', setup=self.planningStep4, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4),
+        Home.Workflow('skin', setup=self.planningStep1, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1, validate=self.validate),
+        Home.Workflow('target', setup=self.planningStep2, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2,
+          validate=self.validateTargetSegmentation),
+        Home.Workflow('trajectory', setup=self.planningStep3, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3,
+          validate=self.validateTrajectorySegmentation),
+        Home.Workflow('landmarks', setup=self.planningStep4, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4,
+          validate=self.validateDefineLandmarks),
       ),
       setup=self.enter,
       teardown=self.exit,
+      validate=self.validate
     )
 
   def setup(self):
@@ -146,6 +150,44 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     except:
       pass
 
+  def validateTargetSegmentation(self):
+    skin = self.logic.skin_segmentation
+    if skin is None:
+      return 'Please segment skin before proceeding'
+
+    # check for 3d representation
+    poly = vtk.vtkPolyData()
+    if not self.logic.skin_segmentation.GetClosedSurfaceRepresentation(self.logic.SKIN_SEGMENT, poly):
+      return 'Finalize skin segmentation before continuing'
+
+  def validateTrajectorySegmentation(self):
+    
+    error = self.validateTargetSegmentation()
+    if error:
+      return error
+    
+    if not self.logic.target_segmentation:
+      return 'Create target segmentation before continuing'
+
+     # check for 3d representation
+    poly = vtk.vtkPolyData()
+    if not self.logic.target_segmentation.GetClosedSurfaceRepresentation(self.logic.SEED_INSIDE_SEGMENT, poly):
+      return 'Finalize target segmentation before continuing'
+  
+  def validateDefineLandmarks(self):
+    error = self.validateTrajectorySegmentation()
+    if error:
+      return error
+    
+    trajectory = self.logic.trajectory_markup
+    if trajectory is None:
+      return 'Define trajectory before continuing'
+  
+  def validate(self):
+    volume = self.logic.master_volume
+    if volume is None:
+      return 'No master volume is set and no volume is active. Choose a master volume.'
+  
   def enter(self):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = True
@@ -569,6 +611,13 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if segmentID:
       self.editor_widget.setCurrentSegmentID(segmentID)
 
+  def isEffectActive(self):
+    effect = self.editor_widget.activeEffect()
+    if effect is None:
+      return False
+    else:
+      return True
+  
   def updateSkinSegmentationPreview(self, thresholdMin=30,thresholdMax=1000):
 
     """ Update the preview of skin segmentation effects. Be sure to use setEditorTargets

@@ -53,12 +53,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       'registration',
       nested=(
         Home.Workflow("patient-prep", setup=self.registrationStepPatientPrep, widget=self.ui.RegistrationStepPatientPrep),
-        Home.Workflow("tracking-prep", setup=self.registrationStepTrackingPrep, widget=self.ui.RegistrationStepTrackingPrep),
-        Home.Workflow("pointer-prep", setup=self.registrationStepPointerPrep, widget=self.ui.RegistrationStepPointerPrep),
-        Home.Workflow("align-camera", setup=self.registrationStepAlignCamera, widget=self.ui.RegistrationStepAlignCamera),
-        Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration, widget=self.ui.RegistrationStepPivotCalibration),
-        Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration, widget=self.ui.RegistrationStepSpinCalibration),
-        Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration, widget=self.ui.RegistrationStepLandmarkRegistration),
+        Home.Workflow("tracking-prep", setup=self.registrationStepTrackingPrep, widget=self.ui.RegistrationStepTrackingPrep, validate=self.trackerConnected),
+        Home.Workflow("pointer-prep", setup=self.registrationStepPointerPrep, widget=self.ui.RegistrationStepPointerPrep, validate=self.trackerConnected),
+        Home.Workflow("align-camera", setup=self.registrationStepAlignCamera, widget=self.ui.RegistrationStepAlignCamera, validate=self.trackerConnected),
+        Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration, widget=self.ui.RegistrationStepPivotCalibration,
+          validate=self.trackerConnected),
+        Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration, widget=self.ui.RegistrationStepSpinCalibration,
+          validate=self.trackerConnected),
+        Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration, widget=self.ui.RegistrationStepLandmarkRegistration,
+          validate=self.validateLandmarkRegistration),
         Home.Workflow(
           "verify-registration",
           setup=self.registrationStepVerifyRegistration,
@@ -68,6 +71,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       ),
       setup=self.enter,
       teardown=self.exit,
+      validate=self.validate,
     )
 
   def setup(self):
@@ -168,6 +172,27 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     qt.QTimer.singleShot(1000, self.startOptiTrack)
 
+  def validate(self):
+    landmarkLogic = slicer.modules.PlanningWidget.landmarkLogic
+
+    if not landmarkLogic.landmarks:
+      return 'Planning not complete'
+  
+    if landmarkLogic.landmarks.GetNumberOfControlPoints() < 3 :
+      return 'Planning not complete'
+
+  def trackerConnected(self):
+    if not self.optitrack.isRunning:
+      return 'Optitrack not running'
+
+  def validateLandmarkRegistration(self):
+    tipToPointer = slicer.util.getNode('TipToPointer')
+
+    # check if pivot transform is identity
+    identity = vtk.vtkTransform()
+    if slicer.vtkAddonMathUtilities.MatrixAreEqual(tipToPointer.GetMatrixTransformToParent(), identity.GetMatrix()):
+      return 'Perform pointer calibration before registering'
+  
   def startOptiTrack(self):
     if not self.optitrack.isRunning:
       # launch selector

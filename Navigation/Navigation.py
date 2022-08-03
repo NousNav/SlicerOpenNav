@@ -1,4 +1,5 @@
 import slicer
+import vtk
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,
@@ -44,6 +45,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       widget=self.parent,
       setup=self.enter,
       teardown=self.exit,
+      validate=self.validate
     )
 
   def setup(self):
@@ -61,6 +63,15 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Navigation")
 
+  def validate(self):
+    try:
+      transformNode = slicer.util.getNode('HeadFrameToImage')
+      identity = vtk.vtkTransform()
+      if slicer.vtkAddonMathUtilities.MatrixAreEqual(transformNode.GetMatrixTransformToParent(), identity.GetMatrix()):
+        return 'Registration not complete'
+    except:
+      return 'Registration not complete'
+  
   def enter(self):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False

@@ -245,10 +245,11 @@ class Step:
   See help(Workflow) for more information.
   """
 
-  def __init__(self, names, setups, teardowns):
+  def __init__(self, names, setups, teardowns, validates):
     self.names = names
     self.setups = setups
     self.teardowns = teardowns
+    self.validates = validates
     self.nextStep = None
     self.prevStep = None
 
@@ -256,8 +257,8 @@ class Step:
      return "step({})".format(",".join(self.names))
 
   @classmethod
-  def one(cls, name, setup, teardown):
-    return Step((name,), (setup,), (teardown,))
+  def one(cls, name, setup, teardown, validate):
+    return Step((name,), (setup,), (teardown,), (validate,))
 
   def concat(self, other):
     cls = type(self)
@@ -265,6 +266,7 @@ class Step:
       self.names + other.names,
       self.setups + other.setups,
       self.teardowns + other.teardowns,
+      self.validates + other.validates,
     )
 
   @staticmethod
@@ -300,6 +302,10 @@ class Step:
 
     yield from reversed(unique_teardowns)  # teardown in reverse order; context is a stack.
     yield from unique_setups
+
+  @classmethod
+  def validate(cls, dst):
+    yield from dst.validates
 
 
 class Workflow:
@@ -353,6 +359,7 @@ class Workflow:
     teardown=None,
     nested=(),
     engine=None,
+    validate=None,
   ):
     self.name = name
     self.widget = widget
@@ -360,6 +367,7 @@ class Workflow:
     self.teardown = teardown
     self.nested = nested
     self.engine = weakref.ref(engine) if engine else None
+    self.validate = validate
 
   def __del__(self):
     print(f"Deleting {self} ({self.name})" )
@@ -376,7 +384,7 @@ class Workflow:
     if self.engine:
       self.engine().gotoByName(name)
 
-  def flatten(self, stack):
+  def flatten(self, stack): # noqa: C901
     if self.widget:
       stack.addWidget(self.widget)
 
@@ -391,7 +399,13 @@ class Workflow:
         if self.teardown:
           self.teardown()
 
-      yield Step.one(self.name, setup, teardown)
+      def validate():
+        if self.validate:
+          return self.validate()
+        else:
+          return None
+
+      yield Step.one(self.name, setup, teardown, validate)
     else:
 
       for nested in self.nested:
@@ -406,9 +420,15 @@ class Workflow:
           if self.teardown:
             self.teardown()
 
+        def validate():
+          if self.validate:
+            return self.validate()
+          else:
+            return None
+
         nested.engine = self.engine if isinstance(self.engine, (weakref.ReferenceType, type(None))) else weakref.ref(self.engine)
 
-        this = Step.one(self.name, setup, teardown)
+        this = Step.one(self.name, setup, teardown, validate)
 
         for step in nested.flatten(stack):
           yield this.concat(step)
@@ -534,6 +554,31 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     self._currentName = self._currentNameCache
     self.goto(dst)
 
+  def _forceTabReselect(self):
+    """Reset the tab state if validation fails.
+    """
+    dst = self.current
+    primaryStepName = dst.names[1]
+    try:
+      primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
+      index = self._lookupPrimaryStepTabIndex(primaryStepName)
+      if index is not None:
+        print('primary tab index', index)
+        primaryTabBar.currentIndex = index
+    except (IndexError, RuntimeError):
+      pass
+
+    if len(dst.names) == 3:
+      secondaryStepName = dst.names[2]
+      try:
+        secondaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), f"{primaryStepName.capitalize()}TabBar")
+        index = self._lookupSecondaryStepTabIndex(primaryStepName, secondaryStepName)
+        if index is not None:
+          print('secondary tab index', index)
+          secondaryTabBar.currentIndex = index
+      except (IndexError, RuntimeError):
+        pass
+  
   def _lookupPrimaryStepTabIndex(self, primaryStepName):
     try:
       primaryTabBar = slicer.util.findChild(slicer.util.mainWindow(), 'PrimaryTabBar')
@@ -566,6 +611,16 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     if dst is None:
       return
 
+     # Get validation function for the destination
+    validations = Step.validate(dst)
+    for validation in validations:
+      if validation:
+        errorString = validation()
+        if errorString:
+          self._forceTabReselect()
+          slicer.util.errorDisplay(errorString)
+          return
+        
     src = self.current
     if src and (src.names == dst.names):
       return
