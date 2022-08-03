@@ -299,8 +299,24 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
     pass
 
 
+def showCentralWidget(name):
+  slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetImageFrame').visible = False
+  slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetLayoutFrame').visible = False
+  slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetVideoFrame').visible = False
+
+  if name == 'layout':
+    slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetLayoutFrame').visible = True
+
+  if name == 'image':
+    slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetImageFrame').visible = True
+
+  if name == 'video':
+    slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidgetVideoFrame').visible = True
+
+
 def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=False):
   deactivateReslicing()
+  showCentralWidget('layout')
   layoutManager = slicer.app.layoutManager()
   layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
   setSliceWidgetSlidersVisible(True)
@@ -312,6 +328,7 @@ def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=Fa
 
 def goToRegistrationCameraViewLayout():
   deactivateReslicing()
+  showCentralWidget('layout')
   layoutManager = slicer.app.layoutManager()
   layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
   setSliceWidgetSlidersVisible(False)
@@ -321,14 +338,22 @@ def goToRegistrationCameraViewLayout():
 
 def goToPictureLayout(image=None, sidePanelVisible=False):
   deactivateReslicing()
-  if image is not None:
-    slicer.util.setSliceViewerLayers(foreground=None, background=image, label=None, fit=True)
-  layoutManager = slicer.app.layoutManager()
-  layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
-  setSliceWidgetSlidersVisible(False)
+  showCentralWidget('image')
+  centralImageLabel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralImageLabel')
+  centralImageLabel.pixmap = image
   setMainPanelVisible(True)
   setSidePanelVisible(sidePanelVisible)
-  setSliceViewBackgroundColor('#434343')
+
+
+# Usage example:
+# NNUtils.goToVideoLayout(self.resourcePath('Videos/example.html'))
+def goToVideoLayout(videoURL, sidePanelVisible=False):
+  deactivateReslicing()
+  showCentralWidget('video')
+  centralVideoWidget = slicer.util.findChild(slicer.util.mainWindow(), 'CentralVideoWidget')
+  centralVideoWidget.setUrl('file:///' + videoURL.replace('\\', '/'))
+  setMainPanelVisible(True)
+  setSidePanelVisible(sidePanelVisible)
 
 
 def activateReslicing(driverNode):

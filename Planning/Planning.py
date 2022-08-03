@@ -197,7 +197,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    for widget in [modulePanel ,sidePanel]:
+    centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
+    for widget in [modulePanel ,sidePanel, centralPanel]:
       NNUtils.setCssClass(widget, "widget--color-light")
       NNUtils.polish(widget)
 

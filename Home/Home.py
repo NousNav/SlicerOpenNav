@@ -3,6 +3,7 @@ import weakref
 
 from collections import OrderedDict
 
+import ctk
 import qt
 import slicer
 
@@ -170,11 +171,35 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dockWidget = qt.QDockWidget(slicer.util.mainWindow())
     dockWidget.name = 'SidePanelDockWidget'
     self.SidePanelWidget = qt.QWidget(dockWidget)
+    width = 300
+    self.SidePanelWidget.setMinimumWidth(width)
+    self.SidePanelWidget.setMaximumWidth(width)
     self.SidePanelWidget.setLayout(qt.QVBoxLayout())
     self.SidePanelWidget.name = 'SidePanelWidget'
     dockWidget.setWidget(self.SidePanelWidget)
     dockWidget.setFeatures(dockWidget.NoDockWidgetFeatures)
     slicer.util.mainWindow().addDockWidget(qt.Qt.RightDockWidgetArea , dockWidget)
+
+    # Create the central image widget
+    centralWidget = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
+    centralWidgetImageFrame = qt.QFrame()
+    centralWidgetImageFrame.objectName = 'CentralWidgetImageFrame'
+    centralWidgetImageFrame.visible = False
+    centralWidgetImageFrame.setLayout(qt.QVBoxLayout())
+    centralWidget.layout().addWidget(centralWidgetImageFrame)
+    centralImageLabel = ctk.ctkThumbnailLabel()
+    centralImageLabel.objectName = 'CentralImageLabel'
+    centralWidgetImageFrame.layout().addWidget(centralImageLabel)
+
+    # Create the central video widget
+    centralWidgetVideoFrame = qt.QFrame()
+    centralWidgetVideoFrame.objectName = 'CentralWidgetVideoFrame'
+    centralWidgetVideoFrame.visible = False
+    centralWidgetVideoFrame.setLayout(qt.QVBoxLayout())
+    centralWidget.layout().addWidget(centralWidgetVideoFrame)
+    centralVideoWidget = slicer.qSlicerWebWidget()
+    centralVideoWidget.objectName = 'CentralVideoWidget'
+    centralWidgetVideoFrame.layout().addWidget(centralVideoWidget)
 
   def toggleStyle(self,visible):
     if visible:

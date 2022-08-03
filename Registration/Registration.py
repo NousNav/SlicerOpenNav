@@ -166,7 +166,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
-    for widget in [modulePanel, sidePanel]:
+    centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
+    for widget in [modulePanel, sidePanel, centralPanel]:
       NNUtils.setCssClass(widget, "widget--color-light")
       NNUtils.polish(widget)
 
@@ -287,7 +288,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPivotCalibration.png"], sidePanelVisible=True)
+    NNUtils.goToVideoLayout(self.resourcePath('Videos/pivot.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -362,7 +363,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepSpinCalibration.png"], sidePanelVisible=True)
+    NNUtils.goToVideoLayout(self.resourcePath('Videos/spin.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
     self.LandmarkSideWidget.visible = False
 
@@ -618,18 +619,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       "RegistrationStepTrackingPrep.png",
       "RegistrationStepPointerPrep.jpg",
       "RegistrationStepAlignCamera.png",
-      "RegistrationStepPivotCalibration.png",
-      "RegistrationStepSpinCalibration.png",
       ]
     self.pictures = {}
-    properties = {}
-    properties['show'] = False
-    properties['singleFile'] = True
     for image in pictureNames:
-      imageNode = slicer.util.loadVolume(self.resourcePath('Images/' + image), properties)
-      imageNode.SaveWithSceneOff()
-      imageNode.hidden = True
-      self.pictures[image] = imageNode
+      imagePixmap = qt.QPixmap(self.resourcePath('Images/' + image))
+      self.pictures[image] = imagePixmap
 
 
 class RegistrationLogic(ScriptedLoadableModuleLogic):
