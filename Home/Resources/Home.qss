@@ -18,13 +18,17 @@ QPushButton:pressed {
     background-color: #343434;
 }
 
+QMessageBox, QDialog#HardwareDialog * {
+  font-size: 20px;
+}
+
 /* Primary ToolBar */
 QTabBar#PrimaryTabBar::tab {
     border: none;
     border-top: 4px solid;
     border-bottom: 2px solid;
-    font-size: 14px;
-    height: 30px;
+    font-size: 20px;
+    height: 35px;
     margin: 0px;
     min-height: 20px;
     min-width: 200px;
@@ -66,7 +70,7 @@ QTabBar[cssClass~="secondary-tabbar"]::tab {
     height: 30px;
     margin: 0px;
     padding: 0px;
-    font: 10px;
+    font: 16px;
     background-color: #2a2a2a;
     min-width: 200px;
 }
@@ -151,7 +155,7 @@ QPushButton[cssClass~="bottom-toolbar__button"] {
     border-width: 2px;
     min-height: 40px;
     min-width: 180px;
-    font: 12px bold;
+    font: 20px bold;
     margin-right: 20px;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -187,7 +191,7 @@ QLabel#NousNavLabel {
     background-color: #121212;
     color: #5ac2c9;
     border-bottom: 2px solid #434343;
-    font: 14px;
+    font: 20px;
     padding: 2px;
 }
 

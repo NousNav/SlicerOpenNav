@@ -179,6 +179,11 @@ about the center
        </item>
        <item>
         <widget class="QPushButton" name="PivotCalibrationButton">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Start Pivot Calibration</string>
          </property>
@@ -226,6 +231,11 @@ about its axis
        </item>
        <item>
         <widget class="QPushButton" name="SpinCalibrationButton">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Start Spin Calibration</string>
          </property>
@@ -233,6 +243,11 @@ about its axis
        </item>
        <item>
         <widget class="QLabel" name="RMSLabelSpin">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -279,6 +294,11 @@ listed on the right.</string>
        </item>
        <item>
         <widget class="QPushButton" name="CollectButton">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
          <property name="text">
           <string>Collect point</string>
          </property>

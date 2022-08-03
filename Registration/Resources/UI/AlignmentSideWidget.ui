@@ -16,6 +16,11 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>Seen by camera</string>
      </property>
@@ -23,10 +28,8 @@
    </item>
    <item>
     <widget class="QTableWidget" name="SeenTableWidget">
-     <property name="font">
-      <font>
-       <pointsize>30</pointsize>
-      </font>
+     <property name="styleSheet">
+      <string notr="true">font-size: 20pt;color: rgb(0, 170, 0);</string>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
@@ -43,6 +46,11 @@
    </item>
    <item>
     <widget class="QLabel" name="label_2">
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>Not seen by camera</string>
      </property>
@@ -50,10 +58,8 @@
    </item>
    <item>
     <widget class="QTableWidget" name="UnseenTableWidget">
-     <property name="font">
-      <font>
-       <pointsize>30</pointsize>
-      </font>
+     <property name="styleSheet">
+      <string notr="true">font-size: 20pt; color: rgb(170, 0, 0);</string>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
