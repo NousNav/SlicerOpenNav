@@ -20,7 +20,7 @@ class Tracking(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Tracking"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Tools", "CameraNavigation"]
+    self.parent.dependencies = ["Tools"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """Module for tracking device handling and setup"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
