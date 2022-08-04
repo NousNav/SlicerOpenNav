@@ -148,6 +148,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         'Sound playback error',
       )
 
+    self.shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), slicer.util.mainWindow())
+    self.shortcut.connect("activated()", lambda: print('Shortcut not yet bound'))
+
   def cleanup(self):
     self.optitrack.shutdown()
     self.tools.setToolsStatusCheckEnabled(False)
@@ -159,6 +162,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
+    self.shortcut.disconnect("activated()")
 
   def enter(self):
     # Show current
@@ -249,6 +253,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.setToolsStatusCheckEnabled(False)
 
+    self.shortcut.disconnect("activated()")
+
   @NNUtils.backButton(text="Return to Planning")
   @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
@@ -257,6 +263,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
+
+    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -267,6 +275,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
+    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepPointerPrep(self):
@@ -275,6 +285,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
+
+    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -287,6 +299,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = True
 
     self.tools.setToolsStatusCheckEnabled(True)
+
+    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -307,6 +321,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the button actions
     self.disconnectAll(self.ui.PivotCalibrationButton)
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
+
+    self.shortcut.connect("activated()", lambda: self.onPivotCalibrationButton())
 
   def onPivotCalibrationButton(self):
     # setup pivot cal
@@ -356,6 +372,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.logic.pivot_calibration_passed = RMSE <= self.RMSE_PIVOT_OK
     self.advanceButton.enabled = self.logic.pivot_calibration_passed
+    if self.logic.pivot_calibration_passed:
+      self.shortcut.disconnect("activated()")
+      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
 
     if self.beep:
       self.beep.play()
@@ -385,6 +404,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the button actions
     self.disconnectAll(self.ui.SpinCalibrationButton)
     self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
+    
+    self.shortcut.connect("activated()", lambda: self.onSpinCalibrationButton())
 
   def onSpinCalibrationButton(self):
     # setup spin cal
@@ -435,6 +456,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.logic.spin_calibration_passed = RMSE <= self.RMSE_SPIN_OK
     self.advanceButton.enabled = self.logic.spin_calibration_passed
+    if self.logic.spin_calibration_passed:
+      self.shortcut.disconnect("activated()")
+      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
 
     if self.beep:
       self.beep.play()
@@ -469,6 +493,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the frame in stacked widget
     self.landmarks.startNextLandmark()
 
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", lambda: self.onCollectButton())
+
   @NNUtils.backButton(text="Redo registration")
   @NNUtils.advanceButton(text="Accept", enabled=False)
   def registrationStepVerifyRegistration(self):
@@ -496,6 +523,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.disconnectAll(self.ui.CollectButton)
 
     self.setRestartRegistrationButtonEnabled(True)
+
+    self.shortcut.disconnect("activated()")
+    if self.logic.registration_passed:
+      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    else:
+      self.shortcut.connect("activated()", lambda: self.restartRegistration())
 
   def setRestartRegistrationButtonEnabled(self, enabled):
     self.disconnectAll(self.backButton)
@@ -604,6 +637,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     transform.TransformPoint(samplePoint, outputPoint)
     # print(outputPoint)
     self.landmarks.collectLandmarkPosition(outputPoint)
+    if self.landmarks.landmarksFinished:
+      print("landmarks finished")
+      self.shortcut.disconnect("activated()")
+      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
     if self.beep:
       self.beep.play()
     
