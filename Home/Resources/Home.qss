@@ -155,7 +155,8 @@ QPushButton[cssClass~="bottom-toolbar__button"] {
     border-width: 2px;
     min-height: 40px;
     min-width: 180px;
-    font: 20px bold;
+    font-size: 20px;
+    font-weight: bold;
     margin-right: 20px;
     margin-top: 10px;
     margin-bottom: 10px;
