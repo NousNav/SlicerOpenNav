@@ -280,9 +280,7 @@ about its axis
           </font>
          </property>
          <property name="text">
-          <string>Lightly press the pointer tip on the patient’s skin for 
-each landmark 
-listed on the right.</string>
+          <string>Lightly press the pointer tip on the patient’s skin for each landmark listed above and click collect.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
