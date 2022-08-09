@@ -255,16 +255,18 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
     self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
   def planningStep3(self):
     self.tableManager.advanceButton = None
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=True, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
     self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
-    self.logic.target_segmentation.GetDisplayNode().SetVisibility(True)
-    self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.5)
+    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
   @NNUtils.backButton(text="Plan the Trajectory")
   @NNUtils.advanceButton(text="")

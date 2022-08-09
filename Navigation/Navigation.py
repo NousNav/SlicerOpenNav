@@ -95,7 +95,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
     planningLogic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
-    planningLogic.target_segmentation.GetDisplayNode().SetOpacity3D(0.5)
+    planningLogic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
     try:
       needleModel = slicer.util.getNode('PointerModel')
