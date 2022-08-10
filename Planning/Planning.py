@@ -256,7 +256,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
     self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
     self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
+    if self.logic.target_segmentation:
+      self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
