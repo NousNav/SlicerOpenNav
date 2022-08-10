@@ -7,23 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>222</width>
-    <height>73</height>
+    <height>89</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QCheckBox" name="CustomStyleCheckBox">
      <property name="text">
@@ -34,10 +24,30 @@
      </property>
     </widget>
    </item>
+   <item row="3" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QCheckBox" name="CustomUICheckBox">
      <property name="text">
       <string>Hide Slicer Interface</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="ValidateCheckBox">
+     <property name="text">
+      <string>Validate workflow steps</string>
      </property>
      <property name="checked">
       <bool>true</bool>

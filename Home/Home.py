@@ -74,6 +74,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     # Remove uneeded UI elements, add toolbars
+    self.validateStepsDefault = True
     self.modifyWindowUI()
 
     # Initialize navigation layout
@@ -103,6 +104,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     self.setCustomUIVisible(True)
+    self.setValidateSteps(self.validateStepsDefault)
 
     # Apply style
     self.applyApplicationStyle()
@@ -159,6 +161,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
     self.settingsUI.CustomUICheckBox.toggled.connect(self.setCustomUIVisible)
+    self.settingsUI.ValidateCheckBox.checked = self.validateStepsDefault
+    self.settingsUI.ValidateCheckBox.toggled.connect(self.setValidateSteps)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
 
@@ -213,6 +217,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setCustomUIVisible(self, visible):
     self.setSlicerUIVisible(not visible)
 
+  def setValidateSteps(self, validate):
+    self.logic.validateSteps = validate
+  
   def setSlicerUIVisible(self, visible):
     slicer.util.setDataProbeVisible(visible)
     slicer.util.setMenuBarsVisible(visible, ignore=['MainToolBar', 'ViewToolBar'])
@@ -508,6 +515,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     self.steps = list(info.flatten(stack))
     self.names = {step.names: step for step in self.steps}
+    self.validateSteps = True
 
     # build doubly-linked list
     for prevStep, nextStep in zip(self.steps[:-1], self.steps[1:]):
@@ -637,14 +645,15 @@ class HomeLogic(ScriptedLoadableModuleLogic):
       return
 
      # Get validation function for the destination
-    validations = Step.validate(dst)
-    for validation in validations:
-      if validation:
-        errorString = validation()
-        if errorString:
-          self._forceTabReselect()
-          slicer.util.errorDisplay(errorString)
-          return
+    if self.validateSteps:
+      validations = Step.validate(dst)
+      for validation in validations:
+        if validation:
+          errorString = validation()
+          if errorString:
+            self._forceTabReselect()
+            slicer.util.errorDisplay(errorString)
+            return
         
     src = self.current
     if src and (src.names == dst.names):
