@@ -13,7 +13,6 @@ set(MODULE_PYTHON_RESOURCES
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/HardwareDialog.ui
   Resources/UI/AlignmentSideWidget.ui
-  Resources/UI/LandmarkSideWidget.ui
   Resources/Images/RegistrationStepPatientPrep.png
   Resources/Images/RegistrationStepTrackingPrep.png
   Resources/Images/RegistrationStepPointerPrep.jpg

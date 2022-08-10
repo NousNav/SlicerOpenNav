@@ -79,14 +79,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.AlignmentSideWidget = slicer.util.loadUI(self.resourcePath('UI/AlignmentSideWidget.ui'))
     self.AlignmentSideWidgetui = slicer.util.childWidgetVariables(self.AlignmentSideWidget)
-    self.LandmarkSideWidget = slicer.util.loadUI(self.resourcePath('UI/LandmarkSideWidget.ui'))
-    self.LandmarkSideWidgetui = slicer.util.childWidgetVariables(self.LandmarkSideWidget)
 
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelWidget')
     sidePanel.layout().addWidget(self.AlignmentSideWidget)
-    sidePanel.layout().addWidget(self.LandmarkSideWidget)
     self.AlignmentSideWidget.visible = False
-    self.LandmarkSideWidget.visible = False
 
     # Create logic class
     self.logic = RegistrationLogic()
@@ -273,7 +269,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
-    self.LandmarkSideWidget.visible = False
 
     self.tools.showToolMarkers = True
 
@@ -290,7 +285,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToVideoLayout(self.resourcePath('Videos/pivot.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
-    self.LandmarkSideWidget.visible = False
 
     self.tools.setToolsStatusCheckEnabled(True)
 
@@ -365,7 +359,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToVideoLayout(self.resourcePath('Videos/spin.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
-    self.LandmarkSideWidget.visible = False
 
     self.tools.setToolsStatusCheckEnabled(True)
 
@@ -419,8 +412,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def registrationStepLandmarkRegistration(self):
     # Set the layout and display an image
     NNUtils.goToRegistrationCameraViewLayout()
-    self.AlignmentSideWidget.visible = False
-    self.LandmarkSideWidget.visible = True
+    self.AlignmentSideWidget.visible = True
 
     # Clear previous registration
     if self.transformNode:
@@ -461,7 +453,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.setToolsStatusCheckEnabled(True)
 
     self.AlignmentSideWidget.visible = False
-    self.LandmarkSideWidget.visible = False
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
@@ -597,7 +588,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.optitrack = self.optitrack
 
   def setupLandmarkTables(self):
-    self.landmarks = Landmarks(self.LandmarkSideWidgetui.LandmarkTableWidget, self.moduleName)
+    self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName)
     # self.landmarks.addLandmark('Inion', [-1.912, 112.455, -151.242])
     # self.landmarks.addLandmark('Left tragus', [-73.714, 189.367, -162.215])
     self.landmarks.addLandmark('Left outer canthus', [-46.945, 256.678, -150.139])
