@@ -152,6 +152,11 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
       self.advanceButton.enabled = True
 
   def _initTable(self):
+
+    self.table.horizontalHeader().setSectionResizeMode(0, qt.QHeaderView.ResizeToContents)
+    self.table.horizontalHeader().setSectionResizeMode(1, qt.QHeaderView.Stretch)
+    self.table.horizontalHeader().setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+
     self.table.clear()
 
     self.table.setFrameStyle(qt.QFrame.NoFrame)
