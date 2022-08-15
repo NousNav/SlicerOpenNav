@@ -228,7 +228,7 @@ reference array</string>
           </font>
          </property>
          <property name="text">
-          <string>Point the camera at the reference array and verify it can see both the pointer and reference array in the square on the right.</string>
+          <string>Point the camera at the reference array and verify it can see both the pointer and reference array in menu on the right.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -339,7 +339,7 @@ about its axis
           </font>
          </property>
          <property name="text">
-          <string>Place tip of pointer in the center divot on the reference array and rotate the pointer about its axis.</string>
+          <string>Place tip of pointer in the center divot on the reference array and spin the pointer about its axis.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
