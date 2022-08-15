@@ -120,5 +120,5 @@ class Tools:
     row = table.rowCount
     table.insertRow(row)
     nameLabel = qt.QLabel(tool.name)
-    nameLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
+    nameLabel.setAlignment(qt.Qt.AlignVCenter)
     table.setCellWidget(row, 0, nameLabel)
