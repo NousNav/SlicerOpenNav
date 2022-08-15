@@ -429,28 +429,22 @@ about its axis
          <attribute name="horizontalHeaderVisible">
           <bool>false</bool>
          </attribute>
-         <attribute name="horizontalHeaderMinimumSectionSize">
-          <number>32</number>
-         </attribute>
-         <attribute name="horizontalHeaderStretchLastSection">
-          <bool>true</bool>
-         </attribute>
          <attribute name="verticalHeaderVisible">
           <bool>false</bool>
          </attribute>
          <column>
           <property name="text">
-           <string>StatusLabel</string>
+           <string>0</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>Name</string>
+           <string>1</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>Button</string>
+           <string>2</string>
           </property>
          </column>
         </widget>

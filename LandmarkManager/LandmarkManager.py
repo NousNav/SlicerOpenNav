@@ -251,11 +251,13 @@ class Landmarks:
     self.moduleName = moduleName
     self.tableWidget = tableWidget
     self.currentLandmark = None
-    self.tableWidget.setColumnWidth(0, 32)
     self.tableWidget.setShowGrid(False)
     self.tableWidget.setFocusPolicy(qt.Qt.NoFocus)
     self.tableWidget.setSelectionMode(qt.QAbstractItemView.NoSelection)
     self.tableWidget.setFrameStyle(qt.QFrame.NoFrame)
+    self.tableWidget.horizontalHeader().setSectionResizeMode(0, qt.QHeaderView.ResizeToContents)
+    self.tableWidget.horizontalHeader().setSectionResizeMode(1, qt.QHeaderView.Stretch)
+    self.tableWidget.horizontalHeader().setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
 
     self.landmarksNeeded = 3
     self.landmarksCollected = 0
@@ -316,7 +318,6 @@ class Landmarks:
     iconLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
     iconLabel.setPixmap(self.notStartedIcon.pixmap(16, 16))
     nameLabel = qt.QLabel(landmark.name)
-    nameLabel.minimumWidth = 200
     nameLabel.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
     button = qt.QPushButton('')
     button.enabled = False
@@ -327,8 +328,6 @@ class Landmarks:
     self.tableWidget.setCellWidget(row, 0, iconLabel)
     self.tableWidget.setCellWidget(row, 1, nameLabel)
     self.tableWidget.setCellWidget(row, 2, button)
-    self.tableWidget.resizeRowToContents(row)
-    self.tableWidget.resizeColumnToContents(1)
 
   def updateLandmarksDisplay(self):
 
