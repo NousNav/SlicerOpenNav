@@ -267,14 +267,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.stepSetup()
 
     # set the layout and display an image
-    NNUtils.goToRegistrationCameraViewLayout()
+    NNUtils.goToPictureLayout(self.pictures["RegistrationStepAlignCamera.png"], sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
 
-    self.tools.showToolMarkers = True
-
     self.tools.setToolsStatusCheckEnabled(True)
-
-    qt.QTimer.singleShot(1000, lambda: NNUtils.centerCam())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
