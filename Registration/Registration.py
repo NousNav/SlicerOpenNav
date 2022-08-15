@@ -1,3 +1,6 @@
+import math
+import re
+
 import qt
 import slicer
 import vtk
@@ -74,6 +77,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       validate=self.validate,
     )
 
+    self.RMSE_PIVOT_GOOD = 0.5
+    self.RMSE_PIVOT_OK = 0.8
+    self.RMSE_SPIN_GOOD = 1.
+    self.RMSE_SPIN_OK = 5.
+    self.RMSE_REGISTRATION_GOOD = 2.
+    self.RMSE_REGISTRATION_OK = 4.
+
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -140,6 +150,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         'Sound playback not supported on this platform. Audio feedback is disabled.',
         'Sound playback error',
       )
+
+    self.pivotCalibrationOK = False
+    self.spinCalibrationOK = False
+    self.registrationOK = False
 
   def cleanup(self):
     self.optitrack.shutdown()
@@ -284,8 +298,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.setToolsStatusCheckEnabled(True)
 
-    self.ui.RMSLabel.text = ''
     self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
+
+    self.advanceButton.enabled = self.pivotCalibrationOK
 
     # set the button actions
     self.disconnectAll(self.ui.PivotCalibrationButton)
@@ -322,9 +337,28 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     tipToPointer.SetMatrixTransformToParent(outputMatrix)
 
     RMSE = self.pivotLogic.GetPivotRMSE()
+    RMSE_label = f"{RMSE:1.2f}"
     self.pivotLogic.ClearToolToReferenceMatrices()
 
-    self.ui.RMSLabel.text = 'RMS Error: ' + str(RMSE)
+    results = [f"Calibration accuracy: {RMSE_label} mm"]
+    if RMSE < self.RMSE_PIVOT_GOOD:
+      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
+      results.append("Results are in the optimal range to proceed.")
+      self.pivotCalibrationOK = True
+      self.advanceButton.enabled = True
+    elif  RMSE < self.RMSE_PIVOT_OK:
+      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,170,0)")
+      results.append("Results are outside of the optimal range. Consider redoing the calibration.")
+      self.pivotCalibrationOK = True
+      self.advanceButton.enabled = True
+    else:
+      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
+      results.append("Results too poor. Calibration  must be redone before proceeding.")
+      self.pivotCalibrationOK = False
+      self.advanceButton.enabled = False
+
+    self.ui.RMSLabelPivot.wordWrap = True
+    self.ui.RMSLabelPivot.text = "\n".join(results)
 
     if self.beep:
       self.beep.play()
@@ -338,13 +372,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       tipToPointer.SaveWithSceneOff()
     properties = {}
     properties['show'] = False
-    createModelsLogic = slicer.modules.createmodels.logic()
-    self.needleModel = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
-    self.needleModel.SetName('PointerModel')
-    self.needleModel.GetDisplayNode().SetColor(255,255,0)
-    self.needleModel.GetDisplayNode().SetVisibility(False)
+    self.needleModel = slicer.util.getNode("PointerModel")
     self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
-    self.needleModel.SaveWithSceneOff()
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -358,7 +387,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.setToolsStatusCheckEnabled(True)
 
-    self.ui.RMSLabelSpin.text = ''
+    self.advanceButton.enabled = self.spinCalibrationOK
+
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
     # set the button actions
@@ -395,10 +425,30 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
     tipToPointer.SetMatrixTransformToParent(outputMatrix)
 
-    RMSE = self.pivotLogic.GetSpinRMSE()
-    self.pivotLogic.ClearToolToReferenceMatrices()
+    RMSE = math.degrees(self.pivotLogic.GetSpinRMSE())
 
-    self.ui.RMSLabelSpin.text = 'RMS Error: ' + str(RMSE)
+    self.pivotLogic.ClearToolToReferenceMatrices()
+    RMSE_label = f"{RMSE:1.2f}"
+
+    results = [f"Spin calibration accuracy: {RMSE_label} degrees"]
+    if RMSE < self.RMSE_SPIN_GOOD:
+      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
+      results.append("Results are in the optimal range to proceed.")
+      self.spinCalibrationOK = True
+      self.advanceButton.enabled = True
+    elif  RMSE < self.RMSE_SPIN_OK:
+      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,170,0)")
+      results.append("Results are outside of the optimal range. Consider redoing the calibration.")
+      self.spinCalibrationOK = True
+      self.advanceButton.enabled = True
+    else:
+      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
+      results.append("Results too poor. Calibration  must be redone before proceeding.")
+      self.spinCalibrationOK = False
+      self.advanceButton.enabled = False
+
+    self.ui.RMSLabelSpin.wordWrap = True
+    self.ui.RMSLabelSpin.text = "\n".join(results)
 
     if self.beep:
       self.beep.play()
@@ -455,6 +505,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     self.fiducialOnlyRegistration()
+
+    self.advanceButton.enabled = self.registrationOK
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
@@ -532,6 +584,43 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       planningLogic.skin_segmentation.SetDisplayVisibility(True)
       planningLogic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
+    statusMessage = fiducialRegNode.GetCalibrationStatusMessage()
+    print("Registration output message:" + statusMessage)
+
+    regex = re.compile(r"[0-9]+\.[0-9]+")
+    search = regex.search(statusMessage)
+
+    if search is not None:
+      match = search.group()
+
+      RMSE = float(match)
+      RMSE_label = f"{RMSE:1.2f}"
+
+      results = [f"Registration accuracy: {RMSE_label} mm"]
+      if RMSE < self.RMSE_REGISTRATION_GOOD:
+        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(0,170,0)")
+        results.append("Results are in the optimal range to proceed.")
+        self.registrationOK = True
+        self.advanceButton.enabled = True
+      elif RMSE < self.RMSE_REGISTRATION_OK:
+        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,170,0)")
+        results.append("Results are outside of the optimal range. Consider redoing the registration.")
+        self.registrationOK = True
+        self.advanceButton.enabled = True
+      else:
+        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
+        results.append("Results too poor. Registration must be redone before proceeding.")
+        self.registrationOK = False
+        self.advanceButton.enabled = False
+    else:
+      self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
+      results = ["Registration error."]
+      self.registrationOK = False
+      self.advanceButton.enabled = False
+
+    self.ui.RMSLabelRegistration.wordWrap = True
+    self.ui.RMSLabelRegistration.text = "\n".join(results)
+
   def onCollectButton(self):
     print('Attempt collection')
 
@@ -565,6 +654,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       print("No previous registration")
 
   def setupToolTables(self):
+
+    createModelsLogic = slicer.modules.createmodels.logic()
+    self.needleModel = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
+    self.needleModel.GetDisplayNode().SetColor(220, 220, 0)
+    self.needleModel.GetDisplayNode().SetVisibility(False)
+    self.needleModel.SetName("PointerModel")
+    self.needleModel.SaveWithSceneOff()
+
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
     node.AddFiducial(0,0,0, 'Pointer')

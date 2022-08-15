@@ -94,15 +94,23 @@ class Tools:
     self.seenTableWidget.setRowCount(0)
     self.unseenTableWidget.setRowCount(0)
 
+    anyUnseen = False
     for tool in self.tools:
       if tool.state == ToolState.SEEN:
         self.addToolToTable(tool, self.seenTableWidget)
         if tool.displayGeometry:
           tool.displayGeometry.GetDisplayNode().SetVisibility(self.showToolMarkers)
       else:
+        anyUnseen = True
         self.addToolToTable(tool, self.unseenTableWidget)
         if tool.displayGeometry:
           tool.displayGeometry.GetDisplayNode().SetVisibility(False)
+
+    pointerModel = slicer.util.getNode("PointerModel")
+    if anyUnseen:
+      pointerModel.GetDisplayNode().SetColor(220, 0, 0)
+    else:
+      pointerModel.GetDisplayNode().SetColor(220, 220, 0)
 
     self.seenTableWidget.resizeColumnToContents(0)
     self.seenTableWidget.setShowGrid(False)
