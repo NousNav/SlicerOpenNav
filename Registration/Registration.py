@@ -83,6 +83,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_SPIN_OK = 5.
     self.RMSE_REGISTRATION_GOOD = 2.
     self.RMSE_REGISTRATION_OK = 4.
+    self.RMSE_REGISTRATION_ERROR = 99.
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -344,21 +345,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if RMSE < self.RMSE_PIVOT_GOOD:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the optimal range to proceed.")
-      self.pivotCalibrationOK = True
-      self.advanceButton.enabled = True
     elif  RMSE < self.RMSE_PIVOT_OK:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,170,0)")
       results.append("Results are outside of the optimal range. Consider redoing the calibration.")
-      self.pivotCalibrationOK = True
-      self.advanceButton.enabled = True
     else:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
       results.append("Results too poor. Calibration  must be redone before proceeding.")
-      self.pivotCalibrationOK = False
-      self.advanceButton.enabled = False
 
     self.ui.RMSLabelPivot.wordWrap = True
     self.ui.RMSLabelPivot.text = "\n".join(results)
+
+    self.pivotCalibrationOK = RMSE <= self.RMSE_PIVOT_OK
+    self.advanceButton.enabled = self.pivotCalibrationOK
 
     if self.beep:
       self.beep.play()
@@ -434,21 +432,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if RMSE < self.RMSE_SPIN_GOOD:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the optimal range to proceed.")
-      self.spinCalibrationOK = True
-      self.advanceButton.enabled = True
     elif  RMSE < self.RMSE_SPIN_OK:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,170,0)")
       results.append("Results are outside of the optimal range. Consider redoing the calibration.")
-      self.spinCalibrationOK = True
-      self.advanceButton.enabled = True
     else:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
       results.append("Results too poor. Calibration  must be redone before proceeding.")
-      self.spinCalibrationOK = False
-      self.advanceButton.enabled = False
 
     self.ui.RMSLabelSpin.wordWrap = True
     self.ui.RMSLabelSpin.text = "\n".join(results)
+
+    self.spinCalibrationOK = RMSE <= self.RMSE_SPIN_OK
+    self.advanceButton.enabled = self.spinCalibrationOK
 
     if self.beep:
       self.beep.play()
@@ -600,26 +595,22 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       if RMSE < self.RMSE_REGISTRATION_GOOD:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(0,170,0)")
         results.append("Results are in the optimal range to proceed.")
-        self.registrationOK = True
-        self.advanceButton.enabled = True
       elif RMSE < self.RMSE_REGISTRATION_OK:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,170,0)")
         results.append("Results are outside of the optimal range. Consider redoing the registration.")
-        self.registrationOK = True
-        self.advanceButton.enabled = True
       else:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
         results.append("Results too poor. Registration must be redone before proceeding.")
-        self.registrationOK = False
-        self.advanceButton.enabled = False
     else:
+      RMSE = self.RMSE_REGISTRATION_ERROR
       self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
       results = ["Registration error."]
-      self.registrationOK = False
-      self.advanceButton.enabled = False
 
     self.ui.RMSLabelRegistration.wordWrap = True
     self.ui.RMSLabelRegistration.text = "\n".join(results)
+
+    self.registrationOK = RMSE <= self.RMSE_REGISTRATION_OK
+    self.advanceButton.enabled = self.registrationOK
 
   def onCollectButton(self):
     print('Attempt collection')
