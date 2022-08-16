@@ -71,6 +71,9 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
         return 'Registration not complete'
     except:
       return 'Registration not complete'
+
+    if not slicer.modules.RegistrationWidget.registrationOK:
+      return 'Please redo registration to improve results'
   
   def enter(self):
     # Show current

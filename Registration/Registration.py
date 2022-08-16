@@ -204,6 +204,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     identity = vtk.vtkTransform()
     if slicer.vtkAddonMathUtilities.MatrixAreEqual(tipToPointer.GetMatrixTransformToParent(), identity.GetMatrix()):
       return 'Perform pointer calibration before registering'
+
+    # check if pivot and spin calibration is good
+    if not (self.pivotCalibrationOK and self.spinCalibrationOK):
+      return 'Improve pointer calibration before registering'
   
   def startOptiTrack(self):
     if not self.optitrack.isRunning:
