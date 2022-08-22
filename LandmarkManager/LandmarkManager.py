@@ -67,15 +67,12 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
 
   landmarkIndexes: Dict[str, int] = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
-  landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', class_='vtkMRMLMarkupsFiducialNode')
+  landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', default=None)
 
   def __init__(self):
     super().__init__()
 
     self.rebuildMaps()
-    self.landmarks.CreateDefaultDisplayNodes()
-
-    self.reconnect()
 
   def reconnect(self):
     self.removeObservers()
@@ -101,14 +98,26 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
     landmarks = self.landmarks
     indexes = {}
 
-    for idx in range(landmarks.GetNumberOfControlPoints()):
-      label = landmarks.GetNthControlPointLabel(idx)
-      status = landmarks.GetNthControlPointPositionStatus(idx)
+    if landmarks is not None:
+      for idx in range(landmarks.GetNumberOfControlPoints()):
+        label = landmarks.GetNthControlPointLabel(idx)
+        status = landmarks.GetNthControlPointPositionStatus(idx)
 
-      if status == landmarks.PositionDefined:
-        indexes[label] = idx
+        if status == landmarks.PositionDefined:
+          indexes[label] = idx
 
     self.landmarkIndexes = indexes
+
+  def setupPlanningLandmarksNode(self):
+    if not self.landmarks:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLMarkupsFiducialNode",
+        "PLANNING_LANDMARKS",
+      )
+      node.CreateDefaultDisplayNodes()
+      self.landmarks = node
+    self.rebuildMaps()
+    self.reconnect()
 
 
 class PlanningLandmarkTableManager(VTKObservationMixin):
@@ -180,8 +189,6 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
       self.table.setCellWidget(row, 2, button)
 
     self.updateLandmarksDisplay()
-
-    self.reconnect()
 
   def reconnect(self):
     self.removeObservers()

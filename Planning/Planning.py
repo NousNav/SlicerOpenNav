@@ -144,12 +144,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.planningTabBar.visible = False
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
-    
-    try:
-      self.landmarkLogic.landmarks.SetDisplayVisibility(False)
-    except:
-      pass
-
+   
   def validateTargetSegmentation(self):
     skin = self.logic.skin_segmentation
     if skin is None:
@@ -222,8 +217,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.skinThresholdSlider.setMinimum( min - window )
     self.ui.skinThresholdSlider.setMaximum( max + window )
     self.ui.skinThresholdSlider.setValue( min + window / 10 )
-
-    self.landmarkLogic.landmarks.SetDisplayVisibility(True)
+    if self.landmarkLogic.landmarks:
+      self.landmarkLogic.landmarks.SetDisplayVisibility(True)
 
   def disconnectAll(self, widget):
     try:
@@ -238,7 +233,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=False)
     self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
-    self.landmarkLogic.landmarks.SetDisplayVisibility(False)
 
     self.advanceButton.enabled = self.logic.master_volume is not None
 
@@ -273,15 +267,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="")
   def planningStep4(self):
 
+    self.landmarkLogic.setupPlanningLandmarksNode()
+    self.tableManager.reconnect()
+    self.tableManager.updateLandmarksDisplay()
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=True)
 
     self.tableManager.advanceButton = self.advanceButton
-    try:
-      landmarks = slicer.util.getNode('LandmarkDefinitions')
-      landmarks.SetDisplayVisibility(True)
-    except:
-      pass
-
+   
   def updateSkinSegmentationPreview(self):
     volume = self.logic.master_volume
     if not volume:
