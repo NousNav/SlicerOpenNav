@@ -135,10 +135,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.preloadPictures()
     self.setupToolTables()
     self.setupLandmarkTables()
-    self.setupPivotCalibration()
 
     self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
-    self.transformNode = None
 
     self.advanceButton.enabled = False
 
@@ -151,10 +149,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         'Sound playback not supported on this platform. Audio feedback is disabled.',
         'Sound playback error',
       )
-
-    self.pivotCalibrationOK = False
-    self.spinCalibrationOK = False
-    self.registrationOK = False
 
   def cleanup(self):
     self.optitrack.shutdown()
@@ -182,6 +176,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       NNUtils.setCssClass(widget, "widget--color-light")
       NNUtils.polish(widget)
 
+    self.setupPivotCalibration()
+
     qt.QTimer.singleShot(1000, self.startOptiTrack)
 
   def validate(self):
@@ -198,15 +194,16 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Optitrack not running'
 
   def validateLandmarkRegistration(self):
-    tipToPointer = slicer.util.getNode('TipToPointer')
+    if not self.logic.pointer_calibration:
+      return 'Perform pointer calibration before registering'
 
     # check if pivot transform is identity
     identity = vtk.vtkTransform()
-    if slicer.vtkAddonMathUtilities.MatrixAreEqual(tipToPointer.GetMatrixTransformToParent(), identity.GetMatrix()):
+    if slicer.vtkAddonMathUtilities.MatrixAreEqual(self.logic.pointer_calibration.GetMatrixTransformToParent(), identity.GetMatrix()):
       return 'Perform pointer calibration before registering'
 
     # check if pivot and spin calibration is good
-    if not (self.pivotCalibrationOK and self.spinCalibrationOK):
+    if not (self.logic.pivot_calibration_passed and self.logic.spin_calibration_passed):
       return 'Improve pointer calibration before registering'
   
   def startOptiTrack(self):
@@ -218,6 +215,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.hardwareSelector.open()
     else:
       self.advanceButton.enabled = True
+      self.logic.reconnect()
 
   def launchOptiTrack(self):
 
@@ -235,6 +233,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.app.processEvents()
     test.deleteLater()
     self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath(filename))
+    self.logic.reconnect()
     test.hide()
 
     if not self.optitrack.isRunning:
@@ -242,6 +241,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     else:
       self.advanceButton.enabled = True
       print('enable advance')
+      qt.QTimer.singleShot(10, self.logic.reconnect)
 
   def stepSetup(self):
     self.tools.showToolMarkers = False
@@ -305,7 +305,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.ui.PivotCalibrationButton.text = 'Start Pivot Calibration'
 
-    self.advanceButton.enabled = self.pivotCalibrationOK
+    self.advanceButton.enabled = self.logic.pivot_calibration_passed
 
     # set the button actions
     self.disconnectAll(self.ui.PivotCalibrationButton)
@@ -313,16 +313,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onPivotCalibrationButton(self):
     # setup pivot cal
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-      self.pivotLogic.SetAndObserveTransformNode(pointerToHeadFrame)
-      tipToPointer = slicer.util.getNode('TipToPointer')
-      tipToPointer.SetAndObserveTransformNodeID(pointerToHeadFrame.GetID())
-      print('Starting pre-record period')
-      self.ui.PivotCalibrationButton.text = 'Pivot calibration in progress'
-      qt.QTimer.singleShot(5000, self.startPivotCalibration)
-    except:
-      pass
+    self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
+    self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
+    print('Starting pre-record period')
+    self.ui.PivotCalibrationButton.text = 'Pivot calibration in progress'
+    qt.QTimer.singleShot(5000, self.startPivotCalibration)
 
   def startPivotCalibration(self):
     self.pivotLogic.SetRecordingState(True)
@@ -331,15 +326,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def endPivotCalibration(self):
     outputMatrix = vtk.vtkMatrix4x4()
-    tipToPointer = slicer.util.getNode('TipToPointer')
-    tipToPointer.GetMatrixTransformToParent(outputMatrix)
+    self.logic.pointer_calibration.GetMatrixTransformToParent(outputMatrix)
     self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
     self.ui.PivotCalibrationButton.text = 'Pivot calibration complete'
     self.pivotLogic.ComputePivotCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
-    tipToPointer.SetMatrixTransformToParent(outputMatrix)
+    self.logic.pointer_calibration.SetMatrixTransformToParent(outputMatrix)
 
     RMSE = self.pivotLogic.GetPivotRMSE()
     RMSE_label = f"{RMSE:1.2f}"
@@ -359,23 +353,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelPivot.wordWrap = True
     self.ui.RMSLabelPivot.text = "\n".join(results)
 
-    self.pivotCalibrationOK = RMSE <= self.RMSE_PIVOT_OK
-    self.advanceButton.enabled = self.pivotCalibrationOK
+    self.logic.pivot_calibration_passed = RMSE <= self.RMSE_PIVOT_OK
+    self.advanceButton.enabled = self.logic.pivot_calibration_passed
 
     if self.beep:
       self.beep.play()
-
+ 
   def setupPivotCalibration(self):
     # create output transform
-    try:
-      tipToPointer = slicer.util.getNode('TipToPointer')
-    except:
-      tipToPointer = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLinearTransformNode', 'TipToPointer')
-      tipToPointer.SaveWithSceneOff()
-    properties = {}
-    properties['show'] = False
-    self.needleModel = slicer.util.getNode("PointerModel")
-    self.needleModel.SetAndObserveTransformNodeID(tipToPointer.GetID())
+    
+    self.logic.setupPointerCalibration()
+    self.logic.needle_model.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -389,7 +377,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.setToolsStatusCheckEnabled(True)
 
-    self.advanceButton.enabled = self.spinCalibrationOK
+    self.advanceButton.enabled = self.logic.spin_calibration_passed
 
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
@@ -399,17 +387,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onSpinCalibrationButton(self):
     # setup spin cal
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-      self.pivotLogic.SetAndObserveTransformNode(pointerToHeadFrame)
-      tipToPointer = slicer.util.getNode('TipToPointer')
-      tipToPointer.SetAndObserveTransformNodeID(pointerToHeadFrame.GetID())
-      print('Starting pre-record period')
-      self.ui.SpinCalibrationButton.text = 'Spin calibration in progress'
-      qt.QTimer.singleShot(5000, self.startSpinCalibration)
-    except:
-      pass
-
+    self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
+    self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
+    print('Starting pre-record period')
+    self.ui.SpinCalibrationButton.text = 'Spin calibration in progress'
+    qt.QTimer.singleShot(5000, self.startSpinCalibration)
+    
   def startSpinCalibration(self):
     self.pivotLogic.SetRecordingState(True)
     print('Start recording')
@@ -417,15 +400,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def endSpinCalibration(self):
     outputMatrix = vtk.vtkMatrix4x4()
-    tipToPointer = slicer.util.getNode('TipToPointer')
-    tipToPointer.GetMatrixTransformToParent(outputMatrix)
+    self.logic.pointer_calibration.GetMatrixTransformToParent(outputMatrix)
     self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
     self.ui.SpinCalibrationButton.text = 'Spin calibration complete'
     self.pivotLogic.ComputeSpinCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
-    tipToPointer.SetMatrixTransformToParent(outputMatrix)
+    self.logic.pointer_calibration.SetMatrixTransformToParent(outputMatrix)
 
     RMSE = math.degrees(self.pivotLogic.GetSpinRMSE())
 
@@ -446,8 +428,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelSpin.wordWrap = True
     self.ui.RMSLabelSpin.text = "\n".join(results)
 
-    self.spinCalibrationOK = RMSE <= self.RMSE_SPIN_OK
-    self.advanceButton.enabled = self.spinCalibrationOK
+    self.logic.spin_calibration_passed = RMSE <= self.RMSE_SPIN_OK
+    self.advanceButton.enabled = self.logic.spin_calibration_passed
 
     if self.beep:
       self.beep.play()
@@ -460,9 +442,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.AlignmentSideWidget.visible = True
 
     # Clear previous registration
-    if self.transformNode:
-      slicer.mrmlScene.RemoveNode(self.transformNode)
-      self.transformNode = None
+    self.logic.clearRegistrationTransform()
     self.landmarks.clearLandmarks()
 
     self.tools.setToolsStatusCheckEnabled(True)
@@ -505,7 +485,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.fiducialOnlyRegistration()
 
-    self.advanceButton.enabled = self.registrationOK
+    self.advanceButton.enabled = self.logic.registration_passed
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
@@ -522,8 +502,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def registrationStepAcceptRegistration(self):
     self.setRestartRegistrationButtonEnabled(False)
-    self.needleModel.GetDisplayNode().SetVisibility(False)
-    self.needleModel.GetDisplayNode().SetVisibility2D(False)
+    self.logic.needle_model.GetDisplayNode().SetVisibility(False)
+    self.logic.needle_model.GetDisplayNode().SetVisibility2D(False)
 
     planningLogic = slicer.modules.PlanningWidget.logic
     planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False)
@@ -537,12 +517,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
   def fiducialOnlyRegistration(self):
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-    except:
-      print('Nodes missing, tracker not connected!!!')
-      pointerToHeadFrame = None
-
+    
     fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
     toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
     defs = slicer.modules.PlanningWidget.landmarkLogic
@@ -552,27 +527,22 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
 
     # Create transform node to hold the computed registration result
-    try:
-      self.transformNode = slicer.util.getNode('HeadFrameToImage')
-    except:
-      self.transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLinearTransformNode")
-      self.transformNode.SetName("HeadFrameToImage")
-      self.transformNode.SaveWithSceneOff()
+    self.logic.setupRegistrationTransform()
 
     # Create your fiducial wizard node and set the input parameters
     fiducialRegNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')
 
     fiducialRegNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
     fiducialRegNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
-    fiducialRegNode.SetOutputTransformNodeId(self.transformNode.GetID())
+    fiducialRegNode.SetOutputTransformNodeId(self.logic.registration_transform.GetID())
     fiducialRegNode.SetRegistrationModeToSimilarity()
 
-    fromMarkupsNode.SetAndObserveTransformNodeID(self.transformNode.GetID())
-    self.needleModel.GetDisplayNode().SetVisibility(True)
-    self.needleModel.GetDisplayNode().SetVisibility2D(True)
-    self.needleModel.GetDisplayNode().SetSliceIntersectionThickness(6)
-    if pointerToHeadFrame:
-      pointerToHeadFrame.SetAndObserveTransformNodeID(self.transformNode.GetID())
+    fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
+    self.logic.needle_model.GetDisplayNode().SetVisibility(True)
+    self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
+    self.logic.needle_model.GetDisplayNode().SetSliceIntersectionThickness(6)
+    if self.logic.pointer_to_headframe:
+      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
 
     slicer.mrmlScene.RemoveNode(fromMarkupsNode)
     slicer.mrmlScene.RemoveNode(toMarkupsNode)
@@ -613,50 +583,37 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelRegistration.wordWrap = True
     self.ui.RMSLabelRegistration.text = "\n".join(results)
 
-    self.registrationOK = RMSE <= self.RMSE_REGISTRATION_OK
-    self.advanceButton.enabled = self.registrationOK
+    self.logic.registration_passed = RMSE <= self.RMSE_REGISTRATION_OK
+    self.advanceButton.enabled = self.logic.registration_passed
 
   def onCollectButton(self):
     print('Attempt collection')
 
     print('Unobserve registration transform')
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-      pointerToHeadFrame.SetAndObserveTransformNodeID(None)
-    except:
-      print("Warning!! Tracker not connected")
 
-    try:
-      tipToPointer = slicer.util.getNode('TipToPointer')
-      samplePoint = [0,0,0]
-      outputPoint = [0,0,0]
-      transform = vtk.vtkGeneralTransform()
-      slicer.vtkMRMLTransformNode.GetTransformBetweenNodes(tipToPointer, None, transform)
-      transform.TransformPoint(samplePoint, outputPoint)
-      # print(outputPoint)
-      self.landmarks.collectLandmarkPosition(outputPoint)
-      if self.beep:
-        self.beep.play()
-    except:
-      print('Could not get tip node')
-
+    if self.logic.pointer_to_headframe:
+      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(None)
+    else:
+      print('Warning:  tracker not connected')
+    
+    samplePoint = [0,0,0]
+    outputPoint = [0,0,0]
+    transform = vtk.vtkGeneralTransform()
+    slicer.vtkMRMLTransformNode.GetTransformBetweenNodes(self.logic.pointer_calibration, None, transform)
+    transform.TransformPoint(samplePoint, outputPoint)
+    # print(outputPoint)
+    self.landmarks.collectLandmarkPosition(outputPoint)
+    if self.beep:
+      self.beep.play()
+    
     print('Reobserve registration transform')
-    try:
-      pointerToHeadFrame = slicer.util.getNode('PointerToHeadFrame')
-      transformNode = slicer.util.getNode('HeadFrameToImage')
-      pointerToHeadFrame.SetAndObserveTransformNodeID(transformNode.GetID())
-    except:
-      print("No previous registration")
-
+   
+    if self.logic.registration_transform and self.logic.pointer_to_headframe:
+      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
+      
   def setupToolTables(self):
-
-    createModelsLogic = slicer.modules.createmodels.logic()
-    self.needleModel = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
-    self.needleModel.GetDisplayNode().SetColor(220, 220, 0)
-    self.needleModel.GetDisplayNode().SetVisibility(False)
-    self.needleModel.SetName("PointerModel")
-    self.needleModel.SaveWithSceneOff()
-
+    
+    self.logic.setupNeedleModel()
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
     node.AddFiducial(0,0,0, 'Pointer')
@@ -668,12 +625,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     node2.GetDisplayNode().SetGlyphScale(13)
 
     self.tools.addTool('PointerToTracker', 'Pointer', node)
-    self.optitrack.setTools(['PointerToHeadFrame'])
-    self.optitrack.setTools(['PointerToTracker'])
-
     self.tools.addTool('HeadFrameToTracker', 'Reference Frame', node2)
-    self.optitrack.setTools(['HeadFrameToTracker'])
     self.tools.optitrack = self.optitrack
+
+    # Setting this makes sure tool transforms are removed from scene saving
+    self.optitrack.setExpectedNodes(['PointerToHeadFrame', 'PointerToTracker', 'HeadFrameToTracker'])
 
   def setupLandmarkTables(self):
     self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName)
@@ -715,9 +671,61 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
-    """
-    Run the actual algorithm
-    """
+  pointer_calibration = NNUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
+  registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
+  pivot_calibration_passed = NNUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
+  spin_calibration_passed = NNUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
+  registration_passed = NNUtils.parameterProperty("REGISTRATION_PASSED", default=False)
 
-    pass
+  # Not a reference property, since we DO NOT want any reference to this saved with the scene
+  # This node should only exists when the tracker is running
+  pointer_to_headframe = None
+  needle_model = None
+
+  def setupPointerCalibration(self):
+    if not self.pointer_calibration:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLLinearTransformNode",
+        "POINTER_CALIBRATION",
+      )
+      self.pointer_calibration = node
+
+  def setupRegistrationTransform(self):
+    if not self.registration_transform:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLLinearTransformNode",
+        "IMAGE_REGISTRATION",
+      )
+      self.registration_transform = node
+
+  def clearRegistrationTransform(self):
+    if self.registration_transform:
+      print('Clearing registration transform to recompute')
+      identityMatrix = vtk.vtkMatrix4x4()
+      self.registration_transform.SetMatrixTransformToParent(identityMatrix)
+
+  def reconnect(self):
+    
+    if not self.pointer_to_headframe:
+      self.pointer_to_headframe = slicer.util.getFirstNodeByName('PointerToHeadFrame')
+      if not self.pointer_to_headframe:
+        print('Warning - could not find pointer transform')
+    
+    if self.pointer_calibration and self.pointer_to_headframe:
+      self.pointer_calibration.SetAndObserveTransformNodeID(self.pointer_to_headframe.GetID())
+
+    if self.needle_model and self.pointer_calibration:
+      self.needle_model.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
+
+    if self.registration_transform and self.pointer_to_headframe:
+      self.pointer_to_headframe.SetAndObserveTransformNodeID(self.registration_transform.GetID())
+
+  def setupNeedleModel(self):
+    createModelsLogic = slicer.modules.createmodels.logic()
+    self.needle_model = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
+    self.needle_model.GetDisplayNode().SetColor(220, 220, 0)
+    self.needle_model.GetDisplayNode().SetVisibility(False)
+    self.needle_model.SetName("NEEDLE_MODEL")
+    self.needle_model.SaveWithSceneOff()
+
+    

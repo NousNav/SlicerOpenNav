@@ -55,7 +55,7 @@ class Tools:
       return
 
     for tool in self.tools:
-      if not self.optitrack.checkTool(tool.id):
+      if not self.optitrack.checkNode(tool.id):
         tool.state = ToolState.NEVER_SEEN
         break
 
@@ -106,7 +106,10 @@ class Tools:
         if tool.displayGeometry:
           tool.displayGeometry.GetDisplayNode().SetVisibility(False)
 
-    pointerModel = slicer.util.getNode("PointerModel")
+    pointerModel = slicer.util.getFirstNodeByName("NEEDLE_MODEL")
+    if not pointerModel:
+      print('Pointer missing!!')
+      return
     if anyUnseen:
       pointerModel.GetDisplayNode().SetColor(220, 0, 0)
     else:

@@ -64,15 +64,16 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     ) = NNUtils.setupWorkflowToolBar("Navigation")
 
   def validate(self):
-    try:
-      transformNode = slicer.util.getNode('HeadFrameToImage')
-      identity = vtk.vtkTransform()
-      if slicer.vtkAddonMathUtilities.MatrixAreEqual(transformNode.GetMatrixTransformToParent(), identity.GetMatrix()):
-        return 'Registration not complete'
-    except:
+    
+    registrationNode = slicer.modules.RegistrationWidget.logic.registration_transform
+    if not registrationNode:
+      return 'Registration not complete'
+   
+    identity = vtk.vtkTransform()
+    if slicer.vtkAddonMathUtilities.MatrixAreEqual(registrationNode.GetMatrixTransformToParent(), identity.GetMatrix()):
       return 'Registration not complete'
 
-    if not slicer.modules.RegistrationWidget.registrationOK:
+    if not slicer.modules.RegistrationWidget.logic.registration_passed:
       return 'Please redo registration to improve results'
   
   def enter(self):
@@ -100,17 +101,15 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     planningLogic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.5)
     planningLogic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
-    try:
-      needleModel = slicer.util.getNode('PointerModel')
-      needleModel.GetDisplayNode().SetVisibility(True)
-      needleModel.GetDisplayNode().SetVisibility2D(True)
-    except:
-      pass
+    if slicer.modules.RegistrationWidget.logic.needle_model:
+      slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(True)
+      slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
 
     NNUtils.goToNavigationLayout(volumeNode=masterNode)
 
     tools = slicer.modules.RegistrationWidget.tools
     tools.setToolsStatusCheckEnabled(True)
+    slicer.modules.RegistrationWidget.startOptiTrack()
 
   def exit(self):
     # Hide current
@@ -121,12 +120,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
     planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False)
     planningLogic.resetDefaultNodeAppearance()
-    try:
-      needleModel = slicer.util.getNode('PointerModel')
-      needleModel.GetDisplayNode().SetVisibility(False)
-      needleModel.GetDisplayNode().SetVisibility2D(False)
-    except:
-      pass
+    
+    if slicer.modules.RegistrationWidget.logic.needle_model:
+      slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(False)
+      slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility2D(False)
 
     tools = slicer.modules.RegistrationWidget.tools
     tools.setToolsStatusCheckEnabled(False)

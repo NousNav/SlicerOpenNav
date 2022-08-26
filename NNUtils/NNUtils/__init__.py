@@ -292,11 +292,11 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
   setupSliceViewers()
 
   try:
-    tipToPointer = slicer.util.getNode("TipToPointer")
+    tipToPointer = slicer.util.getNode("POINTER_CALIBRATION")
     activateReslicing(tipToPointer)
 
   except:
-    pass
+    print('Cannot find pointer node')
 
 
 def showCentralWidget(name):

@@ -50,7 +50,7 @@ class OptiTrackWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
 
     self.logic = OptiTrackLogic()
-    self.logic.setTools(['ReferenceToTracker', 'LongToolToTracker', 'ShortToolToTracker'])
+    self.logic.expectedNodes(['ReferenceToTracker', 'LongToolToTracker', 'ShortToolToTracker'])
 
     # Instantiate and connect widgets ...
 
@@ -124,10 +124,10 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     self.connector = None
     self.isRunning = False
-    self.tools = []
+    self.expectedNodes = []
 
-  def setTools(self, tools):
-    self.tools = tools
+  def setExpectedNodes(self, expectedNodes):
+    self.expectedNodes = expectedNodes
 
   def shutdown(self, clean=False):
     if self.isRunning:
@@ -138,7 +138,7 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
       shutil.rmtree(self.tempDirectory)
       print('Shutdown')
       if clean:
-        self.cleanupTools()
+        self.cleanupNodes()
 
   def writeConfigFile(self, configTemplateFileName, dataFileName):
     template = ''
@@ -177,31 +177,30 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     qt.QDir().mkpath(dirPath)
     return dirPath
 
-  def checkTool(self, toolName):
+  def checkNode(self, nodeName):
     try:
-        node = slicer.util.getNode(toolName)
+        node = slicer.util.getNode(nodeName)
         node.CreateDefaultDisplayNodes()
         node.SaveWithSceneOff()
-        # node.GetDisplayNode().SetEditorVisibility(True)
         return True
     except:
       return False
 
-  def checkTools(self, toolsList=None):
-    if toolsList is None:
-      toolsList = self.tools
-    for toolName in toolsList:
-      self.checkTool(toolName)
+  def checkNodes(self, nodesList=None):
+    if nodesList is None:
+      nodesList = self.expectedNodes
+    for nodeName in nodesList:
+      self.checkNode(nodeName)
 
-  def cleanupTools(self, toolsList=None):
-    if toolsList is None:
-      toolsList = self.tools
-    for toolName in toolsList:
-      self.cleanupTool(toolName)
+  def cleanupNodes(self, nodesList=None):
+    if nodesList is None:
+      nodesList = self.expectedNodes
+    for nodeName in nodesList:
+      self.cleanupNode(nodeName)
 
-  def cleanupTool(self, toolName):
+  def cleanupNode(self, nodeName):
     try:
-        node = slicer.util.getNode(toolName)
+        node = slicer.util.getNode(nodeName)
         slicer.mrmlScene.RemoveNode(node)
     except:
       pass
@@ -226,10 +225,9 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
         print('Server failed to launch:')
         self.shutdown()
         output = self.p.stdout.read()
-        output = output.decode("utf-8", 'replace')
         print(output)
         return
       print('PLUS Server launched')
-      self.checkTools()
+      self.checkNodes()
     else:
       self.shutdown()
