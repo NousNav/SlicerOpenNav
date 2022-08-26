@@ -77,12 +77,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       validate=self.validate,
     )
 
-    self.RMSE_PIVOT_GOOD = 0.5
     self.RMSE_PIVOT_OK = 0.8
-    self.RMSE_SPIN_GOOD = 1.
     self.RMSE_SPIN_OK = 5.
-    self.RMSE_REGISTRATION_GOOD = 2.
-    self.RMSE_REGISTRATION_OK = 4.
+    self.RMSE_REGISTRATION_OK = 3.
     self.RMSE_REGISTRATION_ERROR = 99.
 
   def setup(self):
@@ -340,12 +337,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.ClearToolToReferenceMatrices()
 
     results = [f"Calibration accuracy: {RMSE_label} mm"]
-    if RMSE < self.RMSE_PIVOT_GOOD:
+    if RMSE < self.RMSE_PIVOT_OK:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
-      results.append("Results are in the optimal range to proceed.")
-    elif  RMSE < self.RMSE_PIVOT_OK:
-      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,170,0)")
-      results.append("Results are outside of the optimal range. Consider redoing the calibration.")
+      results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
       results.append("Results too poor. Calibration  must be redone before proceeding.")
@@ -415,12 +409,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     RMSE_label = f"{RMSE:1.2f}"
 
     results = [f"Spin calibration accuracy: {RMSE_label} degrees"]
-    if RMSE < self.RMSE_SPIN_GOOD:
+    if RMSE < self.RMSE_SPIN_OK:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
-      results.append("Results are in the optimal range to proceed.")
-    elif  RMSE < self.RMSE_SPIN_OK:
-      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,170,0)")
-      results.append("Results are outside of the optimal range. Consider redoing the calibration.")
+      results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
       results.append("Results too poor. Calibration  must be redone before proceeding.")
@@ -566,12 +557,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       RMSE_label = f"{RMSE:1.2f}"
 
       results = [f"Registration accuracy: {RMSE_label} mm"]
-      if RMSE < self.RMSE_REGISTRATION_GOOD:
+      if RMSE < self.RMSE_REGISTRATION_OK:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(0,170,0)")
-        results.append("Results are in the optimal range to proceed.")
-      elif RMSE < self.RMSE_REGISTRATION_OK:
-        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,170,0)")
-        results.append("Results are outside of the optimal range. Consider redoing the registration.")
+        results.append("Results are in the acceptable range to proceed.")
       else:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
         results.append("Results too poor. Registration must be redone before proceeding.")
