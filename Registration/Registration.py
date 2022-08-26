@@ -81,6 +81,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_SPIN_OK = 5.
     self.RMSE_REGISTRATION_OK = 3.
     self.RMSE_REGISTRATION_ERROR = 99.
+    self.EPSILON = 0.00001
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -336,9 +337,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     RMSE = self.pivotLogic.GetPivotRMSE()
     RMSE_label = f"{RMSE:1.2f}"
     self.pivotLogic.ClearToolToReferenceMatrices()
+    print("Pivot calibration RMSE:" + RMSE_label)
 
     results = [f"Calibration accuracy: {RMSE_label} mm"]
-    if RMSE < self.RMSE_PIVOT_OK:
+    if RMSE < self.EPSILON:
+      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
+      results.clear()
+      results.append("Calibration failed. It must be redone before proceeding.")
+    elif RMSE < self.RMSE_PIVOT_OK:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
@@ -410,9 +416,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.pivotLogic.ClearToolToReferenceMatrices()
     RMSE_label = f"{RMSE:1.2f}"
+    print("Spin calibration RMSE:" + RMSE_label)
 
     results = [f"Spin calibration accuracy: {RMSE_label} degrees"]
-    if RMSE < self.RMSE_SPIN_OK:
+    if RMSE < self.EPSILON:
+      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
+      results.clear()
+      results.append("Calibration failed. It must be redone before proceeding.")
+    elif RMSE < self.RMSE_SPIN_OK:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
