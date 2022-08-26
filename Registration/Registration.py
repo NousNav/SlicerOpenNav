@@ -329,7 +329,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
-    self.ui.PivotCalibrationButton.text = 'Pivot calibration complete'
+    self.ui.PivotCalibrationButton.text = 'Restart Pivot Calibration'
     self.pivotLogic.ComputePivotCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
     self.logic.pointer_calibration.SetMatrixTransformToParent(outputMatrix)
@@ -407,7 +407,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.SetToolTipToToolMatrix(outputMatrix)
     self.pivotLogic.SetRecordingState(False)
     print('End recording')
-    self.ui.SpinCalibrationButton.text = 'Spin calibration complete'
+    self.ui.SpinCalibrationButton.text = 'Restart Spin Calibration'
     self.pivotLogic.ComputeSpinCalibration()
     self.pivotLogic.GetToolTipToToolMatrix(outputMatrix)
     self.logic.pointer_calibration.SetMatrixTransformToParent(outputMatrix)
