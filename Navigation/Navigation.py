@@ -1,5 +1,4 @@
 import slicer
-import vtk
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,
@@ -68,9 +67,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     registrationNode = slicer.modules.RegistrationWidget.logic.registration_transform
     if not registrationNode:
       return 'Registration not complete'
-   
-    identity = vtk.vtkTransform()
-    if slicer.vtkAddonMathUtilities.MatrixAreEqual(registrationNode.GetMatrixTransformToParent(), identity.GetMatrix()):
+    
+    if NNUtils.isLinearTransformNodeIdentity(registrationNode):
       return 'Registration not complete'
 
     if not slicer.modules.RegistrationWidget.logic.registration_passed:

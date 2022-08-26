@@ -9,6 +9,13 @@ from .parameter_node import (  # noqa: F401
 )
 
 
+def isLinearTransformNodeIdentity(transformNode):
+  identity = vtk.vtkTransform()
+  matrix = vtk.vtkMatrix4x4()
+  transformNode.GetMatrixTransformToParent(matrix)
+  return slicer.vtkAddonMathUtilities.MatrixAreEqual(matrix, identity.GetMatrix())
+
+
 def getModality(node):
   shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
   node_item = shNode.GetItemByDataNode(node)

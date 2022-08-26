@@ -1,6 +1,7 @@
 from enum import Enum
 import qt
 import slicer
+import vtk
 
 
 class ToolState(Enum):
@@ -66,7 +67,8 @@ class Tools:
   def checkIfNodeIsActive(self, tool):
     try:
       node = slicer.util.getNode(tool.id)
-      matrix = node.GetMatrixTransformToParent()
+      matrix = vtk.vtkMatrix4x4()
+      node.GetMatrixTransformToParent(matrix)
       xposition = matrix.GetElement(0,3)
 
       # if position, then tool is current

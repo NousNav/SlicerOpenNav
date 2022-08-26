@@ -200,8 +200,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before registering'
 
     # check if pivot transform is identity
-    identity = vtk.vtkTransform()
-    if slicer.vtkAddonMathUtilities.MatrixAreEqual(self.logic.pointer_calibration.GetMatrixTransformToParent(), identity.GetMatrix()):
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
       return 'Perform pointer calibration before registering'
 
     # check if pivot and spin calibration is good
