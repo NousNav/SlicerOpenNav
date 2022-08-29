@@ -318,13 +318,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButton.enabled = self.logic.pivot_calibration_passed
 
-    # set the button actions
+    # Set the button/shortcut actions:
     self.disconnectAll(self.ui.PivotCalibrationButton)
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
-
     self.shortcut.connect("activated()", lambda: self.onPivotCalibrationButton())
 
   def onPivotCalibrationButton(self):
+    # Unbind button/shortcut while calibration is in progress:
+    self.disconnectAll(self.ui.PivotCalibrationButton)
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", lambda: print("Pivot calibration already in progress"))
+
     # setup pivot cal
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
     if not self.logic.pointer_to_headframe:
@@ -372,9 +376,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.logic.pivot_calibration_passed = RMSE <= self.RMSE_PIVOT_OK
     self.advanceButton.enabled = self.logic.pivot_calibration_passed
+
+    # Re-bind button/shortcut:
+    self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
+    self.shortcut.disconnect("activated()")
     if self.logic.pivot_calibration_passed:
-      self.shortcut.disconnect("activated()")
       self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    else:
+      self.shortcut.connect("activated()", lambda: self.onPivotCalibrationButton())
 
     if self.beep:
       self.beep.play()
@@ -401,13 +410,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
-    # set the button actions
+    # Set the button/shortcut actions:
     self.disconnectAll(self.ui.SpinCalibrationButton)
     self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
-    
     self.shortcut.connect("activated()", lambda: self.onSpinCalibrationButton())
 
   def onSpinCalibrationButton(self):
+    # Unbind button/shortcut while calibration is in progress:
+    self.disconnectAll(self.ui.SpinCalibrationButton)
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", lambda: print("Spin calibration already in progress"))
+
     # setup spin cal
     if not self.logic.pointer_to_headframe:
       self.logic.reconnect()
@@ -456,9 +469,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.logic.spin_calibration_passed = RMSE <= self.RMSE_SPIN_OK
     self.advanceButton.enabled = self.logic.spin_calibration_passed
+
+    # Re-bind button/shortcut:
+    self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
+    self.shortcut.disconnect("activated()")
     if self.logic.spin_calibration_passed:
-      self.shortcut.disconnect("activated()")
       self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    else:
+      self.shortcut.connect("activated()", lambda: self.onSpinCalibrationButton())
 
     if self.beep:
       self.beep.play()
