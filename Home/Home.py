@@ -516,6 +516,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     self.steps = list(info.flatten(stack))
     self.names = {step.names: step for step in self.steps}
     self.validateSteps = True
+    self.autoSaveBlocked = False
 
     # build doubly-linked list
     for prevStep, nextStep in zip(self.steps[:-1], self.steps[1:]):
@@ -565,7 +566,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     # Initialize workflow selecting first step
     self._currentNameCache = None
-    self.goto(self.steps[0])
+    self.goto(self.steps[0], autoSave=False)
 
     slicer.app.ioManager().newFileLoaded.connect(self.onNewFileLoaded)
 
@@ -584,9 +585,12 @@ class HomeLogic(ScriptedLoadableModuleLogic):
       slicer.modules.PlanningWidget.tableManager.updateLandmarksDisplay()
 
   def resyncCurrent(self):
+    print('resync')
+    self.autoSaveBlocked = True
     dst = self.current
     self._currentName = self._currentNameCache
     self.goto(dst)
+    self.autoSaveBlocked = False
 
   def _forceTabReselect(self):
     """Reset the tab state if validation fails.
@@ -639,7 +643,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     return None
 
-  def goto(self, dst: Step):
+  def goto(self, dst: Step, autoSave=True):
     slicer.util.selectModule('Home')
 
     if dst is None:
@@ -693,6 +697,15 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     for action in actions:
       if action:
         action()
+
+    # AutoSave at end of goto
+
+    if autoSave and not self.autoSaveBlocked:
+      print('Autosave started')
+      NNUtils.autoSavePlan()
+      print('Autosave completed')
+    else:
+      print('Autosave blocked')
 
   def gotoNext(self):
     self.goto(self.nextStep)

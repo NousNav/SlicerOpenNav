@@ -1,5 +1,4 @@
-import functools
-
+import os, functools
 import qt
 import slicer
 
@@ -451,3 +450,148 @@ def registerNavigationLayout():
     "</layout>")
   layoutNode = slicer.app.layoutManager().layoutLogic().GetLayoutNode()
   layoutNode.AddLayoutDescription(getNavigationLayoutID(), customLayout)
+
+
+def _autoSaveDirectory():
+  userPath = os.path.expanduser('~')
+  return os.path.join(userPath, 'NousNav', 'AutoSave')
+
+
+def _autoSaveDataDirectory():
+  return os.path.join(_autoSaveDirectory(), 'Data')
+
+
+def _autoSaveFilePath():
+  return os.path.join(_autoSaveDirectory(), 'AutoSave.mrml')
+
+
+def _deleteAutoSave():
+  if os.path.exists(_autoSaveDirectory()):
+    import shutil
+    shutil.rmtree(_autoSaveDirectory())
+
+
+def _ensureAutoSaveDirectoriesExist():
+  # Create all directories in tree recursively
+  os.makedirs(_autoSaveDataDirectory())
+
+
+def _listNodesToSave(incremental=False):
+  storableNodes = slicer.util.getNodesByClass('vtkMRMLStorableNode')
+  saveableNodes = [node for node in storableNodes if (node.GetSaveWithScene() and not node.GetHideFromEditors())]
+  saveableToOwnFileNodes = [node for node in saveableNodes if slicer.app.coreIOManager().fileWriterFileType(node) != 'NoFile']
+  modifiedNodes = [node for node in saveableToOwnFileNodes if node.GetModifiedSinceRead()]
+  
+  if incremental:
+    nodes = modifiedNodes
+  else:
+    nodes = saveableToOwnFileNodes
+
+  return nodes
+
+
+def _fileIsInDataDirectory(filename):
+  try:
+    commonfilepathpath = os.path.commonpath([_autoSaveDataDirectory(),os.path.abspath(filename)])
+  except ValueError:  # Value errors can occur in the worst cases of non-matching paths
+    return False
+
+  return os.path.normpath(_autoSaveDataDirectory()) == os.path.normpath(commonfilepathpath)
+
+
+def _slugify(value, allow_unicode=False):
+    """
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    import unicodedata
+    import re
+    
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize('NFKC', value)
+    else:
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+    value = re.sub(r'[^\w\s-]', '', value)
+    return re.sub(r'[-\s]+', '-', value).strip('-_')
+
+
+def _createAutoSaveFilePath(node):
+  snode = node.GetStorageNode()
+  possiblePath = os.path.join(_autoSaveDataDirectory(), _slugify(node.GetName()) + '.' + snode.GetDefaultWriteFileExtension())
+  return slicer.mrmlScene.CreateUniqueFileName(possiblePath, '.'+snode.GetDefaultWriteFileExtension())
+
+
+def _ensureStorageNodeAndFileNameExist(node):
+  snode = node.GetStorageNode()
+  if not snode:
+    node.AddDefaultStorageNode()
+    snode = node.GetStorageNode()
+
+  filename = snode.GetFileName()
+
+  if not filename or filename == '':
+    filename = _createAutoSaveFilePath(node)
+  else:
+    if not _fileIsInDataDirectory(filename):
+      filename = _createAutoSaveFilePath(node)
+    
+  print('Autosave storage node filename: ' + filename)
+  snode.SetFileName(filename)
+
+
+def _autoSaveNode(node):
+  snode = node.GetStorageNode()
+  filename = snode.GetFileName()
+  slicer.util.saveNode(node, filename)
+
+
+def _autoSaveNodes(nodes):
+  for node in nodes:
+    _ensureStorageNodeAndFileNameExist(node)
+    _autoSaveNode(node)
+
+
+def autoSavePlan():
+  # construct autosave path
+  
+  incremental = os.path.exists(_autoSaveDirectory())
+  if incremental:
+    print('Autosave incremental save')
+  else:
+    print('Autosave first save')
+    _ensureAutoSaveDirectoriesExist()
+  
+  nodes = _listNodesToSave(incremental=incremental)
+  
+  autoSaveDialog = qt.QMessageBox(qt.QMessageBox.NoIcon, "Auto-saving", "Auto-saving", qt.QMessageBox.NoButton)
+  autoSaveDialog.setStandardButtons(0)
+  if not incremental:
+    autoSaveDialog.show()
+  slicer.app.processEvents()
+  autoSaveDialog.deleteLater()
+  slicer.mrmlScene.SetRootDirectory(_autoSaveDirectory())
+  _autoSaveNodes(nodes)
+  slicer.util.saveScene(_autoSaveFilePath())
+  autoSaveDialog.hide()
+
+  
+def checkAutoSave():
+  # construct autosave path
+  print('Checking for autosave')
+  import os
+  if os.path.exists(_autoSaveDirectory()):
+    print('Autosave found')
+    reloadAutoSaveDialog = qt.QMessageBox(qt.QMessageBox.Information, "Reload autosave?",
+      "An autosave has been found, would you like to reload it?", qt.QMessageBox.Yes | qt.QMessageBox.Discard)
+    reloadAutoSaveDialog.open()
+    ret = reloadAutoSaveDialog.exec()
+    if ret == qt.QMessageBox.Yes:
+      print('reloading autosave')
+      slicer.util.loadScene(str(_autoSaveFilePath()))
+    else:
+      print('Skip loading autosave, discarding old autosave')
+      _deleteAutoSave()

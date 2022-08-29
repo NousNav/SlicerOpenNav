@@ -136,6 +136,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
 
+    qt.QTimer.singleShot(1000, NNUtils.checkAutoSave)
+
   @staticmethod
   def onDICOMImport():
     # Show the DICOM browser

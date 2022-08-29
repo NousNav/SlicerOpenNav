@@ -136,7 +136,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     )
 
     self.ui.savePlanButton.clicked.connect(self.onSavePlanButtonClicked)
-
+  
   def exit(self):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
@@ -144,7 +144,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.planningTabBar.visible = False
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
-   
+
   def validateTargetSegmentation(self):
     skin = self.logic.skin_segmentation
     if skin is None:
@@ -229,13 +229,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Return to Patients")
   @NNUtils.advanceButton(text="Segment the Target")
   def planningStep1(self):
+
     self.tableManager.advanceButton = None
     
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=False)
     self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
 
     self.advanceButton.enabled = self.logic.master_volume is not None
-
     self.updateSkinSegmentationPreview()
 
   def teardownPlanningStep1(self):
@@ -245,6 +245,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Segment the Skin")
   @NNUtils.advanceButton(text="Plan the Trajectory")
   def planningStep2(self):
+
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
@@ -256,6 +257,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
   def planningStep3(self):
+
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
@@ -591,8 +593,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
       slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
     ]:
-      self.addObserver(self.trajectory_target_markup, event, self.updateTrajectory)
-      self.addObserver(self.trajectory_entry_markup, event, self.updateTrajectory)
+      if self.trajectory_target_markup:
+        self.addObserver(self.trajectory_target_markup, event, self.updateTrajectory)
+      if self.trajectory_entry_markup:
+        self.addObserver(self.trajectory_entry_markup, event, self.updateTrajectory)
 
   def setEditorTargets(self, volume, segmentation, segmentID=''):
     """Set the persistent segment editor to edit the given volume and segmentation.

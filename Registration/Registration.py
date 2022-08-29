@@ -230,7 +230,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     slicer.app.processEvents()
     test.deleteLater()
     self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath(filename))
-    self.logic.reconnect()
     test.hide()
 
     if not self.optitrack.isRunning:
@@ -311,6 +310,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   def onPivotCalibrationButton(self):
     # setup pivot cal
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
+    if not self.logic.pointer_to_headframe:
+      self.logic.reconnect()
     self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
     print('Starting pre-record period')
     self.ui.PivotCalibrationButton.text = 'Pivot calibration in progress'
@@ -381,6 +382,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def onSpinCalibrationButton(self):
     # setup spin cal
+    if not self.logic.pointer_to_headframe:
+      self.logic.reconnect()
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
     self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
     print('Starting pre-record period')
@@ -531,7 +534,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
     self.logic.needle_model.GetDisplayNode().SetVisibility(True)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
-    self.logic.needle_model.GetDisplayNode().SetSliceIntersectionThickness(6)
     if self.logic.pointer_to_headframe:
       self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
 
@@ -615,7 +617,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.addTool('PointerToTracker', 'Pointer', node)
     self.tools.addTool('HeadFrameToTracker', 'Reference Frame', node2)
     self.tools.optitrack = self.optitrack
-
+    
     # Setting this makes sure tool transforms are removed from scene saving
     self.optitrack.setExpectedNodes(['PointerToHeadFrame', 'PointerToTracker', 'HeadFrameToTracker'])
 
@@ -697,7 +699,12 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     if not self.pointer_to_headframe:
       self.pointer_to_headframe = slicer.util.getFirstNodeByName('PointerToHeadFrame')
       if not self.pointer_to_headframe:
-        print('Warning - could not find pointer transform')
+        print('Pointer node not available yet - creating')
+        self.pointer_to_headframe = slicer.mrmlScene.AddNewNodeByClass(
+          "vtkMRMLLinearTransformNode",
+          "PointerToHeadFrame",
+          )
+      self.pointer_to_headframe.SaveWithSceneOff()
     
     if self.pointer_calibration and self.pointer_to_headframe:
       self.pointer_calibration.SetAndObserveTransformNodeID(self.pointer_to_headframe.GetID())
@@ -713,6 +720,7 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     self.needle_model = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
     self.needle_model.GetDisplayNode().SetColor(220, 220, 0)
     self.needle_model.GetDisplayNode().SetVisibility(False)
+    self.needle_model.GetDisplayNode().SetSliceIntersectionThickness(6)
     self.needle_model.SetName("NEEDLE_MODEL")
     self.needle_model.SaveWithSceneOff()
 
