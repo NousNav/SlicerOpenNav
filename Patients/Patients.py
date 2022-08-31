@@ -208,6 +208,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     print(f'loading plan: {plan_path}')
 
     slicer.util.loadScene(str(plan_path))
+    slicer.app.layoutManager().activeThreeDRenderer().ResetCamera()
 
 
 class PatientsLogic(ScriptedLoadableModuleLogic):
