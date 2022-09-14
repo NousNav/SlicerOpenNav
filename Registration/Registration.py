@@ -219,6 +219,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.hardwareSelector = slicer.util.loadUI(self.resourcePath('UI/HardwareDialog.ui'))
       self.selectorUI = slicer.util.childWidgetVariables(self.hardwareSelector)
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
+      dialog_shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), self.hardwareSelector)
+      dialog_shortcut.connect("activated()", self.hardwareSelector.accept)
       self.hardwareSelector.open()
     else:
       self.advanceButton.enabled = True
