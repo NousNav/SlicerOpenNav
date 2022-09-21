@@ -213,15 +213,24 @@ class OptiTrackLogic(ScriptedLoadableModuleLogic):
     if not self.isRunning:
       self.isRunning = True
       self.p = slicer.util.launchConsoleProcess([plusLauncherPath, "--config-file=" + plusConfigPath])
-      time.sleep(5)
+      self.p.poll()
+
       if not self.connector:
         self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
         self.connector.SetTypeClient("localhost", 18944)
       self.connector.Start()
 
-      time.sleep(5)
-      slicer.app.processEvents()
-      if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+      connected = False
+      # wait max 30 seconds for connection:
+      start = time.time()
+      while not connected and time.time() - start < 30:
+        slicer.app.processEvents()
+        if self.connector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+          connected = True
+          break
+        time.sleep(0.1)
+
+      if not connected:
         print('Server failed to launch:')
         self.shutdown()
         output = self.p.stdout.read()
