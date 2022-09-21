@@ -6,6 +6,7 @@ set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
   RegistrationUtils/__init__.py
   RegistrationUtils/Tools.py
+  RegistrationUtils/Trace.py
   )
 
 set(MODULE_PYTHON_RESOURCES

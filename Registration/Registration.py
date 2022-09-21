@@ -15,7 +15,8 @@ import NNUtils
 import Home
 
 from LandmarkManager import Landmarks
-from RegistrationUtils import Tools
+from RegistrationUtils import Tools, Trace, TracingState
+import numpy as np
 
 
 class Registration(ScriptedLoadableModule):
@@ -46,6 +47,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def __init__(self, parent):
     super().__init__(parent)
+    self.traceObserver = None
 
     # Load widget from .ui file (created by Qt Designer)
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Registration.ui'))
@@ -55,22 +57,31 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.workflow = Home.Workflow(
       'registration',
       nested=(
-        Home.Workflow("patient-prep", setup=self.registrationStepPatientPrep, widget=self.ui.RegistrationStepPatientPrep),
-        Home.Workflow("tracking-prep", setup=self.registrationStepTrackingPrep, widget=self.ui.RegistrationStepTrackingPrep, validate=self.trackerConnected),
-        Home.Workflow("pointer-prep", setup=self.registrationStepPointerPrep, widget=self.ui.RegistrationStepPointerPrep, validate=self.trackerConnected),
-        Home.Workflow("align-camera", setup=self.registrationStepAlignCamera, widget=self.ui.RegistrationStepAlignCamera, validate=self.trackerConnected),
-        Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration, widget=self.ui.RegistrationStepPivotCalibration,
-          validate=self.trackerConnected),
-        Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration, widget=self.ui.RegistrationStepSpinCalibration,
-          validate=self.trackerConnected),
-        Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration, widget=self.ui.RegistrationStepLandmarkRegistration,
-          validate=self.validateLandmarkRegistration),
-        Home.Workflow(
-          "verify-registration",
-          setup=self.registrationStepVerifyRegistration,
-          widget=self.ui.RegistrationStepVerifyRegistration,
-          teardown=self.registrationStepAcceptRegistration,
-          ),
+        Home.Workflow("patient-prep", setup=self.registrationStepPatientPrep,
+                      widget=self.ui.RegistrationStepPatientPrep),
+        Home.Workflow("tracking-prep", setup=self.registrationStepTrackingPrep,
+                      widget=self.ui.RegistrationStepTrackingPrep, validate=self.trackerConnected),
+        Home.Workflow("pointer-prep", setup=self.registrationStepPointerPrep,
+                      widget=self.ui.RegistrationStepPointerPrep, validate=self.trackerConnected),
+        Home.Workflow("align-camera", setup=self.registrationStepAlignCamera,
+                      widget=self.ui.RegistrationStepAlignCamera, validate=self.trackerConnected),
+        Home.Workflow("pivot-calibration", setup=self.registrationStepPivotCalibration,
+                      widget=self.ui.RegistrationStepPivotCalibration,
+                      validate=self.trackerConnected),
+        Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration,
+                      widget=self.ui.RegistrationStepSpinCalibration,
+                      validate=self.trackerConnected),
+        Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration,
+                      widget=self.ui.RegistrationStepLandmarkRegistration,
+                      teardown=self.fiducialOnlyRegistration,
+                      validate=self.validateLandmarkRegistration),
+        Home.Workflow("surface-registration", setup=self.registrationStepSurfaceRegistration,
+                      widget=self.ui.RegistrationStepSurfaceRegistration,
+                      validate=self.validateSurfaceRegistration,
+                      teardown=self.resetDefaultButtonActions),
+        Home.Workflow("verify-registration", setup=self.registrationStepVerifyRegistration,
+                      widget=self.ui.RegistrationStepVerifyRegistration,
+                      teardown=self.registrationStepAcceptRegistration),
       ),
       setup=self.enter,
       teardown=self.exit,
@@ -80,7 +91,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_PIVOT_OK = 0.8
     self.RMSE_SPIN_OK = 5.
     self.RMSE_REGISTRATION_OK = 3.
-    self.RMSE_REGISTRATION_ERROR = 99.
     self.EPSILON = 0.00001
 
   def setup(self):
@@ -135,6 +145,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupLandmarkTables()
 
     self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
+    self.planningLogic = slicer.modules.PlanningWidget.logic
 
     self.advanceButton.enabled = False
 
@@ -157,18 +168,23 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Calibration", "Acquisition in progress...", qt.QMessageBox.NoButton)
     self.messageBox.setStandardButtons(0)
 
+    self.trace = Trace()
+    self.trace.setVisible(False)
+
   def cleanup(self):
     self.optitrack.shutdown()
     self.tools.setToolsStatusCheckEnabled(False)
+    self.planningLogic = None
 
   def exit(self):
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.registrationTabBar.visible = False
     self.bottomToolBar.visible = False
-
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
     self.shortcut.disconnect("activated()")
+    self.trace.setVisible(False)
+    self.resetDefaultButtonActions()
 
   def enter(self):
     # Show current
@@ -187,6 +203,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupPivotCalibration()
 
     qt.QTimer.singleShot(1000, self.startOptiTrack)
+
+    self.logic.setupSurfaceErrorComputation()
 
   def validate(self):
     landmarkLogic = slicer.modules.PlanningWidget.landmarkLogic
@@ -212,6 +230,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # check if pivot and spin calibration is good
     if not (self.logic.pivot_calibration_passed and self.logic.spin_calibration_passed):
       return 'Improve pointer calibration before registering'
+
+  def validateSurfaceRegistration(self):
+    if not self.logic.pointer_calibration:
+      return 'Perform pointer calibration before registering'
+
+    # check if pivot transform is identity
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+      return 'Perform pointer calibration before registering'
+
+    # check if pivot and spin calibration is good
+    if not (self.logic.pivot_calibration_passed and self.logic.spin_calibration_passed):
+      return 'Improve pointer calibration before registering'
   
   def startOptiTrack(self):
     if not self.optitrack.isRunning:
@@ -227,7 +257,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.logic.reconnect()
 
   def launchOptiTrack(self):
-
     motiveFileName =  ''
     plusFileName = ''
 
@@ -260,6 +289,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
+    self.trace.setVisible(False)
 
     self.tools.setToolsStatusCheckEnabled(False)
 
@@ -268,7 +298,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Return to Planning")
   @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -279,7 +308,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepTrackingPrep(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -290,7 +318,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepPointerPrep(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -301,7 +328,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepAlignCamera(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -315,7 +341,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepPivotCalibration(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -350,7 +375,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
     print('Starting pre-record period')
     self.ui.PivotCalibrationButton.text = 'Pivot calibration in progress'
-    qt.QTimer.singleShot(5000, self.startPivotCalibration)
+    qt.QTimer.singleShot(3000, self.startPivotCalibration)
 
   def startPivotCalibration(self):
     self.pivotLogic.SetRecordingState(True)
@@ -415,7 +440,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepSpinCalibration(self):
-
     self.stepSetup()
 
     # set the layout and display an image
@@ -449,8 +473,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.logic.pointer_calibration.SetAndObserveTransformNodeID(self.logic.pointer_to_headframe.GetID())
     print('Starting pre-record period')
     self.ui.SpinCalibrationButton.text = 'Spin calibration in progress'
-    qt.QTimer.singleShot(5000, self.startSpinCalibration)
-    
+    qt.QTimer.singleShot(3000, self.startSpinCalibration)
+
   def startSpinCalibration(self):
     self.pivotLogic.SetRecordingState(True)
     print('Start recording')
@@ -509,13 +533,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.backButton(text="Recalibrate")
   @NNUtils.advanceButton(text="")
   def registrationStepLandmarkRegistration(self):
-    # Set the layout and display an image
+    # Set the layout
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
+    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False,
+                                             targetSegmentation=False, trajectory=False, landmarks=False)
 
     # Clear previous registration
     self.logic.clearRegistrationTransform()
     self.landmarks.clearLandmarks()
+    self.resetTrace()
+    self.trace.setVisible(False)
 
     self.tools.setToolsStatusCheckEnabled(True)
 
@@ -539,55 +567,95 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut.disconnect("activated()")
     self.shortcut.connect("activated()", self.onCollectButton)
 
-  @NNUtils.backButton(text="Redo registration")
-  @NNUtils.advanceButton(text="Accept", enabled=False)
-  def registrationStepVerifyRegistration(self):
-    # set the layout and display an image
-    try:
-      masterNode = slicer.modules.PlanningWidget.logic.master_volume
-    except:
-      masterNode = None
-      print('No master volume node is loaded')
-    NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
+  @NNUtils.backButton(text="Restart registration")
+  @NNUtils.advanceButton(text="Continue")
+  def registrationStepSurfaceRegistration(self):
+    # Transform validation is done here because the landmark registration is performed in the teardown (invoked after validate)
+    if not self.logic.landmark_registration_transform or \
+            NNUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform) or \
+            not self.logic.landmark_registration_passed:
+      self.workflow.gotoPrev()
+      return
 
-    self.tools.setToolsStatusCheckEnabled(True)
-
-    self.AlignmentSideWidget.visible = False
-
+    # Set the layout
+    NNUtils.goToRegistrationCameraViewLayout()
+    self.AlignmentSideWidget.visible = True
+    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False,
+                                             targetSegmentation=False, trajectory=False, landmarks=False)
     self.landmarks.showLandmarks = False
     self.landmarks.updateLandmarksDisplay()
+    self.trace.setVisible(True)
+    self.addLandmarksToTrace()
     NNUtils.centerCam()
 
-    self.fiducialOnlyRegistration()
+    self.advanceButton.enabled = self.logic.surface_registration_passed
+    self.ui.DiscardLastButton.enabled = self.trace.lastAcquisitionLength > 0
 
-    self.advanceButton.enabled = self.logic.landmark_registration_passed
-
-    # set the button actions
-    self.disconnectAll(self.ui.CollectButton)
-
-    self.setRestartRegistrationButtonEnabled(True)
+    # set the button/shortcut actions
+    self.disconnectAll(self.ui.TraceButton)
+    self.ui.TraceButton.clicked.connect(self.onTraceButton)
+    self.disconnectAll(self.ui.DiscardLastButton)
+    self.ui.DiscardLastButton.clicked.connect(self.trace.discardLastAcquisition)
+    self.disconnectAll(self.ui.ResetTraceButton)
+    self.ui.ResetTraceButton.clicked.connect(self.onResetTraceButton)
+    self.disconnectAll(self.backButton)
+    self.backButton.clicked.connect(self.restartRegistration)
 
     self.shortcut.disconnect("activated()")
-    if self.logic.landmark_registration_passed:
-      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
-    else:
-      self.shortcut.connect("activated()", lambda: self.restartRegistration())
+    self.shortcut.connect("activated()", self.onTraceButton)
 
-  def setRestartRegistrationButtonEnabled(self, enabled):
+  @NNUtils.backButton(text="Restart registration")
+  @NNUtils.advanceButton(text="Accept", enabled=False)
+  def registrationStepVerifyRegistration(self):
+    # Set the layout
+    masterNode = slicer.modules.PlanningWidget.logic.master_volume
+    NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
+    self.tools.setToolsStatusCheckEnabled(True)
+    self.AlignmentSideWidget.visible = False
+    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False,
+                                                  targetSegmentation=False, trajectory=False, landmarks=False)
+    self.logic.needle_model.GetDisplayNode().SetVisibility(True)
+    self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
+    self.trace.setVisible(False)
+    NNUtils.centerCam()
+
+    self.advanceButton.enabled = self.logic.landmark_registration_passed and self.logic.surface_registration_passed
+    self.ui.GoToTracingButton.enabled = self.logic.landmark_registration_passed
+
+    # set the button/shortcut actions
     self.disconnectAll(self.backButton)
-    self.advanceButton.enabled = True
-    if enabled:
-      self.backButton.clicked.connect(self.restartRegistration)
+    self.backButton.clicked.connect(self.restartRegistration)
+    self.disconnectAll(self.ui.GoToTracingButton)
+    self.ui.GoToTracingButton.clicked.connect(self.workflow.gotoPrev)
+
+    self.shortcut.disconnect("activated()")
+    if self.logic.surface_registration_passed and self.logic.landmark_registration_passed:
+      self.shortcut.connect("activated()", self.workflow.gotoNext)
+    elif self.logic.landmark_registration_passed:
+      self.shortcut.connect("activated()", self.workflow.gotoPrev)
     else:
-      self.backButton.clicked.connect(self.workflow.gotoPrev)
+      self.shortcut.connect("activated()", self.restartRegistration)
+
+  def addLandmarksToTrace(self):
+    if not self.trace.initialized_with_landmarks:
+      for lm in self.landmarks.landmarks:
+        pos = lm.modelPosition
+        self.trace.addPoint(pos)
+      self.trace.initialized_with_landmarks = True
+      self.trace.lastAcquisitionLength = 0
+
+  def resetDefaultButtonActions(self):
+    self.disconnectAll(self.backButton)
+    self.backButton.clicked.connect(self.workflow.gotoPrev)
+    self.disconnectAll(self.advanceButton)
+    self.advanceButton.clicked.connect(self.workflow.gotoNext)
 
   def registrationStepAcceptRegistration(self):
-    self.setRestartRegistrationButtonEnabled(False)
+    self.resetDefaultButtonActions()
     self.logic.needle_model.GetDisplayNode().SetVisibility(False)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(False)
-
-    planningLogic = slicer.modules.PlanningWidget.logic
-    planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False)
+    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False,
+                                                  targetSegmentation=False, trajectory=False, landmarks=False)
 
   def restartCalibration(self):
     print('Restarting calibration')
@@ -598,65 +666,58 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.workflow.gotoByName(("nn", "registration", "landmark-registration"))
 
   def fiducialOnlyRegistration(self):
-    
-    fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
-    toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
-    defs = slicer.modules.PlanningWidget.landmarkLogic
-    for name, position in defs.positions.items():
-      toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
-      pos = self.landmarks.getTrackerPosition(name)
-      fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
+    if self.landmarks.landmarksFinished:
+      fromMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'From')
+      toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
+      defs = slicer.modules.PlanningWidget.landmarkLogic
+      for name, position in defs.positions.items():
+        toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
+        pos = self.landmarks.getTrackerPosition(name)
+        fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
 
-    # Create transform node to hold the computed registration result
-    self.logic.setupRegistrationTransform()
+      # Create transform node to hold the computed registration result
+      self.logic.setupRegistrationTransform()
 
-    # Set the input parameters
-    self.fiducialRegWizNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
-    self.fiducialRegWizNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
-    self.fiducialRegWizNode.SetOutputTransformNodeId(self.logic.landmark_registration_transform.GetID())
-    # TODO, always make sure units are correct in Motive
-    self.fiducialRegWizNode.SetRegistrationModeToRigid()
+      # Set the input parameters
+      self.fiducialRegWizNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
+      self.fiducialRegWizNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
+      self.fiducialRegWizNode.SetOutputTransformNodeId(self.logic.landmark_registration_transform.GetID())
+      # TODO, always make sure units are correct in Motive
+      self.fiducialRegWizNode.SetRegistrationModeToRigid()
 
-    fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
-    self.logic.needle_model.GetDisplayNode().SetVisibility(True)
-    self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
-    if self.logic.pointer_to_headframe:
-      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
+      fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
 
-    slicer.mrmlScene.RemoveNode(fromMarkupsNode)
-    slicer.mrmlScene.RemoveNode(toMarkupsNode)
+      if self.logic.pointer_to_headframe:
+        self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
 
-    planningLogic = slicer.modules.PlanningWidget.logic
+      slicer.mrmlScene.RemoveNode(fromMarkupsNode)
+      slicer.mrmlScene.RemoveNode(toMarkupsNode)
 
-    if planningLogic.skin_segmentation:
-      planningLogic.skin_segmentation.SetDisplayVisibility(True)
-      planningLogic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+      statusMessage = self.fiducialRegWizNode.GetCalibrationStatusMessage()
+      print("Registration output message:" + statusMessage)
 
-    statusMessage = self.fiducialRegWizNode.GetCalibrationStatusMessage()
-    print("Registration output message:" + statusMessage)
+      regex = re.compile(r"[0-9]+\.[0-9]+")
+      search = regex.search(statusMessage)
+      messageText = ""
 
-    regex = re.compile(r"[0-9]+\.[0-9]+")
-    search = regex.search(statusMessage)
+      if search is not None:
+        match = search.group()
 
-    if search is not None:
-      match = search.group()
+        RMSE = float(match)
 
-      RMSE = float(match)
+        if RMSE < self.RMSE_REGISTRATION_OK:
+          self.logic.landmark_registration_passed = True
+        else:
+          self.logic.landmark_registration_passed = False
+          messageText = "Results too poor. Registration must be redone before proceeding."
+      else:
+        self.logic.landmark_registration_passed = False
+        messageText = "Registration error."
 
-      results = []
-      if RMSE > self.RMSE_REGISTRATION_OK:
-        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
-        results.append("Results too poor. Registration must be redone before proceeding.")
-    else:
-      RMSE = self.RMSE_REGISTRATION_ERROR
-      self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
-      results = ["Registration error."]
+      if not self.logic.landmark_registration_passed:
+        qt.QMessageBox.critical(slicer.util.mainWindow(), "Registration failed", messageText)
 
-    self.ui.RMSLabelRegistration.wordWrap = True
-    self.ui.RMSLabelRegistration.text = "\n".join(results)
-
-    self.logic.landmark_registration_passed = RMSE <= self.RMSE_REGISTRATION_OK
-    self.advanceButton.enabled = self.logic.landmark_registration_passed
+    self.resetDefaultButtonActions()
 
   def onCollectButton(self):
     print('Attempt collection')
@@ -688,7 +749,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
       
   def setupToolTables(self):
-    
     self.logic.setupNeedleModel()
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
@@ -706,6 +766,149 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
     # Setting this makes sure tool transforms are removed from scene saving
     self.optitrack.setExpectedNodes(['PointerToHeadFrame', 'PointerToTracker', 'HeadFrameToTracker'])
+
+  def onTraceButton(self):
+    print('Attempt tracing')
+    if self.trace.state == TracingState.IN_PROGRESS:
+      self.shortcut.disconnect("activated()")
+      self.shortcut.connect("activated()", lambda: print("Already stopping trace"))
+      self.stopTracing()
+    else:
+      self.shortcut.disconnect("activated()")
+      self.shortcut.connect("activated()", lambda: print("Already starting trace"))
+      self.startTracing()
+
+  def onResetTraceButton(self):
+    self.resetTrace()
+    self.addLandmarksToTrace()
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", self.onTraceButton)
+
+  def resetTrace(self):
+    print('Reset trace')
+    self.trace.clearTrace()
+    self.ui.TraceButton.text = 'Start collection'
+    if self.logic.surface_registration_transform:
+      self.logic.surface_registration_transform.SetMatrixTransformToParent(vtk.vtkMatrix4x4())
+    self.logic.surface_registration_passed = False
+
+  def startTracing(self):
+    print('Start tracing')
+    self.trace.state = TracingState.IN_PROGRESS
+    self.trace.lastAcquisitionLength = 0
+    self.ui.TraceButton.text = 'Stop collection'
+
+    if self.logic.landmark_registration_transform:
+      self.logic.landmark_registration_transform.SetAndObserveTransformNodeID(None)
+    else:
+      print('Warning:  tracker not connected')
+
+    try:
+      self.traceObserver = self.logic.pointer_to_headframe.AddObserver(
+                                  slicer.vtkMRMLTransformNode.TransformModifiedEvent, self.doTracing)
+    except:
+        print('Warning:  tracker not connected')
+        self.trace.state = TracingState.NOT_STARTED
+        self.ui.TraceButton.text = 'Start collection'
+
+    # Re-bind shortcut:
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", self.onTraceButton)
+
+  def stopTracing(self):
+    messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Computing", "Computing registration", qt.QMessageBox.NoButton)
+    messageBox.setStandardButtons(0)
+    messageBox.show()
+    slicer.app.processEvents()
+    messageBox.deleteLater()
+
+    print("Stop tracing")
+    if self.traceObserver is not None:
+      self.logic.pointer_to_headframe.RemoveObserver(self.traceObserver)
+      self.traceObserver = None
+    else:
+      print("[Registration::stopTracing]Was not recording, nothing to do.")
+
+    trace_length = self.trace.traceNode.GetNumberOfControlPoints()
+    if self.trace.traceNode is None or trace_length == 0:
+      print("[Registration::stopTracing]Not enough points to compute registration.")
+      return
+    else:
+      self.trace.state = TracingState.DONE
+      self.ui.TraceButton.text = 'Add more points to trace'
+
+    # Remove correction transform to compute the error without it
+    backup = vtk.vtkMatrix4x4()
+    identity = vtk.vtkMatrix4x4()
+    self.logic.surface_registration_transform.GetMatrixTransformToParent(backup)
+    self.logic.surface_registration_transform.SetMatrixTransformToParent(identity)
+
+    # Compute average error on trace without correction
+    avg_dist_before, tracing_points = self.computeTraceError()
+    print("Average distance trace to skin surface before registration: " + str(avg_dist_before))
+
+    # Re-set the correction transform
+    self.logic.surface_registration_transform.SetMatrixTransformToParent(backup)
+
+    transformMatrix = self.logic.runSurfaceRegistration(tracing_points)
+
+    if transformMatrix is not None:
+      self.logic.surface_registration_transform.SetMatrixTransformToParent(transformMatrix)
+      if self.logic.landmark_registration_transform:
+        self.logic.landmark_registration_transform.SetAndObserveTransformNodeID(
+          self.logic.surface_registration_transform.GetID())
+        self.trace.traceNode.SetAndObserveTransformNodeID(
+          self.logic.surface_registration_transform.GetID())
+      else:
+        print('[Registration::stopTracing]Warning: tracker not connected')
+    else:
+      print("[Registration::stopTracing]Surface registration failed.")
+
+    # Compute average error on trace with correction
+    avg_dist_after, _ = self.computeTraceError()
+    print("Average distance trace to skin surface after registration: " + str(avg_dist_after))
+
+    self.logic.surface_registration_passed = (avg_dist_after - avg_dist_before < 0. - self.EPSILON) and \
+                                             (avg_dist_after < self.RMSE_REGISTRATION_OK)
+
+    self.advanceButton.enabled = self.logic.surface_registration_passed
+
+    if self.logic.surface_registration_passed:
+      self.ui.SurfaceRegMessage.text = ""
+      self.workflow.gotoNext()
+    else:
+      self.logic.surface_registration_transform.SetMatrixTransformToParent(identity)
+      self.shortcut.disconnect("activated()")
+      print("Surface registration likely failed.")
+      self.ui.SurfaceRegMessage.text = "Surface registration failed. Keep acquiring points or start over."
+      self.shortcut.connect("activated()", self.onTraceButton)
+
+    messageBox.hide()
+
+  def computeTraceError(self):
+    error = 0
+    trace_length = self.trace.traceNode.GetNumberOfControlPoints()
+    tracing_points = np.zeros((trace_length, 3))
+    for i in range(trace_length):
+      p = [0.0, 0.0, 0.0]
+      self.trace.traceNode.GetNthControlPointPositionWorld(i, p)
+      tracing_points[i, :] = p
+      closest_point_on_surface = [0., 0., 0.]
+      cell_id = vtk.reference(0)
+      sub_id = vtk.reference(0)
+      dist2 = vtk.reference(0.)
+      self.logic.locator.FindClosestPoint(p, closest_point_on_surface, cell_id, sub_id, dist2)
+      error += math.sqrt(dist2)
+    error /= trace_length
+    return error, tracing_points
+
+  def doTracing(self, transformNode=None, unusedArg2=None, unusedArg3=None):
+    samplePoint = [0, 0, 0]
+    outputPoint = [0, 0, 0]
+    transform = vtk.vtkGeneralTransform()
+    slicer.vtkMRMLTransformNode.GetTransformBetweenNodes(self.logic.pointer_calibration, None, transform)
+    transform.TransformPoint(samplePoint, outputPoint)
+    self.trace.addPoint(outputPoint)
 
   def setupLandmarkTables(self):
     self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName)
@@ -749,14 +952,17 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
   pointer_calibration = NNUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
   landmark_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
+  surface_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION_REFINEMENT", default=None)
   pivot_calibration_passed = NNUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
   spin_calibration_passed = NNUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
   landmark_registration_passed = NNUtils.parameterProperty("LANDMARK_REGISTRATION_PASSED", default=False)
+  surface_registration_passed = NNUtils.parameterProperty("SURFACE_REGISTRATION_PASSED", default=False)
 
   # Not a reference property, since we DO NOT want any reference to this saved with the scene
   # This node should only exists when the tracker is running
   pointer_to_headframe = None
   needle_model = None
+  locator = None
 
   def setupPointerCalibration(self):
     if not self.pointer_calibration:
@@ -773,15 +979,26 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
         "IMAGE_REGISTRATION",
       )
       self.landmark_registration_transform = node
+    if not self.surface_registration_transform:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLLinearTransformNode",
+        "IMAGE_REGISTRATION_REFINEMENT",
+      )
+      self.surface_registration_transform = node
 
   def clearRegistrationTransform(self):
     if self.landmark_registration_transform:
-      print('Clearing registration transform to recompute')
+      print('Clearing landmark registration transform to recompute')
       identityMatrix = vtk.vtkMatrix4x4()
       self.landmark_registration_transform.SetMatrixTransformToParent(identityMatrix)
+    if self.surface_registration_transform:
+      print('Clearing surface registration transform to recompute')
+      identityMatrix = vtk.vtkMatrix4x4()
+      self.surface_registration_transform.SetMatrixTransformToParent(identityMatrix)
+    self.landmark_registration_passed = False
+    self.surface_registration_passed = False
 
   def reconnect(self):
-    
     if not self.pointer_to_headframe:
       self.pointer_to_headframe = slicer.util.getFirstNodeByName('PointerToHeadFrame')
       if not self.pointer_to_headframe:
@@ -801,6 +1018,9 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     if self.landmark_registration_transform and self.pointer_to_headframe:
       self.pointer_to_headframe.SetAndObserveTransformNodeID(self.landmark_registration_transform.GetID())
 
+    if self.surface_registration_transform and self.landmark_registration_transform:
+      self.landmark_registration_transform.SetAndObserveTransformNodeID(self.surface_registration_transform.GetID())
+
   def setupNeedleModel(self):
     createModelsLogic = slicer.modules.createmodels.logic()
     self.needle_model = createModelsLogic.CreateNeedle(80.0, 1.0, 2.5, False)
@@ -810,4 +1030,22 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     self.needle_model.SetName("NEEDLE_MODEL")
     self.needle_model.SaveWithSceneOff()
 
-    
+  def setupSurfaceErrorComputation(self):
+    self.locator = vtk.vtkCellLocator()
+    model = slicer.util.getNode("NN_SKIN")
+    self.locator.SetDataSet(model.GetPolyData())
+    self.locator.SetNumberOfCellsPerBucket(1)
+    self.locator.BuildLocator()
+    self.locator.Update()
+
+  def runSurfaceRegistration(self, tracePoints):
+    skin_model_polydata = slicer.util.getNode("NN_SKIN").GetPolyData()
+    icp = vtk.vtkIterativeClosestPointTransform()
+    icp.SetMaximumNumberOfIterations(50)
+    icp.SetMaximumNumberOfLandmarks(200)
+    icp.SetMeanDistanceModeToAbsoluteValue()
+    icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.SetTarget(skin_model_polydata)
+    icp.SetSource(NNUtils.createPolyData(tracePoints))
+    icp.Update()
+    return icp.GetMatrix()

@@ -314,8 +314,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     )
     self.logic.endEffect()
 
-    # Make results visible in 3D
+    # Make results visible in 3D and make model
     segmentation.CreateClosedSurfaceRepresentation()
+    shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+    exportFolderItemId = shNode.CreateFolderItem(shNode.GetSceneItemID(), "SkinModel")
+    slicer.modules.segmentations.logic().ExportAllSegmentsToModels(segmentation, exportFolderItemId)
+    model = slicer.util.getNode("NN_SKIN")
+    model.GetDisplayNode().SetVisibility(False)
 
     NNUtils.centerCam()
 

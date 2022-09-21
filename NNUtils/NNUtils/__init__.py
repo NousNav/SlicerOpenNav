@@ -186,6 +186,24 @@ def setSliceViewBackgroundColor(color):
     view.setBackgroundColor(qt.QColor(color))
 
 
+def createPolyData(X):
+  n = X.shape[0]
+  points = vtk.vtkPoints()
+  points.SetNumberOfPoints(n)
+  for i in range(n):
+    points.SetPoint(i, X[i, 0], X[i, 1], X[i, 2])
+  polyData = vtk.vtkPolyData()
+  polyData.SetPoints(points)
+
+  cloudCells = vtk.vtkCellArray()
+  cloudCells.InsertNextCell(n)
+  for i in range(n):
+    cloudCells.InsertCellPoint(i)
+  polyData.SetLines(cloudCells)
+
+  return polyData
+
+
 def centerCam():
   controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
   controller.resetFocalPoint()

@@ -63,17 +63,22 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     ) = NNUtils.setupWorkflowToolBar("Navigation")
 
   def validate(self):
-    
-    registrationNode = slicer.modules.RegistrationWidget.logic.landmark_registration_transform
-    if not registrationNode:
-      return 'Registration not complete'
-    
-    if NNUtils.isLinearTransformNodeIdentity(registrationNode):
-      return 'Registration not complete'
-
+    landmark_registration_node = slicer.modules.RegistrationWidget.logic.landmark_registration_transform
+    if not landmark_registration_node:
+      return 'Landmark registration missing'
+    if NNUtils.isLinearTransformNodeIdentity(landmark_registration_node):
+      return 'Landmark registration not complete'
     if not slicer.modules.RegistrationWidget.logic.landmark_registration_passed:
-      return 'Please redo registration to improve results'
-  
+      return 'Please redo landmark registration to improve results'
+
+    surface_registration_node = slicer.modules.RegistrationWidget.logic.surface_registration_transform
+    if not surface_registration_node:
+      return 'Surface registration missing'
+    if NNUtils.isLinearTransformNodeIdentity(surface_registration_node):
+      return 'Surface registration not complete'
+    if not slicer.modules.RegistrationWidget.logic.surface_registration_passed:
+      return 'Please redo surface tracing to improve results'
+
   def enter(self):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
