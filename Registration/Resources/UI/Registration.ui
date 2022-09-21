@@ -267,6 +267,19 @@ about the center
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer_pivot_1">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLabel" name="label_10">
          <property name="font">
           <font>
@@ -282,6 +295,19 @@ about the center
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer_pivot_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QPushButton" name="PivotCalibrationButton">
          <property name="font">
           <font>
@@ -294,6 +320,19 @@ about the center
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer_pivot_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLabel" name="RMSLabelPivot">
          <property name="font">
           <font>
@@ -304,6 +343,19 @@ about the center
           <string/>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_pivot_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -324,7 +376,7 @@ about its axis
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_11">
+        <spacer name="verticalSpacer_spin_1">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -352,6 +404,19 @@ about its axis
         </widget>
        </item>
        <item>
+        <spacer name="verticalSpacer_spin_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QPushButton" name="SpinCalibrationButton">
          <property name="font">
           <font>
@@ -364,7 +429,7 @@ about its axis
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_12">
+        <spacer name="verticalSpacer_spin_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -387,6 +452,19 @@ about its axis
           <string/>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_spin_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
