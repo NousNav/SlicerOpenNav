@@ -8,6 +8,8 @@
     <y>0</y>
     <width>591</width>
     <height>491</height>
+    <width>592</width>
+    <height>504</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -52,6 +54,8 @@
          </property>
          <property name="text">
           <string>Follow your hospital protocols and prep the patient for surgery. 
+
+Place patient in operative position and fix head using skull clamp with skull pins.
 
 Have the NousNav components ready for the next steps.
 </string>
@@ -113,7 +117,7 @@ reference array</string>
           </font>
          </property>
          <property name="text">
-          <string>Fasten the array to the support arm on the Mayfield. Ensure the tracking discs are pointed toward where the camera will be.
+          <string>Fasten the array to the support arm on the skull clamp. Ensure the tracking spheres/discs are pointed toward where the camera will be.
 </string>
          </property>
          <property name="wordWrap">
@@ -171,7 +175,7 @@ reference array</string>
           </font>
          </property>
          <property name="text">
-          <string>Place the non-sterile pointer in the scene and check to make sure the tracking discs are clean and the tip is not bent.</string>
+          <string>Place the non-sterile pointer in the scene and check to make sure the tracking spheres/discs are clean and the tip is not bent.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

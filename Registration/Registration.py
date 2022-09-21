@@ -358,17 +358,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.pivotLogic.ClearToolToReferenceMatrices()
     print("Pivot calibration RMSE:" + RMSE_label)
 
-    results = [f"Calibration accuracy: {RMSE_label} mm"]
+    results = []
     if RMSE < self.EPSILON:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
       results.clear()
-      results.append("Calibration failed. It must be redone before proceeding.")
+      results.append("Calibration failed. It must be redone before proceeding. Instruments were either not in view or the pointer wasn't moved sufficiently.")
     elif RMSE < self.RMSE_PIVOT_OK:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
-      results.append("Results too poor. Calibration  must be redone before proceeding.")
+      results.append("Results too poor. Calibration  must be redone before proceeding. Instruments were either not in view or the pointer was moved too quickly.")
 
     self.ui.RMSLabelPivot.wordWrap = True
     self.ui.RMSLabelPivot.text = "\n".join(results)
@@ -451,17 +451,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     RMSE_label = f"{RMSE:1.2f}"
     print("Spin calibration RMSE:" + RMSE_label)
 
-    results = [f"Spin calibration accuracy: {RMSE_label} degrees"]
+    results = []
     if RMSE < self.EPSILON:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
       results.clear()
-      results.append("Calibration failed. It must be redone before proceeding.")
+      results.append("Calibration failed. It must be redone before proceeding. Instruments were wither not in view or the pointer wasn't rotated sufficiently.")
     elif RMSE < self.RMSE_SPIN_OK:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
-      results.append("Results too poor. Calibration  must be redone before proceeding.")
+      results.append("Results too poor. Calibration must be redone before proceeding. Instruments were either not in view or the pointer was rotated too quickly.")
 
     self.ui.RMSLabelSpin.wordWrap = True
     self.ui.RMSLabelSpin.text = "\n".join(results)
