@@ -122,8 +122,9 @@ QWidget[cssClass~="widget--color-light"] QPushButton:pressed {
 }
 
 QWidget[cssClass~="widget--color-light"] QPushButton:disabled {
-    background-color: #434343;
-    border-color: #434343;
+    background-color: #666666;
+    border-color: #666666;
+    color: #b7b7b7;
 }
 
 QWidget[cssClass~="bottom-toolbar--color-light"],
