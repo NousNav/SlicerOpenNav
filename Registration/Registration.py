@@ -151,6 +151,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), slicer.util.mainWindow())
     self.shortcut.connect("activated()", lambda: print('Shortcut not yet bound'))
 
+    self.messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Calibration", "Acquisition in progress...", qt.QMessageBox.NoButton)
+    self.messageBox.setStandardButtons(0)
+
   def cleanup(self):
     self.optitrack.shutdown()
     self.tools.setToolsStatusCheckEnabled(False)
@@ -328,6 +331,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut.disconnect("activated()")
     self.shortcut.connect("activated()", lambda: print("Pivot calibration already in progress"))
 
+    self.messageBox.show()
+    slicer.app.processEvents()
+
     # setup pivot cal
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
     if not self.logic.pointer_to_headframe:
@@ -386,6 +392,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if self.beep:
       self.beep.play()
+
+    self.messageBox.hide()
  
   def setupPivotCalibration(self):
     # create output transform
@@ -430,6 +438,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     qt.QTimer.singleShot(5000, self.startSpinCalibration)
     
   def startSpinCalibration(self):
+
+    self.messageBox.show()
+    slicer.app.processEvents()
+
     self.pivotLogic.SetRecordingState(True)
     print('Start recording')
     qt.QTimer.singleShot(5000, self.endSpinCalibration)
@@ -479,6 +491,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if self.beep:
       self.beep.play()
+
+    self.messageBox.hide()
 
   @NNUtils.backButton(text="Recalibrate")
   @NNUtils.advanceButton(text="")
