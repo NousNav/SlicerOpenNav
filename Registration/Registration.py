@@ -635,13 +635,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       match = search.group()
 
       RMSE = float(match)
-      RMSE_label = f"{RMSE:1.2f}"
 
-      results = [f"Registration accuracy: {RMSE_label} mm"]
-      if RMSE < self.RMSE_REGISTRATION_OK:
-        self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(0,170,0)")
-        results.append("Results are in the acceptable range to proceed.")
-      else:
+      results = []
+      if RMSE > self.RMSE_REGISTRATION_OK:
         self.ui.RMSLabelRegistration.setStyleSheet("color: rgb(170,0,0)")
         results.append("Results too poor. Registration must be redone before proceeding.")
     else:
