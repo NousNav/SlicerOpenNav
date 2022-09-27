@@ -148,6 +148,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         'Sound playback error',
       )
 
+    self.fiducialRegWizNode = None
+    self.fiducialRegWizNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')
+
     self.shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), slicer.util.mainWindow())
     self.shortcut.connect("activated()", lambda: print('Shortcut not yet bound'))
 
@@ -599,13 +602,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Create transform node to hold the computed registration result
     self.logic.setupRegistrationTransform()
 
-    # Create your fiducial wizard node and set the input parameters
-    fiducialRegNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLFiducialRegistrationWizardNode', 'Registration')
-
-    fiducialRegNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
-    fiducialRegNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
-    fiducialRegNode.SetOutputTransformNodeId(self.logic.registration_transform.GetID())
-    fiducialRegNode.SetRegistrationModeToSimilarity()
+    # Set the input parameters
+    self.fiducialRegWizNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
+    self.fiducialRegWizNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
+    self.fiducialRegWizNode.SetOutputTransformNodeId(self.logic.landmark_registration_transform.GetID())
+    #TODO, always make sure units are correct in Motive
+    self.fiducialRegWizNode.SetRegistrationModeToRigid()
 
     fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
     self.logic.needle_model.GetDisplayNode().SetVisibility(True)
@@ -622,7 +624,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       planningLogic.skin_segmentation.SetDisplayVisibility(True)
       planningLogic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
 
-    statusMessage = fiducialRegNode.GetCalibrationStatusMessage()
+    statusMessage = self.fiducialRegWizNode.GetCalibrationStatusMessage()
     print("Registration output message:" + statusMessage)
 
     regex = re.compile(r"[0-9]+\.[0-9]+")
