@@ -266,7 +266,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
 
-    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    self.shortcut.connect("activated()", self.workflow.gotoNext)
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -277,7 +277,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
-    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    self.shortcut.connect("activated()", self.workflow.gotoNext)
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -288,7 +288,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
 
-    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    self.shortcut.connect("activated()", self.workflow.gotoNext)
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -302,7 +302,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.tools.setToolsStatusCheckEnabled(True)
 
-    self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+    self.shortcut.connect("activated()", self.workflow.gotoNext)
 
   @NNUtils.backButton(text="Back")
   @NNUtils.advanceButton(text="Press when done")
@@ -323,7 +323,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Set the button/shortcut actions:
     self.disconnectAll(self.ui.PivotCalibrationButton)
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
-    self.shortcut.connect("activated()", lambda: self.onPivotCalibrationButton())
+    self.shortcut.disconnect("activated()")
+    self.shortcut.connect("activated()", self.onPivotCalibrationButton)
 
   def onPivotCalibrationButton(self):
     # Unbind button/shortcut while calibration is in progress:
@@ -386,9 +387,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.PivotCalibrationButton.enabled = True
     self.shortcut.disconnect("activated()")
     if self.logic.pivot_calibration_passed:
-      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+      self.shortcut.connect("activated()", self.workflow.gotoNext)
     else:
-      self.shortcut.connect("activated()", lambda: self.onPivotCalibrationButton())
+      self.shortcut.connect("activated()", self.onPivotCalibrationButton)
 
     if self.beep:
       self.beep.play()
@@ -420,7 +421,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Set the button/shortcut actions:
     self.disconnectAll(self.ui.SpinCalibrationButton)
     self.ui.SpinCalibrationButton.clicked.connect(self.onSpinCalibrationButton)
-    self.shortcut.connect("activated()", lambda: self.onSpinCalibrationButton())
+    self.shortcut.connect("activated()", self.onSpinCalibrationButton)
 
   def onSpinCalibrationButton(self):
     # Unbind button/shortcut while calibration is in progress:
@@ -485,9 +486,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.SpinCalibrationButton.enabled = True
     self.shortcut.disconnect("activated()")
     if self.logic.spin_calibration_passed:
-      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+      self.shortcut.connect("activated()", self.workflow.gotoNext)
     else:
-      self.shortcut.connect("activated()", lambda: self.onSpinCalibrationButton())
+      self.shortcut.connect("activated()", self.onSpinCalibrationButton)
 
     if self.beep:
       self.beep.play()
@@ -525,7 +526,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.startNextLandmark()
 
     self.shortcut.disconnect("activated()")
-    self.shortcut.connect("activated()", lambda: self.onCollectButton())
+    self.shortcut.connect("activated()", self.onCollectButton)
 
   @NNUtils.backButton(text="Redo registration")
   @NNUtils.advanceButton(text="Accept", enabled=False)
@@ -671,7 +672,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.landmarks.landmarksFinished:
       print("landmarks finished")
       self.shortcut.disconnect("activated()")
-      self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
+      self.shortcut.connect("activated()", self.workflow.gotoNext)
     if self.beep:
       self.beep.play()
     
