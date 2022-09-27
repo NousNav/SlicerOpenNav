@@ -432,6 +432,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut.disconnect("activated()")
     self.shortcut.connect("activated()", lambda: print("Spin calibration already in progress"))
 
+    self.messageBox.show()
+    slicer.app.processEvents()
+
     # setup spin cal
     if not self.logic.pointer_to_headframe:
       self.logic.reconnect()
@@ -443,8 +446,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
   def startSpinCalibration(self):
 
-    self.messageBox.show()
-    slicer.app.processEvents()
 
     self.pivotLogic.SetRecordingState(True)
     print('Start recording')
