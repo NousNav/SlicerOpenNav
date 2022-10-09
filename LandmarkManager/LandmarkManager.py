@@ -330,6 +330,7 @@ class Landmarks:
     iconLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
     iconLabel.setPixmap(self.notStartedIcon.pixmap(16, 16))
     nameLabel = qt.QLabel(landmark.name)
+    nameLabel.setFont(qt.QFont("Segoe UI", 20))
     nameLabel.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
     button = qt.QPushButton('')
     button.enabled = False
