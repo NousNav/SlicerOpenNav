@@ -553,7 +553,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.fiducialOnlyRegistration()
 
-    self.advanceButton.enabled = self.logic.registration_passed
+    self.advanceButton.enabled = self.logic.landmark_registration_passed
 
     # set the button actions
     self.disconnectAll(self.ui.CollectButton)
@@ -561,7 +561,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setRestartRegistrationButtonEnabled(True)
 
     self.shortcut.disconnect("activated()")
-    if self.logic.registration_passed:
+    if self.logic.landmark_registration_passed:
       self.shortcut.connect("activated()", lambda: self.workflow.gotoNext())
     else:
       self.shortcut.connect("activated()", lambda: self.restartRegistration())
@@ -610,11 +610,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     #TODO, always make sure units are correct in Motive
     self.fiducialRegWizNode.SetRegistrationModeToRigid()
 
-    fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
+    fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
     self.logic.needle_model.GetDisplayNode().SetVisibility(True)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
     if self.logic.pointer_to_headframe:
-      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
+      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
 
     slicer.mrmlScene.RemoveNode(fromMarkupsNode)
     slicer.mrmlScene.RemoveNode(toMarkupsNode)
@@ -648,8 +648,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelRegistration.wordWrap = True
     self.ui.RMSLabelRegistration.text = "\n".join(results)
 
-    self.logic.registration_passed = RMSE <= self.RMSE_REGISTRATION_OK
-    self.advanceButton.enabled = self.logic.registration_passed
+    self.logic.landmark_registration_passed = RMSE <= self.RMSE_REGISTRATION_OK
+    self.advanceButton.enabled = self.logic.landmark_registration_passed
 
   def onCollectButton(self):
     print('Attempt collection')
@@ -677,8 +677,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
     print('Reobserve registration transform')
    
-    if self.logic.registration_transform and self.logic.pointer_to_headframe:
-      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.registration_transform.GetID())
+    if self.logic.landmark_registration_transform and self.logic.pointer_to_headframe:
+      self.logic.pointer_to_headframe.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
       
   def setupToolTables(self):
     
@@ -741,10 +741,10 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
   """
 
   pointer_calibration = NNUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
-  registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
+  landmark_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
   pivot_calibration_passed = NNUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
   spin_calibration_passed = NNUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
-  registration_passed = NNUtils.parameterProperty("REGISTRATION_PASSED", default=False)
+  landmark_registration_passed = NNUtils.parameterProperty("LANDMARK_REGISTRATION_PASSED", default=False)
 
   # Not a reference property, since we DO NOT want any reference to this saved with the scene
   # This node should only exists when the tracker is running
@@ -760,18 +760,18 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
       self.pointer_calibration = node
 
   def setupRegistrationTransform(self):
-    if not self.registration_transform:
+    if not self.landmark_registration_transform:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLLinearTransformNode",
         "IMAGE_REGISTRATION",
       )
-      self.registration_transform = node
+      self.landmark_registration_transform = node
 
   def clearRegistrationTransform(self):
-    if self.registration_transform:
+    if self.landmark_registration_transform:
       print('Clearing registration transform to recompute')
       identityMatrix = vtk.vtkMatrix4x4()
-      self.registration_transform.SetMatrixTransformToParent(identityMatrix)
+      self.landmark_registration_transform.SetMatrixTransformToParent(identityMatrix)
 
   def reconnect(self):
     
@@ -791,8 +791,8 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     if self.needle_model and self.pointer_calibration:
       self.needle_model.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
 
-    if self.registration_transform and self.pointer_to_headframe:
-      self.pointer_to_headframe.SetAndObserveTransformNodeID(self.registration_transform.GetID())
+    if self.landmark_registration_transform and self.pointer_to_headframe:
+      self.pointer_to_headframe.SetAndObserveTransformNodeID(self.landmark_registration_transform.GetID())
 
   def setupNeedleModel(self):
     createModelsLogic = slicer.modules.createmodels.logic()
