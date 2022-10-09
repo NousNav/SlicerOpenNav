@@ -10,7 +10,7 @@
       Type="OptiTrack"
       ToolReferenceFrame="Tracker" 
       Profile="{0}"
-      AttachToRunningMotive="FALSE"
+      AttachToRunningMotive="TRUE"
       MotiveDataDescriptionsUpdateTimeSec="1.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Pointer" />
