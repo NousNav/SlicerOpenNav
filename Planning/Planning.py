@@ -441,7 +441,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.SEED_INSIDE_SEGMENT = 'NN_INSIDE'
     self.SEED_OUTSIDE_SEGMENT = 'NN_OUTSIDE'
 
-    self.SMOOTHING_LEVEL_TARGET_SEGMENTATION = 3
+    self.SMOOTHING_LEVEL_TARGET_SEGMENTATION = 5
 
     self.editor_widget = slicer.qMRMLSegmentEditorWidget()
     self.editor_widget.setMRMLScene(slicer.mrmlScene)
