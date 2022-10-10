@@ -2,6 +2,7 @@ import os, functools
 import qt
 import slicer
 import vtk
+import numpy as np
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -378,14 +379,12 @@ def activateReslicing(driverNode):
     driver.SetModeForSlice(mode, sliceViewNode)
     driver.SetDriverForSlice(driverNode.GetID(), sliceViewNode)
 
-  _activate("vtkMRMLSliceNodeRed", driver.MODE_AXIAL)
-  _activate("vtkMRMLSliceNodeYellow", driver.MODE_SAGITTAL)
-  _activate("vtkMRMLSliceNodeGreen", driver.MODE_CORONAL)
   _activate("vtkMRMLSliceNodeBlue", driver.MODE_INPLANE)
   _activate("vtkMRMLSliceNodeOrange", driver.MODE_INPLANE90)
 
   blueSliceViewNode = slicer.util.getNode("vtkMRMLSliceNodeBlue")
   driver.SetRotationForSlice(-45.0, blueSliceViewNode)
+  observeTransformForSliceJump(driverNode)
 
 
 def deactivateReslicing():
@@ -404,6 +403,41 @@ def deactivateReslicing():
 
   blueSliceViewNode = slicer.util.getNode("vtkMRMLSliceNodeBlue")
   driver.SetRotationForSlice(0, blueSliceViewNode)
+
+  driverNode = slicer.mrmlScene.GetFirstNodeByName("POINTER_CALIBRATION")
+  if driverNode:
+    removeObserveTransformForSliceJump(driverNode)
+
+
+def observeTransformForSliceJump(driverNode):
+  observerTag = driverNode.AddObserver(slicer.vtkMRMLLinearTransformNode.TransformModifiedEvent, jumpAxisAlignedSlices)
+  driverNode.SetAttribute('JumpObserverTag', str(observerTag))
+
+
+def removeObserveTransformForSliceJump(driverNode):
+  observerTag = driverNode.GetAttribute('JumpObserverTag')
+  if observerTag:
+    driverNode.RemoveObserver(int(observerTag))
+
+
+def jumpAxisAlignedSlices(driverNode,eventid):
+
+  def _getTranslation(driverNode):
+    mat = vtk.vtkMatrix4x4()
+    driverNode.GetMatrixTransformToWorld(mat)
+    npmat = np.zeros(3)
+    for i in range(3):
+      npmat[i] = mat.GetElement(i,3)
+    return npmat
+  
+  def _jump(sliceViewNodeID, driverNode):
+    sliceViewNode = slicer.util.getNode(sliceViewNodeID)
+    pos = _getTranslation(driverNode)
+    sliceViewNode.JumpSliceByOffsetting(pos[0], pos[1], pos[2])
+
+  _jump("vtkMRMLSliceNodeRed", driverNode)
+  _jump("vtkMRMLSliceNodeYellow", driverNode)
+  _jump("vtkMRMLSliceNodeGreen", driverNode)
 
 
 def getNavigationLayoutID():
