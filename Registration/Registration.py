@@ -372,13 +372,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if RMSE < self.EPSILON:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
       results.clear()
-      results.append("Calibration failed. It must be redone before proceeding. Instruments were either not in view or the pointer wasn't moved sufficiently.")
+      results.append("Calibration failed. It must be redone before proceeding. "
+                     "Instruments were either not in view or the pointer wasn't moved sufficiently.")
     elif RMSE < self.RMSE_PIVOT_OK:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelPivot.setStyleSheet("color: rgb(170,0,0)")
-      results.append("Results too poor. Calibration  must be redone before proceeding. Instruments were either not in view or the pointer was moved too quickly.")
+      results.append("Results too poor. Calibration  must be redone before proceeding. "
+                     "Instruments were either not in view or the pointer was moved too quickly.")
 
     self.ui.RMSLabelPivot.wordWrap = True
     self.ui.RMSLabelPivot.text = "\n".join(results)
@@ -445,8 +447,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     qt.QTimer.singleShot(5000, self.startSpinCalibration)
     
   def startSpinCalibration(self):
-
-
     self.pivotLogic.SetRecordingState(True)
     print('Start recording')
     qt.QTimer.singleShot(5000, self.endSpinCalibration)
@@ -472,13 +472,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if RMSE < self.EPSILON:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
       results.clear()
-      results.append("Calibration failed. It must be redone before proceeding. Instruments were wither not in view or the pointer wasn't rotated sufficiently.")
+      results.append("Calibration failed. It must be redone before proceeding. "
+                     "Instruments were wither not in view or the pointer wasn't rotated sufficiently.")
     elif RMSE < self.RMSE_SPIN_OK:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
       results.append("Results are in the acceptable range to proceed.")
     else:
       self.ui.RMSLabelSpin.setStyleSheet("color: rgb(170,0,0)")
-      results.append("Results too poor. Calibration must be redone before proceeding. Instruments were either not in view or the pointer was rotated too quickly.")
+      results.append("Results too poor. Calibration must be redone before proceeding. "
+                     "Instruments were either not in view or the pointer was rotated too quickly.")
 
     self.ui.RMSLabelSpin.wordWrap = True
     self.ui.RMSLabelSpin.text = "\n".join(results)
@@ -607,7 +609,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.fiducialRegWizNode.SetAndObserveFromFiducialListNodeId(fromMarkupsNode.GetID())
     self.fiducialRegWizNode.SetAndObserveToFiducialListNodeId(toMarkupsNode.GetID())
     self.fiducialRegWizNode.SetOutputTransformNodeId(self.logic.landmark_registration_transform.GetID())
-    #TODO, always make sure units are correct in Motive
+    # TODO, always make sure units are correct in Motive
     self.fiducialRegWizNode.SetRegistrationModeToRigid()
 
     fromMarkupsNode.SetAndObserveTransformNodeID(self.logic.landmark_registration_transform.GetID())
