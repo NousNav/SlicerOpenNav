@@ -226,20 +226,23 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def launchOptiTrack(self):
 
-    filename =  ''
+    motiveFileName =  ''
+    plusFileName = ''
 
     if self.selectorUI.KitwareRadioButton.checked:
-      filename = 'MotiveProfile-2021-10-22.xml'
+      motiveFileName = 'MotiveProfile-2021-10-22.xml'
+      plusFileName = 'PLUSHeadKitware.xml.in'
 
     if self.selectorUI.BWHRadioButton.checked:
-      filename = 'NousNav-BWH-Hardware.xml'
+      motiveFileName = 'NousNav-BWH-Hardware.xml'
+      plusFileName = 'PLUSHead.xml.in'
 
     test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
     test.setStandardButtons(0)
     test.show()
     slicer.app.processEvents()
     test.deleteLater()
-    self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath('PLUSHead.xml.in'), self.resourcePath(filename))
+    self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath(plusFileName), self.resourcePath(motiveFileName))
     test.hide()
 
     if not self.optitrack.isRunning:
