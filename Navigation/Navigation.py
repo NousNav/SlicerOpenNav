@@ -64,14 +64,14 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
 
   def validate(self):
     
-    registrationNode = slicer.modules.RegistrationWidget.logic.registration_transform
+    registrationNode = slicer.modules.RegistrationWidget.logic.landmark_registration_transform
     if not registrationNode:
       return 'Registration not complete'
     
     if NNUtils.isLinearTransformNodeIdentity(registrationNode):
       return 'Registration not complete'
 
-    if not slicer.modules.RegistrationWidget.logic.registration_passed:
+    if not slicer.modules.RegistrationWidget.logic.landmark_registration_passed:
       return 'Please redo registration to improve results'
   
   def enter(self):
