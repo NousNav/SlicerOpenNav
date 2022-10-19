@@ -92,6 +92,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_SPIN_OK = 5.
     self.RMSE_REGISTRATION_OK = 3.
     self.EPSILON = 0.00001
+    self.optitrack_pending = False
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -204,11 +205,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupPivotCalibration()
     self.landmarks.syncLandmarks()
 
-    qt.QTimer.singleShot(1000, self.startOptiTrack)
+    
 
     self.logic.setupSurfaceErrorComputation()
 
   def validate(self):
+    print('Registration main validate called')
     landmarkLogic = slicer.modules.PlanningWidget.landmarkLogic
 
     if not landmarkLogic.landmarks:
@@ -217,9 +219,15 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if landmarkLogic.landmarks.GetNumberOfControlPoints() < 3 :
       return 'Planning not complete'
 
+    if self.optitrack_pending:
+      return
+    self.optitrack_pending = True
+    qt.QTimer.singleShot(1000, self.startOptiTrack)
+
+
   def trackerConnected(self):
-    if not self.optitrack.isRunning:
-      return 'Optitrack not running'
+    if not (self.optitrack.isRunning or self.optitrack_pending):
+      return "OptriTrack not connected"
 
   def validateLandmarkRegistration(self):
     if not self.logic.pointer_calibration:
@@ -246,6 +254,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Improve pointer calibration before registering'
   
   def startOptiTrack(self):
+    
     if not self.optitrack.isRunning:
       # launch selector
       self.hardwareSelector = slicer.util.loadUI(self.resourcePath('UI/HardwareDialog.ui'))
@@ -277,6 +286,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     test.deleteLater()
     self.optitrack.start(self.optitrack.getPlusLauncherPath(), self.resourcePath(plusFileName), self.resourcePath(motiveFileName))
     test.hide()
+    self.optitrack_pending = False
 
     if not self.optitrack.isRunning:
       qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
