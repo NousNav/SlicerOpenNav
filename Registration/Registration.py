@@ -139,6 +139,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     import OptiTrack
     self.optitrack = OptiTrack.OptiTrackLogic()
+    self.optitrack.setExpectedNodes(['PointerToHeadFrame', 'PointerToTracker', 'HeadFrameToTracker'])
 
     self.preloadPictures()
     self.setupToolTables()
@@ -201,6 +202,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       NNUtils.polish(widget)
 
     self.setupPivotCalibration()
+    self.landmarks.syncLandmarks()
 
     qt.QTimer.singleShot(1000, self.startOptiTrack)
 
@@ -278,9 +280,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if not self.optitrack.isRunning:
       qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
-    else:
-      self.advanceButton.enabled = True
-      print('enable advance')
+    else:      
       qt.QTimer.singleShot(10, self.logic.reconnect)
 
   def stepSetup(self):
@@ -541,6 +541,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # Clear previous registration
     self.logic.clearRegistrationTransform()
+    self.landmarks.setupTrackerLandmarksNode()
     self.landmarks.clearLandmarks()
     self.resetTrace()
     self.trace.setVisible(False)
@@ -765,7 +766,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.optitrack = self.optitrack
     
     # Setting this makes sure tool transforms are removed from scene saving
-    self.optitrack.setExpectedNodes(['PointerToHeadFrame', 'PointerToTracker', 'HeadFrameToTracker'])
+    
 
   def onTraceButton(self):
     print('Attempt tracing')

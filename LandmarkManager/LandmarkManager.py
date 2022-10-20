@@ -5,6 +5,7 @@ from typing import List, Dict
 
 import qt
 import slicer
+import vtk
 
 from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModule,
@@ -68,6 +69,7 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   landmarkIndexes: Dict[str, int] = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
   landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', default=None)
+  
 
   def __init__(self):
     super().__init__()
@@ -256,9 +258,12 @@ class Landmark:
     self.ignore = False
 
 
-class Landmarks:
+class Landmarks(ScriptedLoadableModuleLogic):
+
+  trackerLandmarks = NNUtils.nodeReferenceProperty('TRACKER_LANDMARKS', default=None)
   # From Registration/RegistrationUtils/Landmarks.py
   def __init__(self, tableWidget, moduleName):
+    super().__init__()
     self.landmarks = []
     self.moduleName = moduleName
     self.tableWidget = tableWidget
@@ -403,6 +408,7 @@ class Landmarks:
       print(self.currentLandmark.name)
       self.currentLandmark.state = LandmarkState.DONE
       self.currentLandmark.trackerPosition = pos
+      self.syncTrackerNode(self.currentLandmark.name, pos)
       self.currentLandmark = None
       self.startNextLandmark()
     else:
@@ -413,6 +419,20 @@ class Landmarks:
       if landmark.name == name:
         return landmark.trackerPosition
 
+  def syncTrackerPosition(self,name, pos):
+    for landmark in self.landmarks:
+      if landmark.name == name:
+        landmark.trackerPosition = pos
+        landmark.state = LandmarkState.DONE
+
+  def syncTrackerNode(self,name,pos):
+    for idx in range(0, self.trackerLandmarks.GetNumberOfControlPoints()):
+      node_name = self.trackerLandmarks.GetNthControlPointLabel(idx)
+      if node_name == name:
+        self.trackerLandmarks.SetNthControlPointPositionWorld(idx, pos[0], pos[1], pos[2])
+        return
+    self.trackerLandmarks.AddControlPointWorld(vtk.vtkVector3d(pos),name)     
+  
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:
       landmark.state = LandmarkState.SKIPPED
@@ -433,3 +453,29 @@ class Landmarks:
       landmark.trackerPosition = None
 
     self.updateLandmarksDisplay()
+
+  def syncLandmarks(self):
+    if not self.trackerLandmarks:
+      return
+    if self.trackerLandmarks.GetNumberOfControlPoints() == 0:
+      return
+
+    self.clearLandmarks()
+
+    for idx in range(0, self.trackerLandmarks.GetNumberOfControlPoints()):
+      point = [0, 0, 0]
+      self.trackerLandmarks.GetNthControlPointPositionWorld(idx, point)
+      name = self.trackerLandmarks.GetNthControlPointLabel(idx)
+      self.syncTrackerPosition(name, point)
+    
+    self.updateLandmarksDisplay()
+
+  def setupTrackerLandmarksNode(self):
+    if not self.trackerLandmarks:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLMarkupsFiducialNode",
+        "TRACKER_LANDMARKS",
+      )
+      node.CreateDefaultDisplayNodes()
+      self.trackerLandmarks = node
+    self.trackerLandmarks.GetDisplayNode().SetVisibility(False)
