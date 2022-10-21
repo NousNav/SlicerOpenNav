@@ -654,7 +654,6 @@ def checkAutoSave():
     print('Autosave found')
     reloadAutoSaveDialog = qt.QMessageBox(qt.QMessageBox.Information, "Reload autosave?",
       "An autosave has been found, would you like to reload it?", qt.QMessageBox.Yes | qt.QMessageBox.Discard)
-    reloadAutoSaveDialog.open()
     ret = reloadAutoSaveDialog.exec()
     if ret == qt.QMessageBox.Yes:
       print('reloading autosave')
