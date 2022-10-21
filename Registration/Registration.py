@@ -258,11 +258,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if not self.optitrack.isRunning:
       # launch selector
       self.hardwareSelector = slicer.util.loadUI(self.resourcePath('UI/HardwareDialog.ui'))
+      self.hardwareSelector.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
       self.selectorUI = slicer.util.childWidgetVariables(self.hardwareSelector)
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
       dialog_shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), self.hardwareSelector)
       dialog_shortcut.connect("activated()", self.hardwareSelector.accept)
-      self.hardwareSelector.open()
+      self.hardwareSelector.exec()
     else:
       self.advanceButton.enabled = True
       self.logic.reconnect()
