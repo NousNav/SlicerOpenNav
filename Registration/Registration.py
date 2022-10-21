@@ -135,8 +135,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     addSecondaryTab("patient-prep", "Patient prep")
     addSecondaryTab("tracking-prep", "Tracking devices")
     addSecondaryTab("align-camera", "Camera")
-    addSecondaryTab("pivot-calibration", "Calibrate")
+    addSecondaryTab("pivot-calibration", "Pivot Calibrate")
+    addSecondaryTab("spin-calibration", "Spin Calibrate")
     addSecondaryTab("landmark-registration", "Register patient")
+    addSecondaryTab("surface-registration", "Refine registration")
+    addSecondaryTab("verify-registration", "Verify registration")
 
     import OptiTrack
     self.optitrack = OptiTrack.OptiTrackLogic()
