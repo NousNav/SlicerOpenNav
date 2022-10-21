@@ -69,7 +69,6 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   landmarkIndexes: Dict[str, int] = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
   landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', default=None)
-  
 
   def __init__(self):
     super().__init__()
@@ -262,6 +261,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
 
   trackerLandmarks = NNUtils.nodeReferenceProperty('TRACKER_LANDMARKS', default=None)
   # From Registration/RegistrationUtils/Landmarks.py
+  
   def __init__(self, tableWidget, moduleName):
     super().__init__()
     self.landmarks = []
@@ -431,7 +431,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
       if node_name == name:
         self.trackerLandmarks.SetNthControlPointPositionWorld(idx, pos[0], pos[1], pos[2])
         return
-    self.trackerLandmarks.AddControlPointWorld(vtk.vtkVector3d(pos),name)     
+    self.trackerLandmarks.AddControlPointWorld(vtk.vtkVector3d(pos),name)
   
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:

@@ -205,8 +205,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.setupPivotCalibration()
     self.landmarks.syncLandmarks()
 
-    
-
     self.logic.setupSurfaceErrorComputation()
 
   def validate(self):
@@ -223,7 +221,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return
     self.optitrack_pending = True
     qt.QTimer.singleShot(1000, self.startOptiTrack)
-
 
   def trackerConnected(self):
     if not (self.optitrack.isRunning or self.optitrack_pending):
@@ -291,7 +288,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if not self.optitrack.isRunning:
       qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
       self.advanceButton.enabled = False
-    else:      
+    else:
       qt.QTimer.singleShot(10, self.logic.reconnect)
 
   def stepSetup(self):
@@ -779,7 +776,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     
     # Setting this makes sure tool transforms are removed from scene saving
     
-
   def onTraceButton(self):
     print('Attempt tracing')
     if self.trace.state == TracingState.IN_PROGRESS:
