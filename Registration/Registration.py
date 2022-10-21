@@ -290,6 +290,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     if not self.optitrack.isRunning:
       qt.QMessageBox.warning(slicer.util.mainWindow(), "Tracker not connected", "Tracker not connected")
+      self.advanceButton.enabled = False
     else:      
       qt.QTimer.singleShot(10, self.logic.reconnect)
 
@@ -309,6 +310,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
     self.stepSetup()
+    self.advanceButton.enabled = True
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
