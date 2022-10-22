@@ -428,7 +428,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelPivot.wordWrap = True
     self.ui.RMSLabelPivot.text = "\n".join(results)
 
-    self.logic.pivot_calibration_passed = RMSE <= self.RMSE_PIVOT_OK
+    self.logic.pivot_calibration_passed = RMSE <= self.RMSE_PIVOT_OK and RMSE > self.EPSILON
     self.advanceButton.enabled = self.logic.pivot_calibration_passed
 
     # Re-bind button/shortcut:
@@ -527,7 +527,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.ui.RMSLabelSpin.wordWrap = True
     self.ui.RMSLabelSpin.text = "\n".join(results)
 
-    self.logic.spin_calibration_passed = RMSE <= self.RMSE_SPIN_OK
+    self.logic.spin_calibration_passed = RMSE <= self.RMSE_SPIN_OK and RMSE > self.EPSILON
     self.advanceButton.enabled = self.logic.spin_calibration_passed
 
     # Re-bind button/shortcut:
