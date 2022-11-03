@@ -70,7 +70,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
                       validate=self.trackerConnected),
         Home.Workflow("spin-calibration", setup=self.registrationStepSpinCalibration,
                       widget=self.ui.RegistrationStepSpinCalibration,
-                      validate=self.trackerConnected),
+                      validate=self.validateSpinCalibration),
         Home.Workflow("landmark-registration", setup=self.registrationStepLandmarkRegistration,
                       widget=self.ui.RegistrationStepLandmarkRegistration,
                       teardown=self.fiducialOnlyRegistration,
@@ -80,6 +80,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
                       validate=self.validateSurfaceRegistration,
                       teardown=self.resetDefaultButtonActions),
         Home.Workflow("verify-registration", setup=self.registrationStepVerifyRegistration,
+                      validate=self.validateVerifyRegistration,
                       widget=self.ui.RegistrationStepVerifyRegistration,
                       teardown=self.registrationStepAcceptRegistration),
       ),
@@ -89,7 +90,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     )
 
     self.RMSE_PIVOT_OK = 0.8
-    self.RMSE_SPIN_OK = 5.
+    self.RMSE_SPIN_OK = 1.
     self.RMSE_REGISTRATION_OK = 3.
     self.EPSILON = 0.00001
     self.optitrack_pending = False
@@ -223,11 +224,17 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     if self.optitrack_pending:
       return
     self.optitrack_pending = True
-    qt.QTimer.singleShot(1000, self.startOptiTrack)
+    self.startOptiTrack()
 
   def trackerConnected(self):
     if not (self.optitrack.isRunning or self.optitrack_pending):
-      return "OptriTrack not connected"
+      return "OptiTrack not connected"
+
+  def validateSpinCalibration(self):
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+      return 'Perform pivot calibration before spin calibration'
+    if not self.logic.pivot_calibration_passed:
+      return 'Improve pivot calibration before spin calibration'
 
   def validateLandmarkRegistration(self):
     if not self.logic.pointer_calibration:
@@ -235,11 +242,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # check if pivot transform is identity
     if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
-      return 'Perform pointer calibration before registering'
+      return 'Perform pointer pivot calibration before registering'
 
     # check if pivot and spin calibration is good
-    if not (self.logic.pivot_calibration_passed and self.logic.spin_calibration_passed):
-      return 'Improve pointer calibration before registering'
+    if not self.logic.pivot_calibration_passed:
+      return 'Improve pointer pivot calibration before registering'
+    if not self.logic.spin_calibration_passed:
+      return 'Improve pointer spin calibration before registering'
 
   def validateSurfaceRegistration(self):
     if not self.logic.pointer_calibration:
@@ -250,8 +259,40 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before registering'
 
     # check if pivot and spin calibration is good
-    if not (self.logic.pivot_calibration_passed and self.logic.spin_calibration_passed):
-      return 'Improve pointer calibration before registering'
+    if not self.logic.pivot_calibration_passed:
+      return 'Improve pointer pivot calibration before registering'
+    if not self.logic.spin_calibration_passed:
+      return 'Improve pointer spin calibration before registering'
+
+  def validateVerifyRegistration(self):
+    if not self.logic.pointer_calibration:
+      return 'Perform pointer calibration before registering'
+
+    # check if pivot transform is identity
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+      return 'Perform pointer calibration before registering'
+
+    # check if pivot and spin calibration is good
+    if not self.logic.pivot_calibration_passed:
+      return 'Improve pointer pivot calibration before registering'
+    if not self.logic.spin_calibration_passed:
+      return 'Improve pointer spin calibration before registering'
+
+    # check if landmark registration is present and good
+    if not self.logic.landmark_registration_transform:
+      return 'Landmark registration missing'
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform):
+      return 'Landmark registration not complete'
+    if not self.logic.landmark_registration_passed:
+      return 'Please redo landmark registration to improve results'
+
+    # check if surface registration is present and good
+    if not self.logic.surface_registration_transform:
+      return 'Surface registration missing'
+    if NNUtils.isLinearTransformNodeIdentity(self.logic.surface_registration_transform):
+      return 'Surface registration not complete'
+    if not self.logic.surface_registration_passed:
+      return 'Please redo surface tracing to improve results'
   
   def startOptiTrack(self):
     
@@ -261,6 +302,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.hardwareSelector.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
       self.selectorUI = slicer.util.childWidgetVariables(self.hardwareSelector)
       self.hardwareSelector.accepted.connect(self.launchOptiTrack)
+      self.hardwareSelector.rejected.connect(self.cancelOptiTrack)
       dialog_shortcut = qt.QShortcut(qt.QKeySequence("Ctrl+b"), self.hardwareSelector)
       dialog_shortcut.connect("activated()", self.hardwareSelector.accept)
       self.hardwareSelector.exec()
@@ -295,6 +337,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     else:
       qt.QTimer.singleShot(10, self.logic.reconnect)
 
+  def cancelOptiTrack(self):
+    self.optitrack_pending = False
+
   def stepSetup(self):
     self.tools.showToolMarkers = False
     self.tools.updateToolsDisplay()
@@ -311,7 +356,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Setup NousNav")
   def registrationStepPatientPrep(self):
     self.stepSetup()
-    self.advanceButton.enabled = True
+    self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
@@ -322,6 +367,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepTrackingPrep(self):
     self.stepSetup()
+    self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
@@ -332,6 +378,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepPointerPrep(self):
     self.stepSetup()
+    self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
@@ -342,6 +389,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
   @NNUtils.advanceButton(text="Press when done")
   def registrationStepAlignCamera(self):
     self.stepSetup()
+    self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
     NNUtils.goToPictureLayout(self.pictures["RegistrationStepAlignCamera.png"], sidePanelVisible=True)
@@ -366,6 +414,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButton.enabled = self.logic.pivot_calibration_passed
 
+    if self.logic.pivot_calibration_passed:
+      self.ui.PivotCalibrationButton.text = 'Restart Pivot Calibration'
+      self.ui.RMSLabelPivot.wordWrap = True
+      self.ui.RMSLabelPivot.setStyleSheet("color: rgb(0,170,0)")
+      self.ui.RMSLabelPivot.text = "Pivot calibration successful."
+
     # Set the button/shortcut actions:
     self.disconnectAll(self.ui.PivotCalibrationButton)
     self.ui.PivotCalibrationButton.clicked.connect(self.onPivotCalibrationButton)
@@ -381,7 +435,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.messageBox.show()
     slicer.app.processEvents()
 
+    self.advanceButton.enabled = False
+    self.logic.pivot_calibration_passed = False
+    self.ui.RMSLabelPivot.text = ""
+
     # setup pivot cal
+    self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
     if not self.logic.pointer_to_headframe:
       self.logic.reconnect()
@@ -463,6 +522,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.advanceButton.enabled = self.logic.spin_calibration_passed
 
+    if self.logic.spin_calibration_passed:
+      self.ui.SpinCalibrationButton.text = 'Restart Spin Calibration'
+      self.ui.RMSLabelSpin.wordWrap = True
+      self.ui.RMSLabelSpin.setStyleSheet("color: rgb(0,170,0)")
+      self.ui.RMSLabelSpin.text = "Spin calibration successful."
+
     self.ui.SpinCalibrationButton.text = 'Start Spin Calibration'
 
     # Set the button/shortcut actions:
@@ -479,7 +544,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.messageBox.show()
     slicer.app.processEvents()
 
+    self.advanceButton.enabled = False
+    self.logic.spin_calibration_passed = False
+    self.ui.RMSLabelSpin.text = ""
+
     # setup spin cal
+    self.pivotLogic = slicer.vtkSlicerPivotCalibrationLogic()
     if not self.logic.pointer_to_headframe:
       self.logic.reconnect()
     self.pivotLogic.SetAndObserveTransformNode(self.logic.pointer_to_headframe)
@@ -507,7 +577,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     RMSE = math.degrees(self.pivotLogic.GetSpinRMSE())
 
     self.pivotLogic.ClearToolToReferenceMatrices()
-    RMSE_label = f"{RMSE:1.2f}"
+    RMSE_label = f"{RMSE:1.6f}"
     print("Spin calibration RMSE:" + RMSE_label)
 
     results = []

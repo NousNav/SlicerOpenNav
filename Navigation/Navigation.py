@@ -63,7 +63,21 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     ) = NNUtils.setupWorkflowToolBar("Navigation")
 
   def validate(self):
-    landmark_registration_node = slicer.modules.RegistrationWidget.logic.landmark_registration_transform
+    registration_logic = slicer.modules.RegistrationWidget.logic
+
+    if not registration_logic.pointer_calibration:
+      return 'Perform pointer calibration before navigating'
+
+    # check if pivot transform is identity
+    if NNUtils.isLinearTransformNodeIdentity(registration_logic.pointer_calibration):
+      return 'Perform pointer pivot calibration before navigating'
+
+    # check if pivot and spin calibration is good
+    if not (registration_logic.pivot_calibration_passed and registration_logic.spin_calibration_passed):
+      return 'Improve pointer calibration before navigating'
+
+    # check if landmark registration is present and good
+    landmark_registration_node = registration_logic.landmark_registration_transform
     if not landmark_registration_node:
       return 'Landmark registration missing'
     if NNUtils.isLinearTransformNodeIdentity(landmark_registration_node):
@@ -71,7 +85,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     if not slicer.modules.RegistrationWidget.logic.landmark_registration_passed:
       return 'Please redo landmark registration to improve results'
 
-    surface_registration_node = slicer.modules.RegistrationWidget.logic.surface_registration_transform
+    # check if surface registration is present and good
+    surface_registration_node = registration_logic.surface_registration_transform
     if not surface_registration_node:
       return 'Surface registration missing'
     if NNUtils.isLinearTransformNodeIdentity(surface_registration_node):
