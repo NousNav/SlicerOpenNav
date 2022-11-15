@@ -305,6 +305,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segmentation = self.logic.skin_segmentation
     segment = self.logic.SKIN_SEGMENT
 
+    messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Computing", "Computing segmentation", qt.QMessageBox.NoButton)
+    messageBox.setStandardButtons(0)
+    messageBox.show()
+    slicer.app.processEvents()
+    messageBox.deleteLater()
+
     self.logic.setEditorTargets(volume, segmentation, segment)
     # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
@@ -323,6 +329,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     model.GetDisplayNode().SetVisibility(False)
 
     NNUtils.centerCam()
+
+    messageBox.hide()
 
   def paintInside(self):
     volume = self.logic.master_volume
@@ -705,6 +713,12 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     Effects: Grow from seeds
     """
+    messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Computing", "Computing segmentation", qt.QMessageBox.NoButton)
+    messageBox.setStandardButtons(0)
+    messageBox.show()
+    slicer.app.processEvents()
+    messageBox.deleteLater()
+
     self.editor_widget.setActiveEffectByName('Grow from seeds')
     effect = self.editor_widget.activeEffect()
     # Make sure both segments are visible
@@ -728,12 +742,20 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     previewDisplayNode.SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
     previewDisplayNode.SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
+    messageBox.hide()
+
   def applyTargetSegmentation(self):
     """ Preview target segmentation effects. Be sure to use setEditorTargets
      beforehand, so the effect is applied correctly.
 
     Effects: Grow from seeds, Smoothing
     """
+    messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Finalizing", "Finalizing segmentation", qt.QMessageBox.NoButton)
+    messageBox.setStandardButtons(0)
+    messageBox.show()
+    slicer.app.processEvents()
+    messageBox.deleteLater()
+
     self.editor_widget.setActiveEffectByName('Grow from seeds')
     effect = self.editor_widget.activeEffect()
     if effect.self().getPreviewNode() is None:
@@ -753,6 +775,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Rehide outside segment
     self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+
+    messageBox.hide()
 
   def beginPaint(self):
     """ Begin a paint effect. Be sure to use setEditorTargets beforehand, so
