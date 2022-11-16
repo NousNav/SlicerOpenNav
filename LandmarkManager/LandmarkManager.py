@@ -183,7 +183,7 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
       self.table.setCellWidget(row, 1, nameLabel)
 
       button = qt.QPushButton('')
-      button.maximumWidth = 70
+      button.minimumWidth = 80
       button.maximumHeight = 16
       button.enabled = True
       button.clicked.connect(lambda state, name=name, row=row: self.onButtonClick(name, row))
