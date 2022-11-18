@@ -28,7 +28,7 @@ class Registration(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav Registration"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Tracking", "PivotCalibration"]
+    self.parent.dependencies = ["PivotCalibration"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Registration main module for the NousNav application

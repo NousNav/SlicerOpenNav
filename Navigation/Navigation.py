@@ -19,7 +19,7 @@ class Navigation(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "NousNav Navigation"
     self.parent.categories = [""]
-    self.parent.dependencies = ["Tools"]
+    self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Navigation main module for the NousNav application
