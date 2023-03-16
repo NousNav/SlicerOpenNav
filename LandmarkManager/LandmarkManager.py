@@ -179,12 +179,13 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
       self.table.setCellWidget(row, 0, iconLabel)
 
       nameLabel = qt.QLabel(name)
-      # iconLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
+      nameLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
+      nameLabel.setStyleSheet("QLabel{font-size: 18px;}")
       self.table.setCellWidget(row, 1, nameLabel)
 
       button = qt.QPushButton('')
       button.minimumWidth = 80
-      button.maximumHeight = 16
+      button.maximumHeight = 32
       button.enabled = True
       button.clicked.connect(lambda state, name=name, row=row: self.onButtonClick(name, row))
       self.table.setCellWidget(row, 2, button)
@@ -206,11 +207,11 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
     button = self.table.cellWidget(row, 2)
 
     if name in self.logic.landmarkIndexes:  # position is defined
-      iconLabel.setPixmap(self.icons['Done'].pixmap(16, 16))
+      iconLabel.setPixmap(self.icons['Done'].pixmap(32, 32))
       nameLabel.text = name
       button.text = 'Remove'
     else:
-      iconLabel.setPixmap(self.icons['NotStarted'].pixmap(16, 16))
+      iconLabel.setPixmap(self.icons['NotStarted'].pixmap(32, 32))
       nameLabel.text = name
       button.text = 'Place'
 
@@ -333,7 +334,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     landmark.row = row
     iconLabel = qt.QLabel()
     iconLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-    iconLabel.setPixmap(self.notStartedIcon.pixmap(16, 16))
+    iconLabel.setPixmap(self.notStartedIcon.pixmap(32, 32))
     nameLabel = qt.QLabel(landmark.name)
     nameLabel.setFont(qt.QFont("Segoe UI", 20))
     nameLabel.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
@@ -367,24 +368,24 @@ class Landmarks(ScriptedLoadableModuleLogic):
     if landmark.state == LandmarkState.NOT_STARTED:
       button.enabled = False
       button.text = ''
-      iconLabel.setPixmap(self.notStartedIcon.pixmap(16, 16))
+      iconLabel.setPixmap(self.notStartedIcon.pixmap(32, 32))
 
     if landmark.state == LandmarkState.IN_PROGRESS:
       button.enabled = True
       button.text = 'Skip'
-      iconLabel.setPixmap(self.startedIcon.pixmap(16, 16))
+      iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
       self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
 
     if landmark.state == LandmarkState.DONE:
       button.enabled = True
       button.text = 'Redo'
-      iconLabel.setPixmap(self.doneIcon.pixmap(16, 16))
+      iconLabel.setPixmap(self.doneIcon.pixmap(32, 32))
       self.landmarksCollected += 1
 
     if landmark.state == LandmarkState.SKIPPED:
       button.enabled = True
       button.text = 'Add'
-      iconLabel.setPixmap(self.SkippedIcon.pixmap(16, 16))
+      iconLabel.setPixmap(self.SkippedIcon.pixmap(32, 32))
 
   def startNextLandmark(self):
     for landmark in self.landmarks:
