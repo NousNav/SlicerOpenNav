@@ -217,15 +217,7 @@ QLabel#NousNavLabel {
     padding: 2px;
 }
 
-QPushButton#ImportDICOMButton,
-QPushButton#DICOMToggleButton,
-QPushButton#LoadDataButton,
-QPushButton#loadPlanButton{
-    min-height: 120px;
-    font: 20px;
-    font-weight: bold;
-    margin: 12px;
-}
+
 
 /* QSlider styling for slice viewers */
 QSlider {
@@ -255,4 +247,33 @@ QSlider::add-page:horizontal {
 QMainWindow::separator {
     width: 0px;
     height: 0px;
+}
+
+/* Per page styling needs */
+
+/* Patients */
+QPushButton#ImportDICOMButton,
+QPushButton#DICOMToggleButton,
+QPushButton#LoadDataButton,
+QPushButton#loadPlanButton{
+    min-height: 120px;
+    font: 20px;
+    font-weight: bold;
+    margin: 12px;
+}
+
+/* Skin Segmentation */
+
+QLabel#skinThresholdLabel,
+QLabel#skinSmoothingLabel{
+    min-height: 40px;
+    font: 20px;
+    margin: 12px;
+}
+
+QPushButton#skinApply{
+    min-height: 100px;
+    font: 30px;
+    /* font-weight: bold; */
+    margin: 12px;
 }

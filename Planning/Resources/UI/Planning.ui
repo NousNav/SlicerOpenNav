@@ -34,7 +34,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="skinThresholdLabel">
          <property name="text">
           <string>Threshold</string>
          </property>
@@ -54,7 +54,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="skinSmoothingLabel">
          <property name="text">
           <string>Smoothness</string>
          </property>
