@@ -274,6 +274,35 @@ QLabel#skinSmoothingLabel{
 QPushButton#skinApply{
     min-height: 100px;
     font: 30px;
-    /* font-weight: bold; */
     margin: 12px;
 }
+
+/* Target segmentation */
+QPushButton#targetPaintInside,
+QPushButton#targetPaintOutside,
+QPushButton#targetPreview,
+QPushButton#targetApply{
+    min-height: 100px;
+    font: 30px;
+    margin: 12px;
+}
+
+QPushButton#targetPaintInside{
+    background-color:rgb(37, 91, 37);
+}
+
+QPushButton#targetPaintInside:hover,
+QPushButton#targetPaintInside:pressed{
+    background-color:rgb(22, 54, 22);
+}
+
+QPushButton#targetPaintOutside{
+    background-color:rgb(97, 18, 18);
+}
+
+QPushButton#targetPaintOutside:hover,
+QPushButton#targetPaintOutside:pressed{
+    background-color:rgb(70, 13, 13);
+}
+
+/* Trajectory */
