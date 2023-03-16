@@ -306,3 +306,28 @@ QPushButton#targetPaintOutside:pressed{
 }
 
 /* Trajectory */
+
+QPushButton#trajectoryEntry,
+QPushButton#trajectoryTarget{
+    min-height: 100px;
+    font: 30px;
+    margin: 12px;
+}
+
+QPushButton#trajectoryTarget{
+    background-color:rgb(37, 91, 37);
+}
+
+QPushButton#trajectoryTarget:hover,
+QPushButton#trajectoryTarget:pressed{
+    background-color:rgb(22, 54, 22);
+}
+
+QPushButton#trajectoryEntry{
+    background-color:rgb(204, 102, 102);
+}
+
+QPushButton#trajectoryEntry:hover,
+QPushButton#trajectoryEntry:pressed{
+    background-color:rgb(91, 44, 44);
+}
