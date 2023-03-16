@@ -91,6 +91,10 @@ QTabBar[cssClass~="secondary-tabbar"]::tab:!selected {
     color: #B7B7B7;
 }
 
+QTabBar[cssClass~="secondary-tabbar"]::tab:hover {
+    color: #5ac2c9;
+}
+
 QToolBar#SecondaryToolBar {
     background-color: #2a2a2a;
     margin: 0px;
@@ -206,6 +210,10 @@ QPushButton[cssClass~="bottom-toolbar__back-button"] {
 }
 
 QPushButton[cssClass~="bottom-toolbar__back-button"]:pressed {
+    background-color: #343434;
+}
+
+QPushButton[cssClass~="bottom-toolbar__back-button"]:hover {
     background-color: #343434;
 }
 
@@ -330,4 +338,10 @@ QPushButton#trajectoryEntry{
 QPushButton#trajectoryEntry:hover,
 QPushButton#trajectoryEntry:pressed{
     background-color:rgb(91, 44, 44);
+}
+
+QPushButton#savePlanButton{
+    min-height: 100px;
+    font: 30px;
+    margin: 12px;
 }
