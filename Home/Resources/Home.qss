@@ -17,6 +17,9 @@ QPushButton {
 QPushButton:pressed {
     background-color: #343434;
 }
+QPushButton:hover {
+    background-color: #343434;
+}
 
 QMessageBox, QDialog#HardwareDialog * {
   font-size: 20px;
@@ -49,6 +52,11 @@ QTabBar#PrimaryTabBar::tab:!selected {
     border-bottom-color: #434343;
     color: #FAFAFA;
     font-weight: normal;
+}
+
+QTabBar#PrimaryTabBar::tab:hover{
+    background-color: #434343;
+    border-top-color: #5ac2c9;
 }
 
 QToolBar#PrimaryToolBar {
@@ -121,6 +129,10 @@ QWidget[cssClass~="widget--color-light"] QPushButton:pressed {
     background-color: #343434;
 }
 
+QWidget[cssClass~="widget--color-light"] QPushButton:hover {
+    background-color: #343434;
+}
+
 QWidget[cssClass~="widget--color-light"] QPushButton:disabled {
     background-color: #666666;
     border-color: #666666;
@@ -143,6 +155,10 @@ QWidget[cssClass~="widget--color-dark"] QPushButton {
 }
 
 QWidget[cssClass~="widget--color-dark"] QPushButton:pressed {
+    background-color: #343434;
+}
+
+QWidget[cssClass~="widget--color-dark"] QPushButton:hover {
     background-color: #343434;
 }
 
@@ -179,6 +195,10 @@ QPushButton[cssClass~="bottom-toolbar__advance-button"]:pressed {
     background-color: #316d71;
 }
 
+QPushButton[cssClass~="bottom-toolbar__advance-button"]:hover {
+    background-color: #316d71;
+}
+
 QPushButton[cssClass~="bottom-toolbar__back-button"] {
     background-color: #666666;
     border-color: #666666;
@@ -195,6 +215,16 @@ QLabel#NousNavLabel {
     border-bottom: 2px solid #434343;
     font: 20px;
     padding: 2px;
+}
+
+QPushButton#ImportDICOMButton,
+QPushButton#DICOMToggleButton,
+QPushButton#LoadDataButton,
+QPushButton#loadPlanButton{
+    min-height: 120px;
+    font: 20px;
+    font-weight: bold;
+    margin: 12px;
 }
 
 /* QSlider styling for slice viewers */
