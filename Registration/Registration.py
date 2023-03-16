@@ -689,13 +689,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     self.advanceButton.enabled = self.logic.surface_registration_passed
-    self.ui.DiscardLastButton.enabled = self.trace.lastAcquisitionLength > 0
 
     # set the button/shortcut actions
     self.disconnectAll(self.ui.TraceButton)
     self.ui.TraceButton.clicked.connect(self.onTraceButton)
-    self.disconnectAll(self.ui.DiscardLastButton)
-    self.ui.DiscardLastButton.clicked.connect(self.trace.discardLastAcquisition)
     self.disconnectAll(self.ui.ResetTraceButton)
     self.ui.ResetTraceButton.clicked.connect(self.onResetTraceButton)
     self.disconnectAll(self.backButton)

@@ -352,7 +352,10 @@ QPushButton#savePlanButton{
 
 QPushButton#PivotCalibrationButton,
 QPushButton#SpinCalibrationButton,
-QPushButton#CollectButton{
+QPushButton#CollectButton,
+QPushButton#TraceButton, 
+QPushButton#ResetTraceButton,
+QPushButton#GoToTracingButton{
     min-height: 100px;
     font: 30px;
     margin: 12px;

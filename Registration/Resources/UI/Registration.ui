@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
      <property name="currentIndex">
-      <number>6</number>
+      <number>7</number>
      </property>
      <widget class="QWidget" name="RegistrationStepPatientPrep">
       <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -733,18 +733,6 @@ Make sure not to lift the pointer from the skin surface while acquiring.</string
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="DiscardLastButton">
-         <property name="font">
-          <font>
-           <pointsize>20</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Discard Last Acquisition</string>
-         </property>
-        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="ResetTraceButton">
