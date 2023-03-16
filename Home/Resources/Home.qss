@@ -340,7 +340,19 @@ QPushButton#trajectoryEntry:pressed{
     background-color:rgb(91, 44, 44);
 }
 
+/* Landmarks */
+
 QPushButton#savePlanButton{
+    min-height: 100px;
+    font: 30px;
+    margin: 12px;
+}
+
+/* Registration */
+
+QPushButton#PivotCalibrationButton,
+QPushButton#SpinCalibrationButton,
+QPushButton#CollectButton{
     min-height: 100px;
     font: 30px;
     margin: 12px;

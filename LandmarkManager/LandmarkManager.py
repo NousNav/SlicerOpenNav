@@ -336,14 +336,15 @@ class Landmarks(ScriptedLoadableModuleLogic):
     iconLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
     iconLabel.setPixmap(self.notStartedIcon.pixmap(32, 32))
     nameLabel = qt.QLabel(landmark.name)
-    nameLabel.setFont(qt.QFont("Segoe UI", 20))
+    nameLabel.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
+    nameLabel.setStyleSheet("QLabel{font-size: 18px;}")
     nameLabel.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
     button = qt.QPushButton('')
     button.enabled = False
     button.clicked.connect(lambda state, x=landmark: self.updateLandmark(x))
-    button.maximumWidth = 80
-    button.maximumHeight = 50
-    button.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+    button.minimumWidth = 80
+    button.maximumHeight = 32
+    # button.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
     self.tableWidget.setCellWidget(row, 0, iconLabel)
     self.tableWidget.setCellWidget(row, 1, nameLabel)
     self.tableWidget.setCellWidget(row, 2, button)
