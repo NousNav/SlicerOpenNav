@@ -768,9 +768,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       toMarkupsNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'To')
       defs = slicer.modules.PlanningWidget.landmarkLogic
       for name, position in defs.positions.items():
-        toMarkupsNode.AddFiducial(position[0], position[1], position[2] )
+        toMarkupsNode.AddControlPoint(position[0], position[1], position[2] )
         pos = self.landmarks.getTrackerPosition(name)
-        fromMarkupsNode.AddFiducial(pos[0], pos[1], pos[2])
+        fromMarkupsNode.AddControlPoint(pos[0], pos[1], pos[2])
 
       # Create transform node to hold the computed registration result
       self.logic.setupRegistrationTransform()
@@ -849,11 +849,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.logic.setupNeedleModel()
     self.tools = Tools(self.AlignmentSideWidgetui.SeenTableWidget, self.AlignmentSideWidgetui.UnseenTableWidget, self.moduleName)
     node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Pointer')
-    node.AddFiducial(0,0,0, 'Pointer')
+    node.AddControlPoint(0,0,0, 'Pointer')
     node.SaveWithSceneOff()
     node.GetDisplayNode().SetGlyphScale(13)
     node2 = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Reference Frame')
-    node2.AddFiducial(0,0,0, 'Reference Frame')
+    node2.AddControlPoint(0,0,0, 'Reference Frame')
     node2.SaveWithSceneOff()
     node2.GetDisplayNode().SetGlyphScale(13)
 

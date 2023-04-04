@@ -325,7 +325,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.addLandmarkToTable(newLandmark)
 
     self.landmarks.append(newLandmark)
-    newLandmark.index = self.landmarksDisplay.AddFiducial(modelPos[0], modelPos[1], modelPos[2])
+    newLandmark.index = self.landmarksDisplay.AddControlPoint(modelPos[0], modelPos[1], modelPos[2])
     self.updateLandmarkDisplay(newLandmark)
 
   def addLandmarkToTable(self, landmark):

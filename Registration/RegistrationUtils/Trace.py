@@ -25,7 +25,7 @@ class Trace:
     self.lastAcquisitionLength = 0
 
   def addPoint(self, point):
-    self.traceNode.AddFiducial(point[0], point[1], point[2])
+    self.traceNode.AddControlPoint(point[0], point[1], point[2])
     self.lastAcquisitionLength += 1
 
   def clearTrace(self):
