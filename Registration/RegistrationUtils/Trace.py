@@ -30,7 +30,7 @@ class Trace:
 
   def clearTrace(self):
     self.state = TracingState.NOT_STARTED
-    self.traceNode.RemoveAllMarkups()
+    self.traceNode.RemoveAllControlPoints()
     self.initialized_with_landmarks = False
     self.lastAcquisitionLength = 0
 

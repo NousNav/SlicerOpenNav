@@ -618,7 +618,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # make sure the active segmentation uses the active volume
     segmentation.SetReferenceImageGeometryParameterFromVolumeNode(volume)
 
-    self.editor_node.SetAndObserveMasterVolumeNode(volume)
+    self.editor_node.SetAndObserveSourceVolumeNode(volume)
     self.editor_node.SetAndObserveSegmentationNode(segmentation)
 
     if segmentID:
@@ -834,11 +834,15 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     line.GetDisplayNode().SetVisibility(enabled)
     if enabled:
-      line.SetNthControlPointPositionFromArray(
+      line.SetNthControlPointPosition(
         0,
-        entry.GetNthControlPointPositionVector(0)
+        entry.GetNthControlPointPositionVector(0)[0],
+        entry.GetNthControlPointPositionVector(0)[1],
+        entry.GetNthControlPointPositionVector(0)[2]
       )
-      line.SetNthControlPointPositionFromArray(
+      line.SetNthControlPointPosition(
         1,
-        target.GetNthControlPointPositionVector(0)
+        target.GetNthControlPointPositionVector(0)[0],
+        target.GetNthControlPointPositionVector(0)[1],
+        target.GetNthControlPointPositionVector(0)[2],
       )
