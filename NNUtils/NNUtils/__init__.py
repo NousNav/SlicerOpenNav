@@ -319,6 +319,7 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
 
   showSliceOrientationAxes(True)
   showSliceOrientationLabels(False)
+  slicer.app.layoutManager().activeThreeDRenderer().ResetCamera()
 
 
 def showCentralWidget(name):
@@ -346,6 +347,7 @@ def goToFourUpLayout(volumeNode=None, mainPanelVisible=True, sidePanelVisible=Fa
   setSidePanelVisible(sidePanelVisible)
   setSliceViewBackgroundColor("#000000")
   slicer.util.setSliceViewerLayers(foreground=None, background=volumeNode, label=None, fit=True)
+  slicer.app.layoutManager().activeThreeDRenderer().ResetCamera()
 
   # reset slice orientations to default
   slicer.app.layoutManager().sliceWidget("Red").sliceOrientation = 'Axial'
