@@ -291,6 +291,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.model.GetDisplayNode().SetVisibility(False)
     self.model.GetDisplayNode().SetOpacity(0.5)
     self.model.GetDisplayNode().SetColor(210 / 255.0, 210 / 255.0, 124 / 255.0)
+    self.model.GetDisplayNode().SetScalarVisibility(False)
     self.model.SaveWithSceneOff()
 
     self.landmarksDisplay = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
