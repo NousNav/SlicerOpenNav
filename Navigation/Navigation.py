@@ -122,6 +122,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     except:
       pass
 
+    slicer.modules.RegistrationWidget.setupExtensionsModels()
+
     if slicer.modules.RegistrationWidget.logic.needle_model:
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility(True)
       slicer.modules.RegistrationWidget.logic.needle_model.GetDisplayNode().SetVisibility2D(True)

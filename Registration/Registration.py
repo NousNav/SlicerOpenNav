@@ -206,6 +206,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       NNUtils.setCssClass(widget, "widget--color-light")
       NNUtils.polish(widget)
 
+    self.setupExtensionsModels()
+    self.setupPivotCalibration()
+    self.landmarks.syncLandmarks()
+
+  def setupExtensionsModels(self):
     self.logic.setupSurfaceErrorComputation()
     # find intersection between trajectory and skin surface
     point = [0., 0., 0.]
@@ -220,10 +225,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Default pointer extension length is length of trajectory between skin and target rounded up to next segment length:
     nb_seg = math.ceil(len / self.logic.EXTENSION_SEGMENT_LENGTH_MM)
     print("Creating pointer extension with " + str(nb_seg) + " segments")
-
     self.logic.setupExtensionsModels(nb_seg)
-    self.setupPivotCalibration()
-    self.landmarks.syncLandmarks()
+    self.logic.reconnect()
 
   def validate(self):
     print('Registration main validate called')
