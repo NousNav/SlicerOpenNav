@@ -300,6 +300,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSkinSegmentationNode()
+    self.logic.setupSkinModelNode()
 
     segmentation = self.logic.skin_segmentation
     segment = self.logic.SKIN_SEGMENT
@@ -321,12 +322,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     # Make results visible in 3D and make model
     segmentation.CreateClosedSurfaceRepresentation()
-    shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
-    exportFolderItemId = shNode.CreateFolderItem(shNode.GetSceneItemID(), "SkinModel")
-    slicer.modules.segmentations.logic().ExportAllSegmentsToModels(segmentation, exportFolderItemId)
-    model = slicer.util.getNode("NN_SKIN")
-    model.GetDisplayNode().SetVisibility(False)
-
+    
+    skinSegment = segmentation.GetSegmentation().GetSegment(segment)
+    slicer.modules.segmentations.logic().ExportSegmentToRepresentationNode(skinSegment, self.logic.skin_model)
+    
     NNUtils.centerCam()
 
     messageBox.hide()
@@ -420,6 +419,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
   trajectory_target_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
   trajectory_entry_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
+  skin_model = NNUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
 
   current_step = NNUtils.parameterProperty("CURRENT_TAB")
 
@@ -451,15 +451,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     slicer.mrmlScene.RemoveNode(self.trajectory_markup)
     slicer.mrmlScene.RemoveNode(self.trajectory_entry_markup)
     slicer.mrmlScene.RemoveNode(self.trajectory_target_markup)
-    # self.master_volume = None
-    # self.skin_segmentation = None
-    # self.seed_segmentation = None
-    # self.target_segmentation = None
-    # self.trajectory_markup = None
-    # self.trajectory_entry_markup = None
-    # self.trajectory_target_markup = None
-    
-  
+    slicer.mrmlScene.RemoveNode(self.skin_model)
+     
   def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
     if self.skin_segmentation:
       self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
@@ -488,6 +481,18 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
       self.target_segmentation.GetDisplayNode().SetVisibility(False)
 
+  
+  def setupSkinModelNode(self):
+    if not self.skin_model:
+      node = slicer.mrmlScene.AddNewNodeByClass(
+        "vtkMRMLModelNode",
+        "NN_SKIN_MODEL",
+      )
+      node.CreateDefaultDisplayNodes()
+      node.GetDisplayNode().SetVisibility(False)
+      self.skin_model = node
+  
+  
   def setupSkinSegmentationNode(self):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(

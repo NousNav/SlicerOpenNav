@@ -1252,14 +1252,13 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
   def setupSurfaceErrorComputation(self):
     self.locator = vtk.vtkCellLocator()
-    model = slicer.util.getNode("NN_SKIN")
-    self.locator.SetDataSet(model.GetPolyData())
+    self.locator.SetDataSet(slicer.modules.PlanningWidget.logic.skin_model.GetPolyData())
     self.locator.SetNumberOfCellsPerBucket(1)
     self.locator.BuildLocator()
     self.locator.Update()
 
   def runSurfaceRegistration(self, tracePoints):
-    skin_model_polydata = slicer.util.getNode("NN_SKIN").GetPolyData()
+    skin_model_polydata = slicer.modules.PlanningWidget.logic.skin_model.GetPolyData()
     icp = vtk.vtkIterativeClosestPointTransform()
     icp.SetMaximumNumberOfIterations(50)
     icp.SetMaximumNumberOfLandmarks(200)
