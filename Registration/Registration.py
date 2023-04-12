@@ -1067,6 +1067,19 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
   odd_extensions = None
   even_extensions = None
 
+  def clearRegistrationData(self):
+    slicer.mrmlScene.RemoveNode(self.pointer_calibration)
+    slicer.mrmlScene.RemoveNode(self.landmark_registration_transform)
+    slicer.mrmlScene.RemoveNode(self.surface_registration_transform)
+    slicer.mrmlScene.RemoveNode(self.odd_extensions)
+    slicer.mrmlScene.RemoveNode(self.even_extensions)
+    self.odd_extensions = None
+    self.even_extensions = None
+    self.pivot_calibration_passed = False
+    self.spin_calibration_passed = False
+    self.landmark_registration_passed = False
+    self.surface_registration_passed = False  
+  
   def setupPointerCalibration(self):
     if not self.pointer_calibration:
       node = slicer.mrmlScene.AddNewNodeByClass(

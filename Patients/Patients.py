@@ -153,6 +153,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
+    slicer.modules.RegistrationWidget.logic.clearRegistrationData()
     slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
     NNUtils.deleteAutoSave()
     self.updatePatientDataButtons()
