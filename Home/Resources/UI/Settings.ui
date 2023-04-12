@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>222</width>
-    <height>89</height>
+    <height>113</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,13 +24,13 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="ValidateCheckBox">
+     <property name="text">
+      <string>Validate workflow steps</string>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -44,10 +44,20 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QCheckBox" name="ValidateCheckBox">
+   <item row="4" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="RegistrationCheckBox">
      <property name="text">
-      <string>Validate workflow steps</string>
+      <string>Require valid registration</string>
      </property>
      <property name="checked">
       <bool>true</bool>

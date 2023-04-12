@@ -163,6 +163,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsUI.CustomUICheckBox.toggled.connect(self.setCustomUIVisible)
     self.settingsUI.ValidateCheckBox.checked = self.validateStepsDefault
     self.settingsUI.ValidateCheckBox.toggled.connect(self.setValidateSteps)
+    self.settingsUI.RegistrationCheckBox.toggled.connect(self.setRegistrationRequirement)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
 
@@ -219,6 +220,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def setValidateSteps(self, validate):
     self.logic.validateSteps = validate
+
+  def setRegistrationRequirement(self, required):
+    if required:
+      slicer.modules.RegistrationWidget.RMSE_REGISTRATION_OK = 3
+    else:
+      slicer.modules.RegistrationWidget.RMSE_REGISTRATION_OK = 99
   
   def setSlicerUIVisible(self, visible):
     slicer.util.setDataProbeVisible(visible)
