@@ -78,12 +78,13 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   def reconnect(self):
     self.removeObservers()
 
-    for event in [
-      slicer.vtkMRMLMarkupsNode.PointAddedEvent,
-      slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
-      slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
-    ]:
-      self.addObserver(self.landmarks, event, self.rebuildMaps)
+    if self.landmarks:
+      for event in [
+        slicer.vtkMRMLMarkupsNode.PointAddedEvent,
+        slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
+        slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
+      ]:
+        self.addObserver(self.landmarks, event, self.rebuildMaps)
 
   @property
   def positions(self):
@@ -198,12 +199,13 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
 
   def reconnect(self):
     self.removeObservers()
-    for event in [
-      slicer.vtkMRMLMarkupsNode.PointAddedEvent,
-      slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
-      slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
-    ]:
-      self.addObserver(self.logic.landmarks, event, self.onPointsChanged)
+    if self.logic.landmarks:
+      for event in [
+        slicer.vtkMRMLMarkupsNode.PointAddedEvent,
+        slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
+        slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
+      ]:
+        self.addObserver(self.logic.landmarks, event, self.onPointsChanged)
 
   def updateLandmarkDisplay(self, name, row):
     iconLabel = self.table.cellWidget(row, 0)
