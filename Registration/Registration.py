@@ -1078,7 +1078,7 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     self.pivot_calibration_passed = False
     self.spin_calibration_passed = False
     self.landmark_registration_passed = False
-    self.surface_registration_passed = False  
+    self.surface_registration_passed = False
   
   def setupPointerCalibration(self):
     if not self.pointer_calibration:

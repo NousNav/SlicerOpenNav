@@ -481,7 +481,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
       self.target_segmentation.GetDisplayNode().SetVisibility(False)
 
-  
   def setupSkinModelNode(self):
     if not self.skin_model:
       node = slicer.mrmlScene.AddNewNodeByClass(
@@ -491,8 +490,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       node.CreateDefaultDisplayNodes()
       node.GetDisplayNode().SetVisibility(False)
       self.skin_model = node
-  
-  
+
   def setupSkinSegmentationNode(self):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
