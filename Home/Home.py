@@ -118,7 +118,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupSliceViewers()
 
   def onClose(self, unusedOne, unusedTwo):
-    pass
+    self.setupNodes()
 
   def cleanup(self):
     self.logic = None

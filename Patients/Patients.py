@@ -100,6 +100,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Passing the special value "keep-current" ensure the layer is not modified
     # See https://slicer.readthedocs.io/en/latest/developer_guide/slicer.html#slicer.util.setSliceViewerLayers
     NNUtils.goToFourUpLayout(volumeNode='keep-current')
+    self.updatePatientDataButtons()
 
   def exit(self):
     # Hide current
@@ -107,6 +108,16 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
 
     PatientsWidget.setDICOMBrowserVisible(False)
+  
+  def updatePatientDataButtons(self):
+    master_volume = slicer.modules.PlanningWidget.logic.master_volume
+    self.ui.DICOMToggleButton.enabled = not master_volume
+    self.ui.ImportDICOMButton.enabled = not master_volume
+    self.ui.LoadDataButton.enabled = not master_volume
+    self.ui.loadPlanButton.enabled = not master_volume
+
+    self.ui.ClearPlanButton.enabled = master_volume
+    self.ui.SavePlanButton.enabled = master_volume
 
   def onClose(self, o, e):
     pass
@@ -131,6 +142,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.DICOMToggleButton.clicked.connect(PatientsWidget.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
+    self.ui.SavePlanButton.clicked.connect(NNUtils.savePlan)
+    self.ui.ClearPlanButton.clicked.connect(self.closePlan)
 
     # For some reason, the browser is instantiated as not hidden. Close
     # so that the 'isHidden' check works as required
@@ -138,6 +151,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     qt.QTimer.singleShot(1000, NNUtils.checkAutoSave)
 
+  def closePlan(self):
+    slicer.modules.PlanningWidget.logic.clearPlanningData()
+    slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
+    NNUtils.deleteAutoSave()
+    self.updatePatientDataButtons()
+   
   @staticmethod
   def onDICOMImport():
     # Show the DICOM browser
@@ -178,6 +197,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       displayNode.SetWindow(100)
     slicer.modules.HomeWidget.setup3DView()
     slicer.modules.HomeWidget.setupSliceViewers()
+    self.updatePatientDataButtons()
 
   @vtk.calldata_type(vtk.VTK_OBJECT)
   def onNodeAdded(self, caller, event, calldata):
@@ -186,7 +206,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       # Call processing using a timer instead of calling it directly
       # to allow the volume loading to fully complete.
       # TODO: no event for volume loading done?
-      qt.QTimer.singleShot(1000, lambda: self.processIncomingVolumeNode(node))
+      qt.QTimer.singleShot(500, lambda: self.processIncomingVolumeNode(node))
 
   def onLoadPlanButtonClicked(self):
     default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)

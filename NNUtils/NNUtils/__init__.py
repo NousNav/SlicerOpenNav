@@ -3,6 +3,7 @@ import qt
 import slicer
 import vtk
 import numpy as np
+import pathlib
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -534,7 +535,7 @@ def _autoSaveFilePath():
   return os.path.join(_autoSaveDirectory(), 'AutoSave.mrml')
 
 
-def _deleteAutoSave():
+def deleteAutoSave():
   if os.path.exists(_autoSaveDirectory()):
     import shutil
     shutil.rmtree(_autoSaveDirectory())
@@ -662,4 +663,26 @@ def checkAutoSave():
       slicer.util.loadScene(str(_autoSaveFilePath()))
     else:
       print('Skip loading autosave, discarding old autosave')
-      _deleteAutoSave()
+      deleteAutoSave()
+      
+
+def savePlan():
+  default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)
+
+  dialog = qt.QFileDialog()
+  plan_path = dialog.getSaveFileName(
+    slicer.util.mainWindow(),
+    'Save NousNav Plan',
+    default_dir,
+    '*.mrb',
+  )
+  if not plan_path:
+    return
+
+  plan_path = pathlib.Path(plan_path)
+  if plan_path.suffix != '.mrb':
+    plan_path = plan_path.with_suffix('.mrb')
+
+  print(f'saving plan: {plan_path}')
+
+  slicer.util.saveScene(str(plan_path))

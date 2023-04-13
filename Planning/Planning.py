@@ -1,5 +1,4 @@
 import logging
-import pathlib
 
 import qt
 import slicer
@@ -135,7 +134,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       }
     )
 
-    self.ui.savePlanButton.clicked.connect(self.onSavePlanButtonClicked)
+    self.ui.savePlanButton.clicked.connect(NNUtils.savePlan)
   
   def exit(self):
     # Hide current
@@ -390,28 +389,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
   def setTrajectoryTarget(self):
     self.logic.placeTrajectoryTarget()
 
-  def onSavePlanButtonClicked(self):
-    default_dir = qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation)
-
-    dialog = qt.QFileDialog()
-    plan_path = dialog.getSaveFileName(
-      slicer.util.mainWindow(),
-      'Save NousNav Plan',
-      default_dir,
-      '*.mrb',
-    )
-    if not plan_path:
-      return
-
-    plan_path = pathlib.Path(plan_path)
-    if plan_path.suffix != '.mrb':
-      plan_path = plan_path.with_suffix('.mrb')
-
-    print(f'saving plan: {plan_path}')
-
-    slicer.util.saveScene(str(plan_path))
-
-
+  
 def default_master_volume():
   logging.warning('No master volume is set.')
 
@@ -464,7 +442,24 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
     self.landmarkLogic = LandmarkManagerLogic()
-
+  
+  def clearPlanningData(self):
+    slicer.mrmlScene.RemoveNode(self.master_volume)
+    slicer.mrmlScene.RemoveNode(self.skin_segmentation)
+    slicer.mrmlScene.RemoveNode(self.seed_segmentation)
+    slicer.mrmlScene.RemoveNode(self.target_segmentation)
+    slicer.mrmlScene.RemoveNode(self.trajectory_markup)
+    slicer.mrmlScene.RemoveNode(self.trajectory_entry_markup)
+    slicer.mrmlScene.RemoveNode(self.trajectory_target_markup)
+    # self.master_volume = None
+    # self.skin_segmentation = None
+    # self.seed_segmentation = None
+    # self.target_segmentation = None
+    # self.trajectory_markup = None
+    # self.trajectory_entry_markup = None
+    # self.trajectory_target_markup = None
+    
+  
   def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
     if self.skin_segmentation:
       self.skin_segmentation.SetDisplayVisibility(skinSegmentation)

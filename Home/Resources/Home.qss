@@ -166,6 +166,12 @@ QWidget[cssClass~="widget--color-dark"] QPushButton:hover {
     background-color: #343434;
 }
 
+QWidget[cssClass~="widget--color-dark"] QPushButton:disabled {
+    background-color: #434343;
+    border-color: #434343;
+    color:#666666
+}
+
 QWidget[cssClass~="bottom-toolbar--color-dark"],
 QWidget[cssClass~="bottom-toolbar--color-dark"] > QWidget[cssClass~="bottom-toolbar__spacer"] {
     background-color: #2a2a2a;
@@ -263,7 +269,9 @@ QMainWindow::separator {
 QPushButton#ImportDICOMButton,
 QPushButton#DICOMToggleButton,
 QPushButton#LoadDataButton,
-QPushButton#loadPlanButton{
+QPushButton#loadPlanButton,
+QPushButton#ClearPlanButton,
+QPushButton#SavePlanButton{
     min-height: 120px;
     font: 20px;
     font-weight: bold;

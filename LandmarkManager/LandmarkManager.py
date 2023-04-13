@@ -120,6 +120,10 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
     self.rebuildMaps()
     self.reconnect()
 
+  def clearPlanningLandmarks(self):
+    slicer.mrmlScene.RemoveNode(self.landmarks)
+    self.setupPlanningLandmarksNode()
+
 
 class PlanningLandmarkTableManager(VTKObservationMixin):
   @property
