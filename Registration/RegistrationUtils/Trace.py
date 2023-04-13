@@ -18,7 +18,8 @@ class Trace:
     self.traceNode.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
     self.traceNode.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
     self.traceNode.GetMarkupsDisplayNode().SetTextScale(0)
-    self.traceNode.GetMarkupsDisplayNode().SetGlyphScale(5)
+    self.traceNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
+    self.traceNode.GetMarkupsDisplayNode().SetGlyphSize(6)
     self.traceNode.SetLocked(True)
     self.traceNode.SaveWithSceneOff()
     self.initialized_with_landmarks = False

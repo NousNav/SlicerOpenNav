@@ -308,7 +308,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksDisplay.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
     self.landmarksDisplay.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
     self.landmarksDisplay.GetMarkupsDisplayNode().SetTextScale(0)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetGlyphScale(7)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetUseGlyphScale(False)
+    self.landmarksDisplay.GetMarkupsDisplayNode().SetGlyphSize(6)
     self.landmarksDisplay.SetLocked(True)
     self.landmarksDisplay.SaveWithSceneOff()
     self.showLandmarks = False
