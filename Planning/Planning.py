@@ -789,6 +789,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
     self.editor_widget.setActiveEffectByName('Paint')
+    paint = self.editor_widget.effectByName("Paint")
+    paint.setCommonParameter("BrushRelativeDiameter", 1.5)
     # paint effect does not need onApply().
 
   def endEffect(self):
