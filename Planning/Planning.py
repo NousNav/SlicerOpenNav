@@ -644,10 +644,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if effect is None:
       self.editor_widget.setActiveEffectByName("Threshold")
       effect = self.editor_widget.activeEffect()
-      effect.activate()
-    
+      
     effect.setParameter("MinimumThreshold", thresholdMin)
     effect.setParameter("MaximumThreshold", thresholdMax)
+    effect.self().onApply()
   
   def applySkinSegmentation(
       self,
