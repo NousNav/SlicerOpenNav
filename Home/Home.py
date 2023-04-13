@@ -206,6 +206,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     centralVideoWidget.objectName = 'CentralVideoWidget'
     centralWidgetVideoFrame.layout().addWidget(centralVideoWidget)
 
+    # Remove left click menu
+    pluginHandler = slicer.qSlicerSubjectHierarchyPluginHandler.instance()
+    pluginLogic = pluginHandler.pluginLogic()
+    pluginLogic.allowedViewContextMenuActionNames = ["NothingAllowed"]
+
   def toggleStyle(self,visible):
     if visible:
       self.applyApplicationStyle()
