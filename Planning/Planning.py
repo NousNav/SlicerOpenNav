@@ -560,6 +560,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       display = node.GetDisplayNode()
       display.SetPropertiesLabelVisibility(False)
       display.SetLineDiameter(3)  # mm
+      display.SetUseGlyphScale(False)
+      display.SetGlyphSize(4)  # 4mm
       display.SetCurveLineSizeMode(display.UseLineDiameter)
       node.AddControlPointWorld(vtk.vtkVector3d())
       node.AddControlPointWorld(vtk.vtkVector3d())

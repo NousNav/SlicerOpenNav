@@ -117,6 +117,9 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
         "PLANNING_LANDMARKS",
       )
       node.CreateDefaultDisplayNodes()
+      display = node.GetDisplayNode()
+      display.SetUseGlyphScale(False)
+      display.SetGlyphSize(4)  # 4mm
       self.landmarks = node
     self.rebuildMaps()
     self.reconnect()
