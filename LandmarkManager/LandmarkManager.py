@@ -290,19 +290,13 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksCollected = 0
     self.landmarksFinished = False
     self.advanceButton = None
+    self.model = None
 
     # TODO: improve method of looking up icons
     self.notStartedIcon = qt.QIcon(self.resourcePath('Icons/NotStarted.svg'))
     self.doneIcon = qt.QIcon(self.resourcePath('Icons/Done.svg'))
     self.SkippedIcon = qt.QIcon(self.resourcePath('Icons/Skipped.svg'))
     self.startedIcon = qt.QIcon(self.resourcePath('Icons/Started.svg'))
-    self.model = slicer.util.loadModel(self.resourcePath('Data/manny.vtk'))
-    self.model.GetDisplayNode().SetVisibility(False)
-    self.model.GetDisplayNode().SetOpacity(0.5)
-    self.model.GetDisplayNode().SetColor(210 / 255.0, 210 / 255.0, 124 / 255.0)
-    self.model.GetDisplayNode().SetScalarVisibility(False)
-    self.model.SaveWithSceneOff()
-
     self.landmarksDisplay = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
     self.landmarksDisplay.GetMarkupsDisplayNode().SetVisibility(False)
     self.landmarksDisplay.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
@@ -359,6 +353,15 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.tableWidget.setCellWidget(row, 0, iconLabel)
     self.tableWidget.setCellWidget(row, 1, nameLabel)
     self.tableWidget.setCellWidget(row, 2, button)
+
+  def updateModelPositions(self, positions):
+    # positions[name] = position
+    for name, position in positions.items():
+      for landmark in self.landmarks:
+        if landmark.name == name:
+          landmark.modelPosition = position
+          self.landmarksDisplay.SetNthControlPointPosition(landmark.index, position[0], position[1], position[2])
+      pass
 
   def updateLandmarksDisplay(self):
 

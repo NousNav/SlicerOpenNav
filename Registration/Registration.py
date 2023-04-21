@@ -643,6 +643,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     # Clear previous registration
     self.logic.clearRegistrationTransform()
+    self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+    self.landmarks.updateModelPositions(slicer.modules.PlanningWidget.landmarkLogic.positions)
     self.landmarks.setupTrackerLandmarksNode()
     self.landmarks.clearLandmarks()
     self.resetTrace()
@@ -651,6 +653,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.setToolsStatusCheckEnabled(True)
 
     self.landmarks.advanceButton = self.advanceButton
+    
     self.landmarks.showLandmarks = True
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
