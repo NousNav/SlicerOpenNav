@@ -738,9 +738,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def addLandmarksToTrace(self):
     if not self.trace.initialized_with_landmarks:
-      for lm in self.landmarks.landmarks:
-        pos = lm.modelPosition
-        self.trace.addPoint(pos)
+      defs = slicer.modules.PlanningWidget.landmarkLogic
+      for _name, position in defs.positions.items():
+        self.trace.addPoint(position)
       self.trace.initialized_with_landmarks = True
       self.trace.lastAcquisitionLength = 0
 
