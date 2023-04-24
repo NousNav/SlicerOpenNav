@@ -368,8 +368,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksCollected = 0
     for landmark in self.landmarks:
       self.updateLandmarkDisplay(landmark)
-
-    self.model.GetDisplayNode().SetVisibility(self.showLandmarks)
+    if self.model:
+      self.model.GetDisplayNode().SetVisibility(self.showLandmarks)
     self.landmarksDisplay.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded

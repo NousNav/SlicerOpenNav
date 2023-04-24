@@ -187,6 +187,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.registrationTabBar.visible = False
     self.bottomToolBar.visible = False
     self.landmarks.showLandmarks = False
+    self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
     self.shortcut.disconnect("activated()")
     self.trace.setVisible(False)
@@ -362,6 +363,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.tools.updateToolsDisplay()
 
     self.landmarks.showLandmarks = False
+    self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
     self.trace.setVisible(False)
 
@@ -655,6 +657,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.advanceButton = self.advanceButton
     
     self.landmarks.showLandmarks = True
+    self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
     NNUtils.centerCam()
 
@@ -689,6 +692,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False,
                                              targetSegmentation=False, trajectory=False, landmarks=False)
     self.landmarks.showLandmarks = False
+    self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
     self.trace.setVisible(True)
     self.addLandmarksToTrace()
