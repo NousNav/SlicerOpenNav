@@ -522,9 +522,13 @@ def registerNavigationLayout():
   layoutNode.AddLayoutDescription(getNavigationLayoutID(), customLayout)
 
 
-def _autoSaveDirectory(caseName):
+def _casesDirectory():
   userPath = os.path.expanduser('~')
-  return os.path.join(userPath, 'NousNav', 'Cases', caseName)
+  return os.path.join(userPath, 'NousNav', 'Cases')
+
+
+def _autoSaveDirectory(caseName):
+  return os.path.join(_casesDirectory(), caseName)
 
 
 def _autoSaveDataDirectory(caseName):
@@ -687,3 +691,7 @@ def savePlan():
   print(f'saving plan: {plan_path}')
 
   slicer.util.saveScene(str(plan_path))
+
+def listAvailablePlans():
+  print('Available plans:')
+  print(next(os.walk(_casesDirectory()))[1])

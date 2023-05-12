@@ -149,7 +149,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
 
-    qt.QTimer.singleShot(1000, NNUtils.checkAutoSave)
+    # qt.QTimer.singleShot(1000, NNUtils.listAvailablePlans)
+    NNUtils.listAvailablePlans()
 
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
