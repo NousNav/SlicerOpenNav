@@ -426,7 +426,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   skin_model = NNUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
 
   current_step = NNUtils.parameterProperty("CURRENT_TAB")
-  case_name = NNUtils.parameterProperty("CASE_NAME", default='LogicTest')
+  case_name = NNUtils.parameterProperty("CASE_NAME")
 
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
@@ -457,6 +457,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     slicer.mrmlScene.RemoveNode(self.trajectory_entry_markup)
     slicer.mrmlScene.RemoveNode(self.trajectory_target_markup)
     slicer.mrmlScene.RemoveNode(self.skin_model)
+    self.case_name = None
      
   def setPlanningNodesVisibility(self, skinModel=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
     if self.skin_segmentation:

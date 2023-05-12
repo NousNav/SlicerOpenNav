@@ -654,6 +654,10 @@ def autoSavePlan(caseName='Default'):
   autoSaveDialog.hide()
 
   
+
+def loadAutoSave(caseName):
+  slicer.util.loadScene(str(_autoSaveFilePath(caseName)))
+
 def checkAutoSave(caseName='Default'):
   # construct autosave path
   print('Checking for autosave')
@@ -695,3 +699,4 @@ def savePlan():
 def listAvailablePlans():
   print('Available plans:')
   print(next(os.walk(_casesDirectory()))[1])
+  return(next(os.walk(_casesDirectory()))[1])

@@ -73,6 +73,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Default
     self.advanceButtonAction.enabled = False
 
+    self.setupCaseManagement()
+
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
@@ -149,15 +151,53 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
 
-    # qt.QTimer.singleShot(1000, NNUtils.listAvailablePlans)
+    qt.QTimer.singleShot(1000, self.launchCaseManagement)
     NNUtils.listAvailablePlans()
 
+  
+  def setupCaseManagement(self):
+    self.caseManagement = slicer.util.loadUI(self.resourcePath('UI/CaseManagement.ui'))
+
+    self.caseManagement.setWindowFlags(qt.Qt.CustomizeWindowHint)
+
+    self.caseManagementUI = slicer.util.childWidgetVariables(self.caseManagement)
+
+    
+
+    self.caseManagementUI.LoadCaseButton.clicked.connect(self.loadCase)
+    self.caseManagementUI.NewCaseButton.clicked.connect(self.startNewCase)
+    self.caseManagementUI.CloseButton.clicked.connect(self.closeAndExit)
+  
+  
+  def launchCaseManagement(self):
+     
+    cases = NNUtils.listAvailablePlans()
+    self.caseManagementUI.CasesComboBox.clear()
+
+    for case in cases:
+      self.caseManagementUI.CasesComboBox.addItem(case)
+
+    self.caseManagement.exec()
+
+  def loadCase(self):
+    print('load a case: ' + self.caseManagementUI.CasesComboBox.currentText)
+    slicer.modules.PlanningWidget.logic.case_name = self.caseManagementUI.CasesComboBox.currentText
+    NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
+
+  def startNewCase(self):
+    print('start a new case')
+    slicer.modules.PlanningWidget.logic.case_name = self.caseManagementUI.CaseNameLineEdit.text
+
+  def closeAndExit(self):
+    slicer.app.exit()
+  
+  
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
     slicer.modules.RegistrationWidget.logic.clearRegistrationData()
     slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
-    NNUtils.deleteAutoSave()
     self.updatePatientDataButtons()
+    self.launchCaseManagement()
    
   @staticmethod
   def onDICOMImport():
