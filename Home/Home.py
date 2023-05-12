@@ -719,7 +719,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     if autoSave and not self.autoSaveBlocked:
       print('Autosave started')
-      NNUtils.autoSavePlan()
+      NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
       print('Autosave completed')
     else:
       print('Autosave blocked')

@@ -635,9 +635,9 @@ def autoSavePlan(caseName='Default'):
   
   incremental = os.path.exists(_autoSaveDirectory(caseName))
   if incremental:
-    print('Autosave incremental save')
+    print('Autosave incremental save: ' + caseName)
   else:
-    print('Autosave first save')
+    print('Autosave first save: ' + caseName)
     _ensureAutoSaveDirectoriesExist(caseName)
   
   nodes = _listNodesToSave(incremental=incremental)
