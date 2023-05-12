@@ -522,28 +522,29 @@ def registerNavigationLayout():
   layoutNode.AddLayoutDescription(getNavigationLayoutID(), customLayout)
 
 
-def _autoSaveDirectory():
+def _autoSaveDirectory(caseName):
   userPath = os.path.expanduser('~')
-  return os.path.join(userPath, 'NousNav', 'AutoSave')
+  return os.path.join(userPath, 'NousNav', 'Cases', caseName)
 
 
-def _autoSaveDataDirectory():
-  return os.path.join(_autoSaveDirectory(), 'Data')
+def _autoSaveDataDirectory(caseName):
+  return os.path.join(_autoSaveDirectory(caseName), 'Data')
 
 
-def _autoSaveFilePath():
-  return os.path.join(_autoSaveDirectory(), 'AutoSave.mrml')
+def _autoSaveFilePath(caseName):
+  path = caseName + '.mrml'
+  return os.path.join(_autoSaveDirectory(caseName), path)
 
 
-def deleteAutoSave():
-  if os.path.exists(_autoSaveDirectory()):
+def deleteAutoSave(caseName):
+  if os.path.exists(_autoSaveDirectory(caseName)):
     import shutil
-    shutil.rmtree(_autoSaveDirectory())
+    shutil.rmtree(_autoSaveDirectory(caseName))
 
 
-def _ensureAutoSaveDirectoriesExist():
+def _ensureAutoSaveDirectoriesExist(caseName):
   # Create all directories in tree recursively
-  os.makedirs(_autoSaveDataDirectory())
+  os.makedirs(_autoSaveDataDirectory(caseName))
 
 
 def _listNodesToSave(incremental=False):
@@ -560,13 +561,13 @@ def _listNodesToSave(incremental=False):
   return nodes
 
 
-def _fileIsInDataDirectory(filename):
+def _fileIsInDataDirectory(caseName,filename):
   try:
-    commonfilepathpath = os.path.commonpath([_autoSaveDataDirectory(),os.path.abspath(filename)])
+    commonfilepathpath = os.path.commonpath([_autoSaveDataDirectory(caseName),os.path.abspath(filename)])
   except ValueError:  # Value errors can occur in the worst cases of non-matching paths
     return False
 
-  return os.path.normpath(_autoSaveDataDirectory()) == os.path.normpath(commonfilepathpath)
+  return os.path.normpath(_autoSaveDataDirectory(caseName)) == os.path.normpath(commonfilepathpath)
 
 
 def _slugify(value, allow_unicode=False):
@@ -589,13 +590,13 @@ def _slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def _createAutoSaveFilePath(node):
+def _createAutoSaveFilePath(caseName, node):
   snode = node.GetStorageNode()
-  possiblePath = os.path.join(_autoSaveDataDirectory(), _slugify(node.GetName()) + '.' + snode.GetDefaultWriteFileExtension())
+  possiblePath = os.path.join(_autoSaveDataDirectory(caseName), _slugify(node.GetName()) + '.' + snode.GetDefaultWriteFileExtension())
   return slicer.mrmlScene.CreateUniqueFileName(possiblePath, '.'+snode.GetDefaultWriteFileExtension())
 
 
-def _ensureStorageNodeAndFileNameExist(node):
+def _ensureStorageNodeAndFileNameExist(caseName, node):
   snode = node.GetStorageNode()
   if not snode:
     node.AddDefaultStorageNode()
@@ -604,10 +605,10 @@ def _ensureStorageNodeAndFileNameExist(node):
   filename = snode.GetFileName()
 
   if not filename or filename == '':
-    filename = _createAutoSaveFilePath(node)
+    filename = _createAutoSaveFilePath(caseName, node)
   else:
-    if not _fileIsInDataDirectory(filename):
-      filename = _createAutoSaveFilePath(node)
+    if not _fileIsInDataDirectory(caseName, filename):
+      filename = _createAutoSaveFilePath(caseName, node)
     
   print('Autosave storage node filename: ' + filename)
   snode.SetFileName(filename)
@@ -619,21 +620,21 @@ def _autoSaveNode(node):
   slicer.util.saveNode(node, filename)
 
 
-def _autoSaveNodes(nodes):
+def _autoSaveNodes(caseName, nodes):
   for node in nodes:
-    _ensureStorageNodeAndFileNameExist(node)
+    _ensureStorageNodeAndFileNameExist(caseName, node)
     _autoSaveNode(node)
 
 
-def autoSavePlan():
+def autoSavePlan(caseName='Default'):
   # construct autosave path
   
-  incremental = os.path.exists(_autoSaveDirectory())
+  incremental = os.path.exists(_autoSaveDirectory(caseName))
   if incremental:
     print('Autosave incremental save')
   else:
     print('Autosave first save')
-    _ensureAutoSaveDirectoriesExist()
+    _ensureAutoSaveDirectoriesExist(caseName)
   
   nodes = _listNodesToSave(incremental=incremental)
   
@@ -643,27 +644,27 @@ def autoSavePlan():
     autoSaveDialog.show()
   slicer.app.processEvents()
   autoSaveDialog.deleteLater()
-  slicer.mrmlScene.SetRootDirectory(_autoSaveDirectory())
-  _autoSaveNodes(nodes)
-  slicer.util.saveScene(_autoSaveFilePath())
+  slicer.mrmlScene.SetRootDirectory(_autoSaveDirectory(caseName))
+  _autoSaveNodes(caseName,nodes)
+  slicer.util.saveScene(_autoSaveFilePath(caseName))
   autoSaveDialog.hide()
 
   
-def checkAutoSave():
+def checkAutoSave(caseName='Default'):
   # construct autosave path
   print('Checking for autosave')
   import os
-  if os.path.exists(_autoSaveDirectory()):
+  if os.path.exists(_autoSaveDirectory(caseName)):
     print('Autosave found')
     reloadAutoSaveDialog = qt.QMessageBox(qt.QMessageBox.Information, "Reload autosave?",
       "An autosave has been found, would you like to reload it?", qt.QMessageBox.Yes | qt.QMessageBox.Discard)
     ret = reloadAutoSaveDialog.exec()
     if ret == qt.QMessageBox.Yes:
       print('reloading autosave')
-      slicer.util.loadScene(str(_autoSaveFilePath()))
+      slicer.util.loadScene(str(_autoSaveFilePath(caseName)))
     else:
       print('Skip loading autosave, discarding old autosave')
-      deleteAutoSave()
+      deleteAutoSave(caseName)
       
 
 def savePlan():
