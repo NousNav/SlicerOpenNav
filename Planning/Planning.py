@@ -327,6 +327,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     
     skinSegment = segmentation.GetSegmentation().GetSegment(segment)
     slicer.modules.segmentations.logic().ExportSegmentToRepresentationNode(skinSegment, self.logic.skin_model)
+    self.logic.skin_model.GetDisplayNode().SetVisibility(True)
+    self.logic.skin_model.GetDisplayNode().SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
     
     NNUtils.centerCam()
 
@@ -516,9 +518,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
 
   def setSkinSegmentFor3DDisplay(self):
-    segment = self.skin_segmentation.GetSegmentation().GetSegment(self.SKIN_SEGMENT)
-    segment.SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
-    self.skin_model.GetDisplayNode().SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
     self.skin_segmentation.SetDisplayVisibility(False)
     self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)

@@ -211,6 +211,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     pluginLogic = pluginHandler.pluginLogic()
     pluginLogic.allowedViewContextMenuActionNames = ["NothingAllowed"]
 
+    # Block invisible segment dialog
+    qt.QSettings().setValue("Segmentations/ConfirmEditHiddenSegment", str(qt.QMessageBox.Yes))
+
   def toggleStyle(self,visible):
     if visible:
       self.applyApplicationStyle()
