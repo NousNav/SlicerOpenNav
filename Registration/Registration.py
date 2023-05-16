@@ -640,7 +640,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Set the layout
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
-    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False,
+    self.planningLogic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False,
                                              targetSegmentation=False, trajectory=False, landmarks=False)
 
     # Clear previous registration
@@ -689,7 +689,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Set the layout
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
-    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False,
+    self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
                                              targetSegmentation=False, trajectory=False, landmarks=False)
     self.landmarks.showLandmarks = False
     self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
@@ -719,7 +719,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
     self.tools.setToolsStatusCheckEnabled(True)
     self.AlignmentSideWidget.visible = False
-    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False,
+    self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
                                                   targetSegmentation=False, trajectory=False, landmarks=False)
     self.logic.needle_model.GetDisplayNode().SetVisibility(True)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
@@ -761,7 +761,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.resetDefaultButtonActions()
     self.logic.needle_model.GetDisplayNode().SetVisibility(False)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(False)
-    self.planningLogic.setPlanningNodesVisibility(skinSegmentation=False, seedSegmentation=False,
+    self.planningLogic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False,
                                                   targetSegmentation=False, trajectory=False, landmarks=False)
 
   def restartCalibration(self):

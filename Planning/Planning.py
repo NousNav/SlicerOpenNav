@@ -142,7 +142,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinModel=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
 
   def validateTargetSegmentation(self):
     skin = self.logic.skin_segmentation
@@ -150,8 +150,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return 'Please segment skin before proceeding'
 
     # check for 3d representation
-    poly = vtk.vtkPolyData()
-    if not self.logic.skin_segmentation.GetClosedSurfaceRepresentation(self.logic.SKIN_SEGMENT, poly):
+    # poly = vtk.vtkPolyData()
+    if not self.logic.skin_model:
       return 'Finalize skin segmentation before continuing'
 
   def validateTrajectorySegmentation(self):
@@ -231,10 +231,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.tableManager.advanceButton = None
     
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
-    self.logic.setSkinSegmentColorForEditing()
+    self.logic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False, trajectory=False, landmarks=False)    
+    self.logic.setSkinSegmentForEditing()
 
     self.advanceButton.enabled = self.logic.master_volume is not None
     self.updateSkinSegmentationPreview()
@@ -249,10 +247,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.tableManager.advanceButton = None
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.8)
-    self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.logic.setSkinSegmentColorFor3DDisplay()
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.skin_model.GetDisplayNode().SetOpacity(0.8)
+    self.logic.setSkinSegmentFor3DDisplay()
     if self.logic.target_segmentation:
       self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
 
@@ -262,10 +259,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.tableManager.advanceButton = None
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
-    self.logic.skin_segmentation.GetDisplayNode().SetOpacity3D(0.8)
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
+    self.logic.skin_model.GetDisplayNode().SetOpacity(0.8)
     self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-    self.logic.setSkinSegmentColorFor3DDisplay()
+    self.logic.setSkinSegmentFor3DDisplay()
     self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
   @NNUtils.backButton(text="Plan the Trajectory")
@@ -275,8 +272,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.landmarkLogic.setupPlanningLandmarksNode()
     self.tableManager.reconnect()
     self.tableManager.updateLandmarksDisplay()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=False, trajectory=False, landmarks=True)
-    self.logic.setSkinSegmentColorFor3DDisplay()
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False, trajectory=False, landmarks=True)
+    self.logic.setSkinSegmentFor3DDisplay()
 
     self.tableManager.advanceButton = self.advanceButton
    
@@ -342,7 +339,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_INSIDE_SEGMENT
@@ -357,7 +354,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
 
     self.logic.setupSeedSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, seedSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
     segmentation = self.logic.seed_segmentation
     segment = self.logic.SEED_OUTSIDE_SEGMENT
@@ -374,7 +371,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
       return
     segmentation = self.logic.target_segmentation
     self.logic.copySeedSegmentsToTargetSegmentationNode()
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinModel=True, targetSegmentation=True, trajectory=False, landmarks=False)
 
     self.logic.setEditorTargets(volume, segmentation)
     self.logic.previewTargetSegmentation()
@@ -383,7 +380,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.applyTargetSegmentation()
     self.logic.endEffect()
 
-    self.logic.setPlanningNodesVisibility(skinSegmentation=True, targetSegmentation=True, trajectory=False, landmarks=False)
+    self.logic.setPlanningNodesVisibility(skinModel=True, targetSegmentation=True, trajectory=False, landmarks=False)
     segmentation = self.logic.target_segmentation
     segmentation.CreateClosedSurfaceRepresentation()
 
@@ -458,14 +455,13 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     slicer.mrmlScene.RemoveNode(self.trajectory_target_markup)
     slicer.mrmlScene.RemoveNode(self.skin_model)
      
-  def setPlanningNodesVisibility(self, skinSegmentation=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
+  def setPlanningNodesVisibility(self, skinModel=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
     if self.skin_segmentation:
-      self.skin_segmentation.SetDisplayVisibility(skinSegmentation)
-      # Usually only 3D is desired:
-      if skinSegmentation:
-        self.skin_segmentation.GetDisplayNode().SetVisibility3D(True)
-        self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-        self.setSkinSegmentColorFor3DDisplay()
+      # Display 3D model instead of segmentation node:
+      if self.skin_model:
+        self.skin_model.GetDisplayNode().SetVisibility(skinModel)
+        self.setSkinSegmentFor3DDisplay()
+      
     if self.seed_segmentation:
       self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
     if self.target_segmentation:
@@ -480,9 +476,8 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.landmarkLogic.landmarks.SetDisplayVisibility(landmarks)
 
   def resetDefaultNodeAppearance(self):
-    if self.skin_segmentation:
-      self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-      self.skin_segmentation.GetDisplayNode().SetOpacity3D(1.)
+    if self.skin_model:
+      self.skin_model.GetDisplayNode().SetOpacity(1.)
     if self.target_segmentation:
       self.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
       self.target_segmentation.GetDisplayNode().SetVisibility(False)
@@ -513,14 +508,20 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 1.)
       self.skin_segmentation = node
 
-  def setSkinSegmentColorForEditing(self):
+  def setSkinSegmentForEditing(self):
     segment = self.skin_segmentation.GetSegmentation().GetSegment(self.SKIN_SEGMENT)
     segment.SetColor(0,1,0)
+    self.skin_segmentation.SetDisplayVisibility(True)
+    self.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
+    self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
 
-  def setSkinSegmentColorFor3DDisplay(self):
+  def setSkinSegmentFor3DDisplay(self):
     segment = self.skin_segmentation.GetSegmentation().GetSegment(self.SKIN_SEGMENT)
     segment.SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
-    self.skin_model.GetDisplayNode().SetColor(177, 122, 101)
+    self.skin_model.GetDisplayNode().SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
+    self.skin_segmentation.SetDisplayVisibility(False)
+    self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+    self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
 
   def setupSeedSegmentationNode(self):
     if not self.seed_segmentation:
