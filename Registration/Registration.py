@@ -92,6 +92,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_PIVOT_OK = 0.8
     self.RMSE_SPIN_OK = 1.
     self.RMSE_REGISTRATION_OK = 3.
+    self.RMSE_INITIAL_REGISTRATION_OK = 5.
     self.EPSILON = 0.00001
     self.optitrack_pending = False
 
@@ -812,11 +813,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
         RMSE = float(match)
 
-        if RMSE < self.RMSE_REGISTRATION_OK:
+        if RMSE < self.RMSE_INITIAL_REGISTRATION_OK:
           self.logic.landmark_registration_passed = True
         else:
           self.logic.landmark_registration_passed = False
-          messageText = "Results too poor. Registration must be redone before proceeding."
+          messageText = "Results too poor. Registration must be redone before proceeding. RMSE: " + str(RMSE) + ". Limit is " + str(self.RMSE_INITIAL_REGISTRATION_OK)
       else:
         self.logic.landmark_registration_passed = False
         messageText = "Registration error."

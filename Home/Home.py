@@ -232,8 +232,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setRegistrationRequirement(self, required):
     if required:
       slicer.modules.RegistrationWidget.RMSE_REGISTRATION_OK = 3
+      slicer.modules.RegistrationWidget.RMSE_INITIAL_REGISTRATION_OK = 3
     else:
       slicer.modules.RegistrationWidget.RMSE_REGISTRATION_OK = 99
+      slicer.modules.RegistrationWidget.RMSE_INITIAL_REGISTRATION_OK = 99
   
   def setSlicerUIVisible(self, visible):
     slicer.util.setDataProbeVisible(visible)
