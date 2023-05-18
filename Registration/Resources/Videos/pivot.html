@@ -2,18 +2,26 @@
 <html>
   <style>
    
-    .center {
-      margin: 0;
+   .video-container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 90%;
+      height: 100%;     
+      overflow: hidden;
+    }
+    .video-container video {
+      height: 100%;     
       position: absolute;
       top: 50%;
       left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
+      transform: translate(-50%,-50%);
+      overflow: hidden;
     }
     </style>
 <body style="background-color:#434343;">
-<div class="center">
-<video height="960" autoplay loop muted>
+<div class="video-container">
+<video autoplay loop muted>
   <source src="Pivot.webm" type="video/webm">
   Your browser does not support the video tag.
 </video>
