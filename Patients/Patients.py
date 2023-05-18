@@ -174,7 +174,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updatePatientDataButtons()
   
   def launchCaseDialog(self):
-    self.caseDialogUI.CaseNameLineEdit.text = slicer.modules.PlanningWidget.logic.master_volume.GetName()
+    self.caseDialogUI.CaseNameLineEdit.text = NNUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
     self.caseDialog.exec()
 
   def updateCasesList(self):
@@ -182,9 +182,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     cases = NNUtils.listAvailablePlans()
     self.ui.CasesTableWidget.clearContents()
     self.ui.CasesTableWidget.setRowCount(len(cases))
-    for i, case in enumerate(cases):
+    for i, (case, date) in enumerate(cases):
       item_name = qt.QTableWidgetItem(case)
-      item_date = qt.QTableWidgetItem("??")
+      item_date = qt.QTableWidgetItem(date)
       self.ui.CasesTableWidget.setItem(i, 0, item_name)
       self.ui.CasesTableWidget.setItem(i, 1, item_date)  
   

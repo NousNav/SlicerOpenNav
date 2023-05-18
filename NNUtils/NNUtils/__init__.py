@@ -4,6 +4,7 @@ import slicer
 import vtk
 import numpy as np
 import pathlib
+import time
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -574,7 +575,7 @@ def _fileIsInDataDirectory(caseName,filename):
   return os.path.normpath(_autoSaveDataDirectory(caseName)) == os.path.normpath(commonfilepathpath)
 
 
-def _slugify(value, allow_unicode=False):
+def slugify(value, allow_unicode=False):
     """
     Taken from https://github.com/django/django/blob/master/django/utils/text.py
     Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
@@ -596,7 +597,7 @@ def _slugify(value, allow_unicode=False):
 
 def _createAutoSaveFilePath(caseName, node):
   snode = node.GetStorageNode()
-  possiblePath = os.path.join(_autoSaveDataDirectory(caseName), _slugify(node.GetName()) + '.' + snode.GetDefaultWriteFileExtension())
+  possiblePath = os.path.join(_autoSaveDataDirectory(caseName), slugify(node.GetName()) + '.' + snode.GetDefaultWriteFileExtension())
   return slicer.mrmlScene.CreateUniqueFileName(possiblePath, '.'+snode.GetDefaultWriteFileExtension())
 
 
@@ -696,7 +697,16 @@ def savePlan():
 
   slicer.util.saveScene(str(plan_path))
 
+
 def listAvailablePlans():
   print('Available plans:')
-  print(next(os.walk(_casesDirectory()))[1])
-  return(next(os.walk(_casesDirectory()))[1])
+
+  caseNames = next(os.walk(_casesDirectory()))[1]
+
+  print(caseNames)
+
+  plansWithDates = []
+  for case in caseNames:
+    plansWithDates.append((case, time.ctime(os.path.getmtime(_autoSaveFilePath(case)))))
+
+  return plansWithDates
