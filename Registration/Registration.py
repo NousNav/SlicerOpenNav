@@ -690,13 +690,14 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # Set the layout
     NNUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
-    self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
-                                             targetSegmentation=False, trajectory=False, landmarks=False)
+    
     self.landmarks.showLandmarks = False
     self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
     self.trace.setVisible(True)
     self.addLandmarksToTrace()
+    self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
+                                             targetSegmentation=False, trajectory=False, landmarks=False)
     NNUtils.centerCam()
 
     self.advanceButton.enabled = self.logic.surface_registration_passed
