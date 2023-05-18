@@ -426,7 +426,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   skin_model = NNUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
 
   current_step = NNUtils.parameterProperty("CURRENT_TAB")
-  case_name = NNUtils.parameterProperty("CASE_NAME")
+  case_name = NNUtils.parameterProperty("CASE_NAME", default=None)
 
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
