@@ -117,7 +117,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     master_volume = slicer.modules.PlanningWidget.logic.master_volume
     self.ui.DICOMToggleButton.enabled = not master_volume
     
-    self.ui.LoadDataButton.enabled = not master_volume
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
     print("?")
     print(self.ui.CasesTableWidget.selectedItems())
@@ -125,14 +124,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     if hasattr(slicer.modules, "DICOMWidget"):
       self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
-      self.ui.LoadDataButton.visible = slicer.modules.DICOMWidget.browserWidget.isHidden()
       if slicer.modules.DICOMWidget.browserWidget.isHidden():
          self.ui.DICOMToggleButton.text = 'Add Patient From DICOM'
       else:
          self.ui.DICOMToggleButton.text = 'Close DICOM Database'
     else:
       self.ui.ImportDICOMButton.visible = False
-      self.ui.LoadDataButton.visible = True
 
   def onClose(self, o, e):
     pass
@@ -156,7 +153,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
-    self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
     self.ui.ClearPlanButton.clicked.connect(self.closePlan)
 
     # For some reason, the browser is instantiated as not hidden. Close

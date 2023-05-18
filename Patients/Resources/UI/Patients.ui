@@ -82,13 +82,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="LoadDataButton">
-     <property name="text">
-      <string>Add Patient From Disk</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
