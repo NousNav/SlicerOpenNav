@@ -10,32 +10,53 @@
     <height>295</height>
    </rect>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPushButton" name="ImportDICOMButton">
-     <property name="text">
-      <string>Import DICOM Data</string>
+    <widget class="QTableWidget" name="CasesTableWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="DICOMToggleButton">
-     <property name="text">
-      <string>Show / Hide DICOM Browser</string>
+     <property name="sizeAdjustPolicy">
+      <enum>QAbstractScrollArea::AdjustToContents</enum>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="LoadDataButton">
-     <property name="text">
-      <string>Load Non-DICOM Data</string>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>Name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Last Modified</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="loadPlanButton">
      <property name="text">
-      <string>Load Plan</string>
+      <string>Open Patient</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="ClearPlanButton">
+     <property name="text">
+      <string>Close Patient</string>
      </property>
     </widget>
    </item>
@@ -47,16 +68,23 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="ClearPlanButton">
+    <widget class="QPushButton" name="DICOMToggleButton">
      <property name="text">
-      <string>Clear Plan</string>
+      <string>Add Patient from DICOM</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="SavePlanButton">
+    <widget class="QPushButton" name="ImportDICOMButton">
      <property name="text">
-      <string>Save Plan</string>
+      <string>Add Folders to DICOM Database</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="LoadDataButton">
+     <property name="text">
+      <string>Add Patient From Disk</string>
      </property>
     </widget>
    </item>

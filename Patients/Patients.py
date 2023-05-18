@@ -73,12 +73,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Default
     self.advanceButtonAction.enabled = False
 
-    self.setupCaseManagement()
+    self.setupCaseDialog()
+    self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
 
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
-    self.ui.loadPlanButton.clicked.connect(self.onLoadPlanButtonClicked)
+    self.ui.loadPlanButton.clicked.connect(self.loadCase)
 
   @NNUtils.backButton(text="Back", visible=False)
   @NNUtils.advanceButton(text="Go To Planning")
@@ -102,6 +103,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Passing the special value "keep-current" ensure the layer is not modified
     # See https://slicer.readthedocs.io/en/latest/developer_guide/slicer.html#slicer.util.setSliceViewerLayers
     NNUtils.goToFourUpLayout(volumeNode='keep-current')
+    self.updateCasesList()
     self.updatePatientDataButtons()
 
   def exit(self):
@@ -114,12 +116,23 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def updatePatientDataButtons(self):
     master_volume = slicer.modules.PlanningWidget.logic.master_volume
     self.ui.DICOMToggleButton.enabled = not master_volume
-    self.ui.ImportDICOMButton.enabled = not master_volume
+    
     self.ui.LoadDataButton.enabled = not master_volume
-    self.ui.loadPlanButton.enabled = not master_volume
+    self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
+    print("?")
+    print(self.ui.CasesTableWidget.selectedItems())
+    self.ui.ClearPlanButton.enabled = master_volume 
 
-    self.ui.ClearPlanButton.enabled = master_volume
-    self.ui.SavePlanButton.enabled = master_volume
+    if hasattr(slicer.modules, "DICOMWidget"):
+      self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
+      self.ui.LoadDataButton.visible = slicer.modules.DICOMWidget.browserWidget.isHidden()
+      if slicer.modules.DICOMWidget.browserWidget.isHidden():
+         self.ui.DICOMToggleButton.text = 'Add Patient From DICOM'
+      else:
+         self.ui.DICOMToggleButton.text = 'Close DICOM Database'
+    else:
+      self.ui.ImportDICOMButton.visible = False
+      self.ui.LoadDataButton.visible = True
 
   def onClose(self, o, e):
     pass
@@ -141,80 +154,70 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       return
 
     slicer.modules.dicom.widgetRepresentation()
-    self.ui.DICOMToggleButton.clicked.connect(PatientsWidget.toggleDICOMBrowser)
+    self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
     self.ui.LoadDataButton.clicked.connect(slicer.util.openAddDataDialog)
-    self.ui.SavePlanButton.clicked.connect(NNUtils.savePlan)
     self.ui.ClearPlanButton.clicked.connect(self.closePlan)
 
     # For some reason, the browser is instantiated as not hidden. Close
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
 
-    qt.QTimer.singleShot(1000, self.launchCaseManagement)
-    NNUtils.listAvailablePlans()
+  def setupCaseDialog(self):
+    self.caseDialog = slicer.util.loadUI(self.resourcePath('UI/CaseManagement.ui'))
+    self.caseDialog.setWindowFlags(qt.Qt.CustomizeWindowHint)
+    self.caseDialogUI = slicer.util.childWidgetVariables(self.caseDialog)
+    self.caseDialog.accepted.connect(self.startNewCase)
 
-  
-  def setupCaseManagement(self):
-    self.caseManagement = slicer.util.loadUI(self.resourcePath('UI/CaseManagement.ui'))
-
-    self.caseManagement.setWindowFlags(qt.Qt.CustomizeWindowHint)
-
-    self.caseManagementUI = slicer.util.childWidgetVariables(self.caseManagement)
-
-    
-
-    self.caseManagementUI.LoadCaseButton.clicked.connect(self.loadCase)
-    self.caseManagementUI.NewCaseButton.clicked.connect(self.startNewCase)
-    self.caseManagementUI.CloseButton.clicked.connect(self.closeAndExit)
-  
-  
-  def launchCaseManagement(self):
-     
-    cases = NNUtils.listAvailablePlans()
-    self.caseManagementUI.CasesComboBox.clear()
-
-    for case in cases:
-      self.caseManagementUI.CasesComboBox.addItem(case)
-
-    self.caseManagement.exec()
-
-  def loadCase(self):
-    print('load a case: ' + self.caseManagementUI.CasesComboBox.currentText)
-    slicer.modules.PlanningWidget.logic.case_name = self.caseManagementUI.CasesComboBox.currentText
-    NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
 
   def startNewCase(self):
     print('start a new case')
-    slicer.modules.PlanningWidget.logic.case_name = self.caseManagementUI.CaseNameLineEdit.text
+    slicer.modules.PlanningWidget.logic.case_name = self.caseDialogUI.CaseNameLineEdit.text
+  
+  def launchCaseDialog(self):
+    self.caseDialogUI.CaseNameLineEdit.text = slicer.modules.PlanningWidget.logic.master_volume.GetName()
+    self.caseDialog.exec()
 
-  def closeAndExit(self):
-    slicer.app.exit()
+  def updateCasesList(self):
+    print("Updating table")
+    cases = NNUtils.listAvailablePlans()
+    self.ui.CasesTableWidget.clearContents()
+    self.ui.CasesTableWidget.setRowCount(len(cases))
+    for i, case in enumerate(cases):
+      item_name = qt.QTableWidgetItem(case)
+      item_date = qt.QTableWidgetItem("??")
+      self.ui.CasesTableWidget.setItem(i, 0, item_name)
+      self.ui.CasesTableWidget.setItem(i, 1, item_date)  
   
-  
+
+  def loadCase(self):
+    currentRow = self.ui.CasesTableWidget.currentRow()
+    caseItem = self.ui.CasesTableWidget.item(currentRow, 0)
+    print('load a case: ' + caseItem.text())
+    slicer.modules.PlanningWidget.logic.case_name = caseItem.text()
+    NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
+    slicer.modules.PlanningWidget.logic.case_name = caseItem.text()
+
+    
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
     slicer.modules.RegistrationWidget.logic.clearRegistrationData()
     slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
     self.updatePatientDataButtons()
-    self.launchCaseManagement()
    
   @staticmethod
-  def onDICOMImport():
-    # Show the DICOM browser
-    PatientsWidget.setDICOMBrowserVisible(True)
+  def onDICOMImport():  
 
     # ... then open the DICOM import dialog
     dicomBrowser = slicer.modules.DICOMWidget.browserWidget.dicomBrowser
     dicomBrowser.openImportDialog()
 
-    # If user click "cancel", hide the DICOM browser
-    if dicomBrowser.importDialog().result() == qt.QDialog.Rejected:
-      PatientsWidget.setDICOMBrowserVisible(False)
+    
 
-  @staticmethod
-  def toggleDICOMBrowser():
+  def toggleDICOMBrowser(self):
     PatientsWidget.setDICOMBrowserVisible(slicer.modules.DICOMWidget.browserWidget.isHidden())
+    self.updatePatientDataButtons()
+    
 
   @staticmethod
   def setDICOMBrowserVisible(visible):
@@ -240,6 +243,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.HomeWidget.setup3DView()
     slicer.modules.HomeWidget.setupSliceViewers()
     self.updatePatientDataButtons()
+    if not slicer.modules.PlanningWidget.logic.case_name:
+      self.launchCaseDialog()
 
   @vtk.calldata_type(vtk.VTK_OBJECT)
   def onNodeAdded(self, caller, event, calldata):
