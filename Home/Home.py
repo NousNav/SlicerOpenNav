@@ -168,7 +168,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.folderAction.toolTip = 'Open cases folder in Windows Explorer.'
 
     # Settings dialog
-    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
+    gearIcon = qt.QIcon(self.resourcePath('Icons/Settings.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
@@ -178,6 +178,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsUI.RegistrationCheckBox.toggled.connect(self.setRegistrationRequirement)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
+    self.settingsAction.toolTip = 'Open advanced settings menu'
     
     # Tabs for secondary toolbars - navigation and registration
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))

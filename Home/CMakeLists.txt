@@ -9,6 +9,7 @@ set(MODULE_PYTHON_SCRIPTS
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/Icons/Gears.png
+  Resources/Icons/Settings.png
   Resources/Icons/ScreenShot.png
   Resources/Icons/Folder.png
   Resources/UI/${MODULE_NAME}.ui
