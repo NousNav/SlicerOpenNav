@@ -369,3 +369,19 @@ QPushButton#GoToTracingButton{
     font: 30px;
     margin: 12px;
 }
+
+ctkConsolePrivate
+{
+    background-color: #2a2a2a;
+    
+}
+
+ctkConsole
+{
+    qproperty-promptColor: #316d71;
+    qproperty-outputTextColor: #fafafa;
+    qproperty-errorTextColor: firebrick;
+    qproperty-stdinTextColor: #b7b7b7;
+    qproperty-welcomeTextColor: #b7b7b7;
+    qproperty-commandTextColor: #b7b7b7;
+}

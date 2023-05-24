@@ -68,6 +68,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # | [Back Button]                  (<StepName>BottomToolBar)                          [Advance Button] |
     # |----------------------------------------------------------------------------------------------------|
 
+    # Apply style (1st pass)
+    self.applyApplicationStyle()
+
     # Load widget from .ui file (created by Qt Designer)
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Home.ui'))
     self.layout.addWidget(self.uiWidget)
