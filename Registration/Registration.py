@@ -818,7 +818,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
           self.logic.landmark_registration_passed = True
         else:
           self.logic.landmark_registration_passed = False
-          messageText = "Results too poor. Registration must be redone before proceeding. RMSE: " + str(RMSE) + ". Limit is " + str(self.RMSE_INITIAL_REGISTRATION_OK)
+          messageText = "Results too poor. Registration must be redone before proceeding. RMSE: " \
+            + str(RMSE) + ". Limit is " + str(self.RMSE_INITIAL_REGISTRATION_OK)
       else:
         self.logic.landmark_registration_passed = False
         messageText = "Registration error."

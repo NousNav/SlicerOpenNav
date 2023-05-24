@@ -231,7 +231,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.tableManager.advanceButton = None
     
-    self.logic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False, trajectory=False, landmarks=False)    
+    self.logic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False, trajectory=False, landmarks=False)
     self.logic.setSkinSegmentForEditing()
 
     self.advanceButton.enabled = self.logic.master_volume is not None

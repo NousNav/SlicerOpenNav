@@ -121,7 +121,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidget.selectedItems()) != 0
-    self.ui.ClearPlanButton.enabled = master_volume 
+    self.ui.ClearPlanButton.enabled = master_volume
 
     if hasattr(slicer.modules, "DICOMWidget"):
       self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
@@ -166,13 +166,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.caseDialogUI = slicer.util.childWidgetVariables(self.caseDialog)
     self.caseDialog.accepted.connect(self.startNewCase)
     self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
-
-
     self.patientListDialog = slicer.util.loadUI(self.resourcePath('UI/PatientListDialog.ui'))
     self.patientListDialogUI = slicer.util.childWidgetVariables(self.patientListDialog)
     self.patientListDialogUI.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
     self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
-
 
   def startNewCase(self):
     print('start a new case')
@@ -183,8 +180,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   
   def launchPatientListDialog(self):
     self.patientListDialog.exec()
-    self.updatePatientDataButtons()  
- 
+    self.updatePatientDataButtons()
   
   def launchCaseNameDialog(self):
     self.caseDialogUI.CaseNameLineEdit.text = NNUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
@@ -197,11 +193,11 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.patientListDialogUI.CasesTableWidget.clearContents()
     self.patientListDialogUI.CasesTableWidget.setRowCount(len(cases))
     for i, (case, date) in enumerate(cases):
-      if i < 5:    # add to shortcuts    
+      if i < 5:    # add to shortcuts
         item_name_panel = qt.QTableWidgetItem(case)
         item_date_panel = qt.QTableWidgetItem(time.ctime(date))
         self.ui.CasesTableWidget.setItem(i, 0, item_name_panel)
-        self.ui.CasesTableWidget.setItem(i, 1, item_date_panel)  
+        self.ui.CasesTableWidget.setItem(i, 1, item_date_panel)
       item_name_list = qt.QTableWidgetItem(case)
       item_date_list = qt.QTableWidgetItem(time.ctime(date))
       self.patientListDialogUI.CasesTableWidget.setItem(i, 0, item_name_list)
@@ -219,15 +215,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
      caseName = caseItem.text()
      self.loadCase(caseName)
   
-  
-  def loadCase(self, caseName):    
+  def loadCase(self, caseName):
     print('load a case: ' + caseName)
     slicer.modules.PlanningWidget.logic.case_name = caseName
     NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
     slicer.modules.PlanningWidget.logic.case_name = caseName
-    self.updatePatientDataButtons()  
-
-
+    self.updatePatientDataButtons()
     
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
@@ -236,18 +229,15 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updatePatientDataButtons()
    
   @staticmethod
-  def onDICOMImport():  
+  def onDICOMImport():
 
     # ... then open the DICOM import dialog
     dicomBrowser = slicer.modules.DICOMWidget.browserWidget.dicomBrowser
     dicomBrowser.openImportDialog()
 
-    
-
   def toggleDICOMBrowser(self):
     PatientsWidget.setDICOMBrowserVisible(slicer.modules.DICOMWidget.browserWidget.isHidden())
     self.updatePatientDataButtons()
-    
 
   @staticmethod
   def setDICOMBrowserVisible(visible):

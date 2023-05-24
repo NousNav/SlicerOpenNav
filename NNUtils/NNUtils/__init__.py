@@ -652,11 +652,11 @@ def autoSavePlan(caseName='Default'):
   _autoSaveNodes(caseName,nodes)
   slicer.util.saveScene(_autoSaveFilePath(caseName))
   autoSaveDialog.hide()
-
   
 
 def loadAutoSave(caseName):
   slicer.util.loadScene(str(_autoSaveFilePath(caseName)))
+
 
 def checkAutoSave(caseName='Default'):
   # construct autosave path
