@@ -4,6 +4,7 @@ import slicer
 import vtk
 import numpy as np
 import pathlib
+import datetime
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -712,3 +713,35 @@ def listAvailablePlans():
   plansWithDates.sort(key = lambda x: x[1], reverse=True)
 
   return plansWithDates
+
+
+def _screenShotDirectory(caseName):
+  return os.path.join(_autoSaveDirectory(caseName), 'ScreenShots')
+
+
+def _screenShotFilePath(caseName, timestamp):
+  formattedTimeStamp = timestamp.strftime('%Y-%m-%d_T%H-%M-%S')
+  fileName = 'ScreenShot-' + formattedTimeStamp + '.png'
+  return os.path.join(_screenShotDirectory(caseName), fileName)
+
+
+def _ensureScreenShotDirectoriesExist(caseName):
+  # Create all directories in tree recursively
+  if not os.path.exists(_screenShotDirectory(caseName)):
+    os.makedirs(_screenShotDirectory(caseName))
+
+
+def saveScreenShotViewersOnly(caseName):
+  _ensureScreenShotDirectoriesExist(caseName)
+  import ScreenCapture
+  cap = ScreenCapture.ScreenCaptureLogic()
+  cap.captureImageFromView(None, _screenShotFilePath(caseName, datetime.datetime.now()))
+  qt.QMessageBox.information(slicer.util.mainWindow(), 'Screenshot saved!', 'Screenshot saved!')
+  
+
+def saveScreenShot(caseName):
+  _ensureScreenShotDirectoriesExist(caseName)
+  p = slicer.util.mainWindow().grab()
+  p.save(_screenShotFilePath(caseName, datetime.datetime.now()), 'png')
+  qt.QMessageBox.information(slicer.util.mainWindow(), 'Screenshot saved!', 'Screenshot saved!')
+

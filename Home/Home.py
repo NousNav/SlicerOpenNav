@@ -155,6 +155,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryToolBar.addWidget(nousNavLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
 
+    # Screenshot
+    screenShotIcon = qt.QIcon(self.resourcePath('Icons/ScreenShot.png'))
+    self.screenShotAction = self.primaryToolBar.addAction(screenShotIcon, "")
+    self.screenShotAction.triggered.connect(self.takeScreenShot)
+    self.screenShotAction.toolTip = 'Take Screenshot'
+
     # Settings dialog
     gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
@@ -166,7 +172,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.settingsUI.RegistrationCheckBox.toggled.connect(self.setRegistrationRequirement)
     self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
     self.settingsAction.triggered.connect(self.raiseSettings)
-
+    
     # Tabs for secondary toolbars - navigation and registration
     self.secondaryTabWidget = slicer.util.loadUI(self.resourcePath('UI/CenteredWidget.ui'))
     self.secondaryTabWidget.setObjectName("SecondaryCenteredWidget")
@@ -213,7 +219,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Block invisible segment dialog
     qt.QSettings().setValue("Segmentations/ConfirmEditHiddenSegment", str(qt.QMessageBox.Yes))
-
+  
+  def takeScreenShot(self):
+    if slicer.modules.PlanningWidget.logic.case_name:
+      NNUtils.saveScreenShot(slicer.modules.PlanningWidget.logic.case_name)
+    else:
+      NNUtils.saveScreenShot('NonPatientScreenShots')
+  
   def toggleStyle(self,visible):
     if visible:
       self.applyApplicationStyle()
