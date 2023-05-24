@@ -745,3 +745,7 @@ def saveScreenShot(caseName):
   p.save(_screenShotFilePath(caseName, datetime.datetime.now()), 'png')
   qt.QMessageBox.information(slicer.util.mainWindow(), 'Screenshot saved!', 'Screenshot saved!')
 
+
+def openCasesDirectoryInExplorer():
+  path = _casesDirectory()
+  os.system('explorer.exe ' + path)

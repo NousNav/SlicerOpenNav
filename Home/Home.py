@@ -161,6 +161,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.screenShotAction.triggered.connect(self.takeScreenShot)
     self.screenShotAction.toolTip = 'Take Screenshot'
 
+    # Open cases folder
+    folderIcon = qt.QIcon(self.resourcePath('Icons/Folder.png'))
+    self.folderAction = self.primaryToolBar.addAction(folderIcon, "")
+    self.folderAction.triggered.connect(NNUtils.openCasesDirectoryInExplorer)
+    self.folderAction.toolTip = 'Open cases folder in Windows Explorer.'
+
     # Settings dialog
     gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
