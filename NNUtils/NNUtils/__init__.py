@@ -4,7 +4,6 @@ import slicer
 import vtk
 import numpy as np
 import pathlib
-import time
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -707,6 +706,8 @@ def listAvailablePlans():
 
   plansWithDates = []
   for case in caseNames:
-    plansWithDates.append((case, time.ctime(os.path.getmtime(_autoSaveFilePath(case)))))
+    plansWithDates.append((case, os.path.getmtime(_autoSaveFilePath(case))))
+
+  plansWithDates.sort(key = lambda x: x[1], reverse=True)
 
   return plansWithDates

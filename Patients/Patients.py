@@ -181,10 +181,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     print("Updating table")
     cases = NNUtils.listAvailablePlans()
     self.ui.CasesTableWidget.clearContents()
-    self.ui.CasesTableWidget.setRowCount(len(cases))
+    self.ui.CasesTableWidget.setRowCount(5)
     for i, (case, date) in enumerate(cases):
+      if i > 4:
+        break
       item_name = qt.QTableWidgetItem(case)
-      item_date = qt.QTableWidgetItem(date)
+      import time
+      item_date = qt.QTableWidgetItem(time.ctime(date))
       self.ui.CasesTableWidget.setItem(i, 0, item_name)
       self.ui.CasesTableWidget.setItem(i, 1, item_date)  
   
