@@ -706,7 +706,8 @@ def listAvailablePlans():
 
   plansWithDates = []
   for case in caseNames:
-    plansWithDates.append((case, os.path.getmtime(_autoSaveFilePath(case))))
+    if os.path.exists(_autoSaveFilePath(case)):
+      plansWithDates.append((case, os.path.getmtime(_autoSaveFilePath(case))))
 
   plansWithDates.sort(key = lambda x: x[1], reverse=True)
 
