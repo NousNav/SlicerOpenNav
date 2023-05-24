@@ -271,6 +271,7 @@ QPushButton#DICOMToggleButton,
 QPushButton#LoadDataButton,
 QPushButton#loadPlanButton,
 QPushButton#ClearPlanButton,
+QPushButton#PatientListButton,
 QPushButton#SavePlanButton{
     min-height: 120px;
     font: 20px;

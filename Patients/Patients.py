@@ -1,6 +1,7 @@
 import logging
 import os.path
 import pathlib
+import time
 
 import ctk
 import qt
@@ -74,12 +75,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.enabled = False
 
     self.setupCaseDialog()
-    self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
 
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
-    self.ui.loadPlanButton.clicked.connect(self.loadCase)
+    self.ui.loadPlanButton.clicked.connect(self.loadCaseFromPanel)
+    self.ui.PatientListButton.clicked.connect(self.launchPatientListDialog)
 
   @NNUtils.backButton(text="Back", visible=False)
   @NNUtils.advanceButton(text="Go To Planning")
@@ -116,10 +117,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def updatePatientDataButtons(self):
     master_volume = slicer.modules.PlanningWidget.logic.master_volume
     self.ui.DICOMToggleButton.enabled = not master_volume
+    self.ui.PatientListButton.enabled = not master_volume
     
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
-    print("?")
-    print(self.ui.CasesTableWidget.selectedItems())
+    self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidget.selectedItems()) != 0
     self.ui.ClearPlanButton.enabled = master_volume 
 
     if hasattr(slicer.modules, "DICOMWidget"):
@@ -160,10 +161,17 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.DICOMWidget.browserWidget.close()
 
   def setupCaseDialog(self):
-    self.caseDialog = slicer.util.loadUI(self.resourcePath('UI/CaseManagement.ui'))
+    self.caseDialog = slicer.util.loadUI(self.resourcePath('UI/CaseNameDialog.ui'))
     self.caseDialog.setWindowFlags(qt.Qt.CustomizeWindowHint)
     self.caseDialogUI = slicer.util.childWidgetVariables(self.caseDialog)
     self.caseDialog.accepted.connect(self.startNewCase)
+    self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
+
+
+    self.patientListDialog = slicer.util.loadUI(self.resourcePath('UI/PatientListDialog.ui'))
+    self.patientListDialogUI = slicer.util.childWidgetVariables(self.patientListDialog)
+    self.patientListDialogUI.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
+    self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
 
 
   def startNewCase(self):
@@ -173,7 +181,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateCasesList()
     self.updatePatientDataButtons()
   
-  def launchCaseDialog(self):
+  def launchPatientListDialog(self):
+    self.patientListDialog.exec()
+    self.updatePatientDataButtons()  
+ 
+  
+  def launchCaseNameDialog(self):
     self.caseDialogUI.CaseNameLineEdit.text = NNUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
     self.caseDialog.exec()
 
@@ -181,24 +194,39 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     print("Updating table")
     cases = NNUtils.listAvailablePlans()
     self.ui.CasesTableWidget.clearContents()
-    self.ui.CasesTableWidget.setRowCount(5)
+    self.patientListDialogUI.CasesTableWidget.clearContents()
+    self.patientListDialogUI.CasesTableWidget.setRowCount(len(cases))
     for i, (case, date) in enumerate(cases):
-      if i > 4:
-        break
-      item_name = qt.QTableWidgetItem(case)
-      import time
-      item_date = qt.QTableWidgetItem(time.ctime(date))
-      self.ui.CasesTableWidget.setItem(i, 0, item_name)
-      self.ui.CasesTableWidget.setItem(i, 1, item_date)  
+      if i < 5:    # add to shortcuts    
+        item_name_panel = qt.QTableWidgetItem(case)
+        item_date_panel = qt.QTableWidgetItem(time.ctime(date))
+        self.ui.CasesTableWidget.setItem(i, 0, item_name_panel)
+        self.ui.CasesTableWidget.setItem(i, 1, item_date_panel)  
+      item_name_list = qt.QTableWidgetItem(case)
+      item_date_list = qt.QTableWidgetItem(time.ctime(date))
+      self.patientListDialogUI.CasesTableWidget.setItem(i, 0, item_name_list)
+      self.patientListDialogUI.CasesTableWidget.setItem(i, 1, item_date_list)
   
-
-  def loadCase(self):
+  def loadCaseFromPanel(self):
     currentRow = self.ui.CasesTableWidget.currentRow()
     caseItem = self.ui.CasesTableWidget.item(currentRow, 0)
-    print('load a case: ' + caseItem.text())
-    slicer.modules.PlanningWidget.logic.case_name = caseItem.text()
+    caseName = caseItem.text()
+    self.loadCase(caseName)
+
+  def loadCaseFromList(self):
+     currentRow = self.patientListDialogUI.CasesTableWidget.currentRow()
+     caseItem = self.patientListDialogUI.CasesTableWidget.item(currentRow, 0)
+     caseName = caseItem.text()
+     self.loadCase(caseName)
+  
+  
+  def loadCase(self, caseName):    
+    print('load a case: ' + caseName)
+    slicer.modules.PlanningWidget.logic.case_name = caseName
     NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
-    slicer.modules.PlanningWidget.logic.case_name = caseItem.text()
+    slicer.modules.PlanningWidget.logic.case_name = caseName
+    self.updatePatientDataButtons()  
+
 
     
   def closePlan(self):
@@ -246,7 +274,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.HomeWidget.setupSliceViewers()
     self.updatePatientDataButtons()
     if not slicer.modules.PlanningWidget.logic.case_name:
-      self.launchCaseDialog()
+      self.launchCaseNameDialog()
 
   @vtk.calldata_type(vtk.VTK_OBJECT)
   def onNodeAdded(self, caller, event, calldata):

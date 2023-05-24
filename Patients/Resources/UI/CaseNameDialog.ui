@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CaseManagement</class>
- <widget class="QDialog" name="CaseManagement">
+ <class>CaseNameDialog</class>
+ <widget class="QDialog" name="CaseNameDialog">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -41,7 +41,7 @@
   <connection>
    <sender>NewCaseButton</sender>
    <signal>clicked()</signal>
-   <receiver>CaseManagement</receiver>
+   <receiver>CaseNameDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">

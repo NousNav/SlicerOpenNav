@@ -72,6 +72,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="PatientListButton">
+     <property name="text">
+      <string>Open Patient List</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
