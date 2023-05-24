@@ -701,7 +701,10 @@ def savePlan():
 def listAvailablePlans():
   print('Available plans:')
 
-  caseNames = next(os.walk(_casesDirectory()))[1]
+  caseNames = []
+
+  if os.path.exists(_casesDirectory()):
+    caseNames = next(os.walk(_casesDirectory()))[1]
 
   print(caseNames)
 
@@ -737,7 +740,7 @@ def saveScreenShotViewersOnly(caseName):
   cap = ScreenCapture.ScreenCaptureLogic()
   cap.captureImageFromView(None, _screenShotFilePath(caseName, datetime.datetime.now()))
   qt.QMessageBox.information(slicer.util.mainWindow(), 'Screenshot saved!', 'Screenshot saved!')
-  
+
 
 def saveScreenShot(caseName):
   _ensureScreenShotDirectoriesExist(caseName)
