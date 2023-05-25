@@ -126,7 +126,6 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
 
   def clearPlanningLandmarks(self):
     slicer.mrmlScene.RemoveNode(self.landmarks)
-    self.setupPlanningLandmarksNode()
 
 
 class PlanningLandmarkTableManager(VTKObservationMixin):
@@ -495,3 +494,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
       node.CreateDefaultDisplayNodes()
       self.trackerLandmarks = node
     self.trackerLandmarks.GetDisplayNode().SetVisibility(False)
+
+  def clearTrackerLandmarks(self):
+    slicer.mrmlScene.RemoveNode(self.trackerLandmarks)

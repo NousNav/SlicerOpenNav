@@ -230,6 +230,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
     slicer.modules.RegistrationWidget.logic.clearRegistrationData()
     slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
+    slicer.modules.RegistrationWidget.landmarks.clearTrackerLandmarks()
     self.updateGUIFromPatientState()
    
   @staticmethod
