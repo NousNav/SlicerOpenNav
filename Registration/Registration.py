@@ -93,6 +93,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.RMSE_SPIN_OK = 1.
     self.RMSE_REGISTRATION_OK = 3.
     self.RMSE_INITIAL_REGISTRATION_OK = 5.
+    self.RMSE_INITIAL_REGISTRATION_CONDITIONAL = 15.
     self.EPSILON = 0.00001
     self.optitrack_pending = False
 
@@ -796,12 +797,27 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
         RMSE = float(match)
 
+        # Automatic pass
         if RMSE < self.RMSE_INITIAL_REGISTRATION_OK:
           self.logic.landmark_registration_passed = True
+        
+        # User can decided to proceed or not
+        elif RMSE > self.RMSE_INITIAL_REGISTRATION_OK and RMSE < self.RMSE_INITIAL_REGISTRATION_CONDITIONAL:
+          questionText = "Registration is poor (current RMSE: " + str(RMSE) + ", target RMSE: " \
+            + str(self.RMSE_INITIAL_REGISTRATION_OK) + "). Would you like to proceed anyway?"
+          ret = qt.QMessageBox.question(slicer.util.mainWindow(),'Proceed with registration?' ,questionText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+          self.logic.landmark_registration_passed = ret == qt.QMessageBox.Yes
+          
+          # User chooses to not proceed
+          if not self.logic.landmark_registration_passed:
+            messageText = "Registration not accepted. Registration must be redone before proceeding. "
+        
+        # Automatic fail
         else:
-          self.logic.landmark_registration_passed = False
-          messageText = "Results too poor. Registration must be redone before proceeding. RMSE: " \
-            + str(RMSE) + ". Limit is " + str(self.RMSE_INITIAL_REGISTRATION_OK)
+           messageText = "Results too poor. Registration must be redone before proceeding. (current RMSE: " + str(RMSE) + ")."
+           self.logic.landmark_registration_passed = False
+      
+      # Error in registration algorithm
       else:
         self.logic.landmark_registration_passed = False
         messageText = "Registration error."
