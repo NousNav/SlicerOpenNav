@@ -581,12 +581,14 @@ def registerSixUpNavigationLayout():
   layoutNode = slicer.app.layoutManager().layoutLogic().GetLayoutNode()
   layoutNode.AddLayoutDescription(getSixUpNavigationLayoutID(), customLayout)
 
+
 def getTwoUpNavigationLayoutID():
   reformatCustomLayoutId = 504
   return reformatCustomLayoutId
 
+
 def registerTwoUpNavigationLayout():
-  customLayout = (    
+  customLayout = (
     "  <layout type=\"horizontal\">"
     "   <item>"
     "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Blue\">"

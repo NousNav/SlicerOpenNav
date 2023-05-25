@@ -71,6 +71,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.layoutButtonAction,
     ) = NNUtils.setupNavigationToolBar("Navigation")
 
+    self.setupLayoutDialog()
+
   def validate(self):
     registration_logic = slicer.modules.RegistrationWidget.logic
 
@@ -177,6 +179,26 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def disconnectAll(self, widget):
     try: widget.clicked.disconnect()
     except Exception: pass
+
+  def setupLayoutDialog(self):
+    self.layoutsDialog = slicer.util.loadUI(self.resourcePath('UI/LayoutsDialog.ui'))
+    self.layoutsDialogUI = slicer.util.childWidgetVariables(self.layoutsDialog)
+    self.layoutsDialogUI.SixUpCheckBox.toggled.connect(self.changeLayout)
+    self.layoutsDialogUI.TwoUpCheckBox.toggled.connect(self.changeLayout)
+    self.layoutButton.clicked.connect(lambda: self.layoutsDialog.exec())
+
+  def changeLayout(self):
+    planningLogic = slicer.modules.PlanningWidget.logic
+    try:
+      masterNode = planningLogic.master_volume
+    except:
+      masterNode = None
+      print('No master volume node loaded')
+    if self.layoutsDialogUI.SixUpCheckBox.checked:
+      NNUtils.goToNavigationLayout(volumeNode=masterNode, layout='SixUp')
+
+    if self.layoutsDialogUI.TwoUpCheckBox.checked:
+      NNUtils.goToNavigationLayout(volumeNode=masterNode, layout='TwoUp')
 
 
 class NavigationLogic(ScriptedLoadableModuleLogic):
