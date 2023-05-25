@@ -71,7 +71,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.layoutButtonAction,
     ) = NNUtils.setupNavigationToolBar("Navigation")
 
-    self.setupLayoutDialog()
+    self.setupDialogs()
 
   def validate(self):
     registration_logic = slicer.modules.RegistrationWidget.logic
@@ -180,13 +180,21 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     try: widget.clicked.disconnect()
     except Exception: pass
 
-  def setupLayoutDialog(self):
+  def setupDialogs(self):
     self.layoutsDialog = slicer.util.loadUI(self.resourcePath('UI/LayoutsDialog.ui'))
     self.layoutsDialogUI = slicer.util.childWidgetVariables(self.layoutsDialog)
     self.layoutsDialogUI.SixUpCheckBox.toggled.connect(self.changeLayout)
     self.layoutsDialogUI.TwoUpCheckBox.toggled.connect(self.changeLayout)
     self.layoutButton.clicked.connect(lambda: self.layoutsDialog.exec())
 
+    self.pointerDialog = slicer.util.loadUI(self.resourcePath('UI/PointerDialog.ui'))
+    self.pointerDialogUI = slicer.util.childWidgetVariables(self.pointerDialog)
+    self.pointerDialogUI.PointerLengthSpinBox.valueChanged.connect(self.onPointerExtensionChanged)
+    self.pointerButton.clicked.connect(lambda: self.pointerDialog.exec())
+  
+  def onPointerExtensionChanged(self, value):
+    slicer.modules.RegistrationWidget.logic.updateExtensionModels(length=value)
+  
   def changeLayout(self):
     planningLogic = slicer.modules.PlanningWidget.logic
     try:
