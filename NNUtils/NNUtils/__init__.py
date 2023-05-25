@@ -138,6 +138,58 @@ def setupWorkflowToolBar(name, backButtonText=None, advanceButtonText=None):
   return (toolBar, backButton, backButtonAction, advanceButton, advanceButtonAction)
 
 
+def setupNavigationToolBar(name):
+  """Add toolbar with navigation menu buttons.
+
+  Return a tuple of the form ``(toolBar, pointerButton, pointerButtonAction, layoutButton, layoutButtonAction)``
+  """
+  toolBar = qt.QToolBar(f"{name}NavigationBottomToolBar")
+  toolBar.setObjectName(f"{name}NavigationBottomToolBar")
+  addCssClass(toolBar, "bottom-toolbar")
+  toolBar.movable = False
+  slicer.util.mainWindow().addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+
+  spacer = qt.QWidget()
+  policy = spacer.sizePolicy
+  policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+  spacer.setSizePolicy(policy)
+  spacer.name = f"{name}LeftNavigationBottomToolbarSpacer"
+  addCssClass(spacer, "bottom-toolbar__spacer")
+  toolBar.addWidget(spacer)
+
+  pointerButton = qt.QPushButton("Pointer Preferences")
+  pointerButton.name = "PointerButton"
+  addCssClass(pointerButton, ["bottom-toolbar__button", "bottom-toolbar__advance-button"])
+  pointerButtonAction = toolBar.addWidget(pointerButton)
+
+  spacer = qt.QWidget()
+  policy = spacer.sizePolicy
+  policy.setHorizontalPolicy(qt.QSizePolicy.Fixed)
+  spacer.setSizePolicy(policy)
+  spacer.minimumWidth = 200
+  spacer.name = f"{name}CenterNavigationBottomToolbarSpacer"
+  addCssClass(spacer, "bottom-toolbar__spacer")
+  toolBar.addWidget(spacer)
+
+  layoutButton = qt.QPushButton("Layouts")
+  layoutButton.name = "LayoutButton"
+  addCssClass(layoutButton, ["bottom-toolbar__button", "bottom-toolbar__advance-button"])
+  layoutButtonAction = toolBar.addWidget(layoutButton)
+
+  spacer = qt.QWidget()
+  policy = spacer.sizePolicy
+  policy.setHorizontalPolicy(qt.QSizePolicy.Expanding)
+  spacer.setSizePolicy(policy)
+  spacer.name = f"{name}RightNavigationBottomToolbarSpacer"
+  addCssClass(spacer, "bottom-toolbar__spacer")
+  toolBar.addWidget(spacer)
+
+  # Default
+  addCssClass(toolBar, "bottom-toolbar--color-light")
+
+  return (toolBar, pointerButton, pointerButtonAction, layoutButton, layoutButtonAction)
+
+
 def backButton(text="", visible=True, enabled=True):
   """Decorator for enabling/disabling the `back` button and updating its text
   and visibility.

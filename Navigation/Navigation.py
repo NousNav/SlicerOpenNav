@@ -53,7 +53,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     # Create logic class
     self.logic = NavigationLogic()
 
-    # Bottom toolbar
+    # Bottom toolbar (default)
     (
       self.bottomToolBar,
       self.backButton,
@@ -61,6 +61,15 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.advanceButton,
       self.advanceButtonAction,
     ) = NNUtils.setupWorkflowToolBar("Navigation")
+
+    # Navigation menu toolbar
+    (
+      self.navigationBar,
+      self.pointerButton,
+      self.pointerButtonAction,
+      self.layoutButton,
+      self.layoutButtonAction,
+    ) = NNUtils.setupNavigationToolBar("Navigation")
 
   def validate(self):
     registration_logic = slicer.modules.RegistrationWidget.logic
@@ -98,6 +107,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
+    self.navigationBar.visible = True
 
     # Styling
     modulePanel = slicer.util.findChild(slicer.util.mainWindow(), 'ModulePanel')
@@ -144,6 +154,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
+    self.navigationBar.visible = False
 
     planningLogic = slicer.modules.PlanningWidget.logic
 
