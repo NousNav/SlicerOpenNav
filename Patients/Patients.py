@@ -105,7 +105,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # See https://slicer.readthedocs.io/en/latest/developer_guide/slicer.html#slicer.util.setSliceViewerLayers
     NNUtils.goToFourUpLayout(volumeNode='keep-current')
     self.updateCasesList()
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
 
   def exit(self):
     # Hide current
@@ -114,7 +114,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     PatientsWidget.setDICOMBrowserVisible(False)
   
-  def updatePatientDataButtons(self):
+  def updateGUIFromPatientState(self):
     master_volume = slicer.modules.PlanningWidget.logic.master_volume
     self.ui.DICOMToggleButton.enabled = not master_volume
     self.ui.PatientListButton.enabled = not master_volume
@@ -122,6 +122,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidget.selectedItems()) != 0
     self.ui.ClearPlanButton.enabled = master_volume
+
+    slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
 
     if hasattr(slicer.modules, "DICOMWidget"):
       if master_volume:
@@ -167,10 +169,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.caseDialog.setWindowFlags(qt.Qt.CustomizeWindowHint)
     self.caseDialogUI = slicer.util.childWidgetVariables(self.caseDialog)
     self.caseDialog.accepted.connect(self.startNewCase)
-    self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
+    self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialog = slicer.util.loadUI(self.resourcePath('UI/PatientListDialog.ui'))
     self.patientListDialogUI = slicer.util.childWidgetVariables(self.patientListDialog)
-    self.patientListDialogUI.CasesTableWidget.itemSelectionChanged.connect(self.updatePatientDataButtons)
+    self.patientListDialogUI.CasesTableWidget.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
 
   def startNewCase(self):
@@ -178,11 +180,11 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.PlanningWidget.logic.case_name = self.caseDialogUI.CaseNameLineEdit.text
     NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
     self.updateCasesList()
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
   
   def launchPatientListDialog(self):
     self.patientListDialog.exec()
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
   
   def launchCaseNameDialog(self):
     self.caseDialogUI.CaseNameLineEdit.text = NNUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
@@ -222,13 +224,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.PlanningWidget.logic.case_name = caseName
     NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
     slicer.modules.PlanningWidget.logic.case_name = caseName
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
     
   def closePlan(self):
     slicer.modules.PlanningWidget.logic.clearPlanningData()
     slicer.modules.RegistrationWidget.logic.clearRegistrationData()
     slicer.modules.PlanningWidget.landmarkLogic.clearPlanningLandmarks()
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
    
   @staticmethod
   def onDICOMImport():
@@ -239,7 +241,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
   def toggleDICOMBrowser(self):
     PatientsWidget.setDICOMBrowserVisible(slicer.modules.DICOMWidget.browserWidget.isHidden())
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
 
   @staticmethod
   def setDICOMBrowserVisible(visible):
@@ -264,7 +266,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       displayNode.SetWindow(100)
     slicer.modules.HomeWidget.setup3DView()
     slicer.modules.HomeWidget.setupSliceViewers()
-    self.updatePatientDataButtons()
+    self.updateGUIFromPatientState()
     if not slicer.modules.PlanningWidget.logic.case_name:
       self.launchCaseNameDialog()
 

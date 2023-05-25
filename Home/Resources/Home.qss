@@ -231,6 +231,15 @@ QLabel#NousNavLabel {
     padding: 2px;
 }
 
+QLabel#PatientNameLabel {
+    background-color: #121212;
+    color: #fafafa;
+    border-bottom: 2px solid #434343;
+    font: 20px;
+    padding: 2px;
+    padding-left: 100px;
+}
+
 
 
 /* QSlider styling for slice viewers */

@@ -156,6 +156,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     nousNavLabel = qt.QLabel('NousNav')
     nousNavLabel.setObjectName("NousNavLabel")
     self.primaryToolBar.addWidget(nousNavLabel)
+    self.patientNameLabel = qt.QLabel('Patient: ')
+    self.patientNameLabel.setObjectName('PatientNameLabel')
+    self.primaryToolBar.addWidget(self.patientNameLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
 
     # Screenshot
