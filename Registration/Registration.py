@@ -1,5 +1,6 @@
 import math
 import re
+import logging
 
 import qt
 import slicer
@@ -213,6 +214,9 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.syncLandmarks()
 
   def setupExtensionsModels(self):
+    if not slicer.modules.PlanningWidget.logic.skin_model:
+      logging.warning("Skin model not present - should only occur if you are skipping validation")
+      return
     self.logic.setupSurfaceErrorComputation()
     # find intersection between trajectory and skin surface
     point = [0., 0., 0.]

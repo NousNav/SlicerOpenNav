@@ -5,6 +5,7 @@ import vtk
 import numpy as np
 import pathlib
 import datetime
+import logging
 
 from .parameter_node import (  # noqa: F401
   parameterProperty,
@@ -632,6 +633,10 @@ def _autoSaveNodes(caseName, nodes):
 
 
 def autoSavePlan(caseName='Default'):
+
+  if not caseName:
+    logging.warning('Case is not set. Should only occur when skipping validation')
+    return
   # construct autosave path
   
   incremental = os.path.exists(_autoSaveDirectory(caseName))
