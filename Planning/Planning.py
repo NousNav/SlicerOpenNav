@@ -448,8 +448,20 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     self.landmarkLogic = LandmarkManagerLogic()
   
-  def clearPlanningData(self):
+  def removePatientImageData(self):
+    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    nodeItem = shNode.GetItemByDataNode(self.master_volume)
+    studyItem = shNode.GetItemAncestorAtLevel(nodeItem, 'Study')
+    patientItem = shNode.GetItemAncestorAtLevel(nodeItem, 'Patient')
+    
     slicer.mrmlScene.RemoveNode(self.master_volume)
+    if studyItem != 0:
+      shNode.RemoveItem(studyItem)
+    if patientItem != 0:
+      shNode.RemoveItem(patientItem)
+  
+  def clearPlanningData(self):
+    self.removePatientImageData()
     slicer.mrmlScene.RemoveNode(self.skin_segmentation)
     slicer.mrmlScene.RemoveNode(self.seed_segmentation)
     slicer.mrmlScene.RemoveNode(self.target_segmentation)
