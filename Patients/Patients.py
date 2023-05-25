@@ -124,6 +124,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.ClearPlanButton.enabled = master_volume
 
     if hasattr(slicer.modules, "DICOMWidget"):
+      if master_volume:
+        PatientsWidget.setDICOMBrowserVisible(False)
       self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
       if slicer.modules.DICOMWidget.browserWidget.isHidden():
          self.ui.DICOMToggleButton.text = 'Add Patient From DICOM'
