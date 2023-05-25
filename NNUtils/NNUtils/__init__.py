@@ -294,6 +294,7 @@ def initializeNavigationLayouts():
   
   # Add the layout
   registerSixUpNavigationLayout()
+  registerTwoUpNavigationLayout()
 
   # Switch to navigation layout forces the creation of views
   layoutManager = slicer.app.layoutManager()
@@ -350,7 +351,7 @@ def showSliceOrientationAxes(visible):
       controller.setOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeNone)
 
 
-def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisible=False):
+def goToNavigationLayout(volumeNode=None, layout='SixUp', mainPanelVisible=False, sidePanelVisible=False):
 
   # Switching to FourUpLayout is a workaround to ensure
   # the layout the NavigationLayout is properly displayed
@@ -358,7 +359,12 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
   goToFourUpLayout()
 
   layoutManager = slicer.app.layoutManager()
-  layoutManager.setLayout(getSixUpNavigationLayoutID())
+  if layout == 'TwoUp':
+    layoutManager.setLayout(getTwoUpNavigationLayoutID())
+  elif layout == 'SixUp':
+    layoutManager.setLayout(getSixUpNavigationLayoutID())
+  else:
+    layoutManager.setLayout(getSixUpNavigationLayoutID())
   setMainPanelVisible(mainPanelVisible)
   setSidePanelVisible(sidePanelVisible)
   setSliceViewBackgroundColor("#000000")
@@ -574,6 +580,31 @@ def registerSixUpNavigationLayout():
     "</layout>")
   layoutNode = slicer.app.layoutManager().layoutLogic().GetLayoutNode()
   layoutNode.AddLayoutDescription(getSixUpNavigationLayoutID(), customLayout)
+
+def getTwoUpNavigationLayoutID():
+  reformatCustomLayoutId = 504
+  return reformatCustomLayoutId
+
+def registerTwoUpNavigationLayout():
+  customLayout = (    
+    "  <layout type=\"horizontal\">"
+    "   <item>"
+    "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Blue\">"
+    "     <property name=\"orientation\" action=\"default\">Axial</property>"
+    "     <property name=\"viewlabel\" action=\"default\">R</property>"
+    "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+    "    </view>"
+    "   </item>"
+    "   <item>"
+    "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Orange\">"
+    "     <property name=\"orientation\" action=\"default\">Axial</property>"
+    "     <property name=\"viewlabel\" action=\"default\">R</property>"
+    "     <property name=\"viewcolor\" action=\"default\">#FFA500</property>"
+    "    </view>"
+    "   </item>"
+    "  </layout>")
+  layoutNode = slicer.app.layoutManager().layoutLogic().GetLayoutNode()
+  layoutNode.AddLayoutDescription(getTwoUpNavigationLayoutID(), customLayout)
 
 
 def _casesDirectory():
