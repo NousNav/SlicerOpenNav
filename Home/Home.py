@@ -81,7 +81,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.modifyWindowUI()
 
     # Initialize navigation layout
-    NNUtils.initializeNavigationLayout()
+    NNUtils.initializeNavigationLayouts()
 
     patients = slicer.modules.patients.createNewWidgetRepresentation()
     planning = slicer.modules.planning.createNewWidgetRepresentation()

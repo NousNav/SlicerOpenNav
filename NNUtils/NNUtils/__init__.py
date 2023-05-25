@@ -288,16 +288,16 @@ def applyStyle(widgets, styleSheetFilePath):
 # Layout
 #
 
-def initializeNavigationLayout():
+def initializeNavigationLayouts():
   """This function was designed to be called once from Home module.
   """
   
   # Add the layout
-  registerNavigationLayout()
+  registerSixUpNavigationLayout()
 
   # Switch to navigation layout forces the creation of views
   layoutManager = slicer.app.layoutManager()
-  layoutManager.setLayout(getNavigationLayoutID())
+  layoutManager.setLayout(getSixUpNavigationLayoutID())
 
   # Reset to four-up layout
   layoutManager = slicer.app.layoutManager()
@@ -358,7 +358,7 @@ def goToNavigationLayout(volumeNode=None, mainPanelVisible=False, sidePanelVisib
   goToFourUpLayout()
 
   layoutManager = slicer.app.layoutManager()
-  layoutManager.setLayout(getNavigationLayoutID())
+  layoutManager.setLayout(getSixUpNavigationLayoutID())
   setMainPanelVisible(mainPanelVisible)
   setSidePanelVisible(sidePanelVisible)
   setSliceViewBackgroundColor("#000000")
@@ -515,12 +515,12 @@ def jumpAxisAlignedSlices(driverNode,eventid):
   _jump("vtkMRMLSliceNodeGreen", driverNode)
 
 
-def getNavigationLayoutID():
+def getSixUpNavigationLayoutID():
   threeDWithReformatCustomLayoutId = 503
   return threeDWithReformatCustomLayoutId
 
 
-def registerNavigationLayout():
+def registerSixUpNavigationLayout():
   customLayout = (
     "<layout type=\"vertical\">"
     " <item>"
@@ -573,7 +573,7 @@ def registerNavigationLayout():
     " </item>"
     "</layout>")
   layoutNode = slicer.app.layoutManager().layoutLogic().GetLayoutNode()
-  layoutNode.AddLayoutDescription(getNavigationLayoutID(), customLayout)
+  layoutNode.AddLayoutDescription(getSixUpNavigationLayoutID(), customLayout)
 
 
 def _casesDirectory():
