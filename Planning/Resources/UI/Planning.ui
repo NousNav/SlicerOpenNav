@@ -131,7 +131,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="EraseButton">
+        <widget class="QPushButton" name="targetErase">
          <property name="text">
           <string>Erase</string>
          </property>

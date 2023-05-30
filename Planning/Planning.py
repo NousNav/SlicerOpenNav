@@ -115,6 +115,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.ui.targetPaintInside.clicked.connect(self.paintInside)
     self.ui.targetPaintOutside.clicked.connect(self.paintOutside)
+    self.ui.targetErase.clicked.connect(self.eraseAll)
     self.ui.targetPreview.clicked.connect(self.previewTarget)
     self.ui.targetApply.clicked.connect(self.segmentTarget)
 
@@ -248,7 +249,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
-    self.logic.skin_model.GetDisplayNode().SetOpacity(0.8)
+    self.logic.skin_model.GetDisplayNode().SetOpacity(0.5)
     self.logic.setSkinSegmentFor3DDisplay()
     if self.logic.target_segmentation:
       self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
@@ -333,7 +334,22 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     NNUtils.centerCam()
 
     messageBox.hide()
+  
+  def eraseAll(self):
+    volume = self.logic.master_volume
+    if not volume:
+      slicer.util.errorDisplay('There is no volume in the scene.')
+      return
 
+    self.logic.setupSeedSegmentationNode()
+    self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
+
+    segmentation = self.logic.seed_segmentation
+    segment = self.logic.SEED_INSIDE_SEGMENT
+
+    self.logic.setEditorTargets(volume, segmentation, segment)
+    self.logic.beginErase()
+  
   def paintInside(self):
     volume = self.logic.master_volume
     if not volume:
@@ -821,6 +837,16 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     paint = self.editor_widget.effectByName("Paint")
     paint.setCommonParameter("BrushRelativeDiameter", 1.5)
     # paint effect does not need onApply().
+
+  def beginErase(self):
+    print('Erase')
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+    self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+    self.editor_widget.setActiveEffectByName('Erase')
+    erase = self.editor_widget.effectByName("Erase")
+    erase.setCommonParameter("BrushRelativeDiameter", 1.5)
+    erase.setParameter("EraseAllSegments", 1)
 
   def endEffect(self):
     """ End the active effect, returning mouse control to normal.
