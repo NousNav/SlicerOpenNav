@@ -138,7 +138,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="ResetButton">
+        <widget class="QPushButton" name="targetReset">
          <property name="text">
           <string>Reset Segmentation</string>
          </property>

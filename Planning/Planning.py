@@ -118,6 +118,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.targetErase.clicked.connect(self.eraseAll)
     self.ui.targetPreview.clicked.connect(self.previewTarget)
     self.ui.targetApply.clicked.connect(self.segmentTarget)
+    self.ui.targetReset.clicked.connect(self.resetTargetSegmentation)
 
     self.ui.trajectoryEntry.clicked.connect(self.setTrajectoryEntry)
     self.ui.trajectoryTarget.clicked.connect(self.setTrajectoryTarget)
@@ -379,6 +380,16 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     self.logic.setEditorTargets(volume, segmentation, segment)
     self.logic.beginPaint()
+
+  def resetTargetSegmentation(self):
+    self.logic.endEffect()
+    self.logic.resetGrowFromSeeds()
+    slicer.mrmlScene.RemoveNode(self.logic.seed_segmentation)
+    slicer.mrmlScene.RemoveNode(self.logic.target_segmentation)
+    if self.logic.seed_segmentation:
+      self.logic.seed_segmentation = None
+    if self.logic.target_segmentation:
+      self.logic.target_segmentation = None
 
   def previewTarget(self):
     self.logic.endEffect()
@@ -853,6 +864,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     """
     self.editor_widget.setActiveEffectByName('None')
 
+  def resetGrowFromSeeds(self):
+    gfs = self.editor_widget.effectByName("Grow from seeds")
+    gfs.self().reset()
+  
   def placeTrajectoryEntry(self):
     self.setupTrajectoryMarkupNodes()
 

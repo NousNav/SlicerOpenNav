@@ -307,8 +307,8 @@ QPushButton#skinApply{
 QPushButton#targetPaintInside,
 QPushButton#targetPaintOutside,
 QPushButton#targetPreview,
-QPushButton#EraseButton,
-QPushButton#ResetButton,
+QPushButton#targetErase,
+QPushButton#targetReset,
 QPushButton#UndoButton,
 QPushButton#RedoButton,
 QPushButton#targetApply{
