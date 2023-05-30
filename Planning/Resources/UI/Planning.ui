@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="PlanningWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="PlanningStep1">
       <layout class="QVBoxLayout" name="verticalLayout_planning1">
@@ -125,6 +125,38 @@
           <widget class="QPushButton" name="targetPaintOutside">
            <property name="text">
             <string>Paint Outside</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="EraseButton">
+         <property name="text">
+          <string>Erase</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="ResetButton">
+         <property name="text">
+          <string>Reset Segmentation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="UndoButton">
+           <property name="text">
+            <string>Undo</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="RedoButton">
+           <property name="text">
+            <string>Redo</string>
            </property>
           </widget>
          </item>

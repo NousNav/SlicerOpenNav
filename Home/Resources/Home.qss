@@ -307,8 +307,12 @@ QPushButton#skinApply{
 QPushButton#targetPaintInside,
 QPushButton#targetPaintOutside,
 QPushButton#targetPreview,
+QPushButton#EraseButton,
+QPushButton#ResetButton,
+QPushButton#UndoButton,
+QPushButton#RedoButton,
 QPushButton#targetApply{
-    min-height: 100px;
+    min-height: 70px;
     font: 30px;
     margin: 12px;
 }
