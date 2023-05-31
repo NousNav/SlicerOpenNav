@@ -262,7 +262,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.setSkinSegmentFor3DDisplay()
     if self.logic.target_segmentation:
       self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
-    self.updateUndoRedoButtons()
+    self.updateTargetPanelButtons()
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
@@ -404,6 +404,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.logic.seed_segmentation = None
     if self.logic.target_segmentation:
       self.logic.target_segmentation = None
+    self.updateTargetPanelButtons()
 
   def previewTarget(self):
     self.logic.endEffect()
@@ -434,27 +435,30 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setTrajectoryTarget(self):
     self.logic.placeTrajectoryTarget()
 
-  def updateUndoRedoButtons(self, caller=None, event=None):
+  def updateTargetPanelButtons(self, caller=None, event=None):
     self.ui.targetUndo.enabled = self.logic.undoAvailable()
     self.ui.targetRedo.enabled = self.logic.redoAvailable()
+
+    self.ui.targetPreview.enabled = bool(self.logic.seed_segmentation)
+    self.ui.targetApply.enabled = bool(self.logic.target_segmentation)
 
   def setUndoRedoObservers(self, segmentationNode):
       seg = segmentationNode.GetSegmentation()
       if self.undoRedoTag:
         self.oldSeg.RemoveObserver(self.undoRedoTag)
       
-      # self.undoRedoTag = self.addObserver(seg, seg.MasterRepresentationModified, self.updateUndoRedoButtons)
-      self.undoRedoTag = seg.AddObserver(seg.MasterRepresentationModified, self.updateUndoRedoButtons)
+      # self.undoRedoTag = self.addObserver(seg, seg.MasterRepresentationModified, self.updateTargetPanelButtons)
+      self.undoRedoTag = seg.AddObserver(seg.MasterRepresentationModified, self.updateTargetPanelButtons)
       self.oldSeg = seg
-      self.updateUndoRedoButtons()
+      self.updateTargetPanelButtons()
 
   def undo(self):
     self.logic.undo()
-    self.updateUndoRedoButtons()
+    self.updateTargetPanelButtons()
 
   def redo(self):
     self.logic.redo()
-    self.updateUndoRedoButtons()
+    self.updateTargetPanelButtons()
 
   
 def default_master_volume():
@@ -625,16 +629,17 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.seed_segmentation = node
 
   def setupTargetSegmentationNode(self):
-    if not self.target_segmentation:
-      node = slicer.mrmlScene.AddNewNodeByClass(
-        "vtkMRMLSegmentationNode",
-        "NN_TARGET_SEGMENTATION",
-      )
-      node.CreateDefaultDisplayNodes()
-      self.target_segmentation = node
-      node.GetDisplayNode().SetVisibility2DFill(False)
-      node.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
-      node.GetDisplayNode().SetSliceIntersectionThickness(1)
+    if self.target_segmentation:
+      print('removing old target')
+      slicer.mrmlScene.RemoveNode(self.target_segmentation)
+    node = slicer.mrmlScene.AddNewNodeByClass(
+      "vtkMRMLSegmentationNode",
+      "NN_TARGET_SEGMENTATION",
+    )
+    node.CreateDefaultDisplayNodes()
+    self.target_segmentation = node
+    node.GetDisplayNode().SetVisibility2DFill(False)
+    node.GetDisplayNode().SetSliceIntersectionThickness(1)
   
   def copySeedSegmentsToTargetSegmentationNode(self):
     targetSegmentation = self.target_segmentation.GetSegmentation()
@@ -642,6 +647,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     targetSegmentation.RemoveAllSegments()
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_INSIDE_SEGMENT)
     targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_OUTSIDE_SEGMENT)
+    self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
   def setupTrajectoryMarkupNodes(self):
     if not self.trajectory_markup:
@@ -723,6 +729,15 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       return False
     else:
       return True
+    
+  def isUndoableEffectActive(self):
+    effect = self.editor_widget.activeEffect()
+    if effect is None:
+      return False
+    if effect.name == 'Paint' or effect.name == 'Erase':
+      return True
+    else:
+      return False
  
   def updateSkinSegmentationPreview(self, thresholdMin=30,thresholdMax=1000):
 
@@ -904,12 +919,12 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   def undoAvailable(self):
     self.editor_widget.updateWidgetFromMRML()
     undoButton = slicer.util.findChild(self.editor_widget, 'UndoButton')
-    return undoButton.enabled and self.isEffectActive()
+    return undoButton.enabled and self.isUndoableEffectActive()
 
   def redoAvailable(self):
     self.editor_widget.updateWidgetFromMRML()
     redoButton = slicer.util.findChild(self.editor_widget, 'RedoButton')
-    return redoButton.enabled and self.isEffectActive()
+    return redoButton.enabled and self.isUndoableEffectActive()
   
   def endEffect(self):
     """ End the active effect, returning mouse control to normal.
