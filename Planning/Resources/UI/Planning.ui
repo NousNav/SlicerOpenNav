@@ -138,29 +138,36 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="targetReset">
-         <property name="text">
-          <string>Reset Segmentation</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="UndoButton">
+          <widget class="QPushButton" name="targetUndo">
            <property name="text">
             <string>Undo</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="RedoButton">
+          <widget class="QPushButton" name="targetRedo">
            <property name="text">
             <string>Redo</string>
            </property>
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="targetReset">
+         <property name="text">
+          <string>Reset Segmentation</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="targetPreview">

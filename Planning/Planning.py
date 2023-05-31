@@ -43,13 +43,14 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
 
-class PlanningWidget(ScriptedLoadableModuleWidget):
+class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
-    super().__init__(parent)
+    ScriptedLoadableModuleWidget.__init__(self, parent)
+    VTKObservationMixin.__init__(self)
 
     # Load widget from .ui file (created by Qt Designer)
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Planning.ui'))
@@ -58,6 +59,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
     # Create logic class
     self.logic = PlanningLogic()
+    self.undoRedoTag = None
+    self.oldSeg = None
 
     self.workflow = Home.Workflow(
       'planning',
@@ -119,6 +122,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.ui.targetPreview.clicked.connect(self.previewTarget)
     self.ui.targetApply.clicked.connect(self.segmentTarget)
     self.ui.targetReset.clicked.connect(self.resetTargetSegmentation)
+    self.ui.targetUndo.clicked.connect(self.undo)
+    self.ui.targetRedo.clicked.connect(self.redo)
 
     self.ui.trajectoryEntry.clicked.connect(self.setTrajectoryEntry)
     self.ui.trajectoryTarget.clicked.connect(self.setTrajectoryTarget)
@@ -137,7 +142,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     )
 
     self.ui.savePlanButton.clicked.connect(NNUtils.savePlan)
-  
+ 
   def exit(self):
     # Hide current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
@@ -145,6 +150,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.planningTabBar.visible = False
 
     self.logic.setPlanningNodesVisibility(skinModel=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
+
+    self.removeObservers()
+    self.undoRedoTag = None
 
   def validateTargetSegmentation(self):
     skin = self.logic.skin_segmentation
@@ -254,6 +262,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.setSkinSegmentFor3DDisplay()
     if self.logic.target_segmentation:
       self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
+    self.updateUndoRedoButtons()
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
@@ -291,6 +300,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SKIN_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    self.setUndoRedoObservers(segmentation)
     # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.updateSkinSegmentationPreview(
       thresholdMin=self.ui.skinThresholdSlider.value,
@@ -316,6 +326,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     messageBox.deleteLater()
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    self.setUndoRedoObservers(segmentation)
     # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
       thresholdMin=self.ui.skinThresholdSlider.value,
@@ -349,6 +360,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SEED_INSIDE_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    self.setUndoRedoObservers(segmentation)
     self.logic.beginErase()
   
   def paintInside(self):
@@ -364,6 +376,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SEED_INSIDE_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    self.setUndoRedoObservers(segmentation)
     self.logic.beginPaint()
 
   def paintOutside(self):
@@ -379,6 +392,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     segment = self.logic.SEED_OUTSIDE_SEGMENT
 
     self.logic.setEditorTargets(volume, segmentation, segment)
+    self.setUndoRedoObservers(segmentation)
     self.logic.beginPaint()
 
   def resetTargetSegmentation(self):
@@ -403,6 +417,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
     self.logic.setPlanningNodesVisibility(skinModel=True, targetSegmentation=True, trajectory=False, landmarks=False)
 
     self.logic.setEditorTargets(volume, segmentation)
+    self.setUndoRedoObservers(segmentation)
     self.logic.previewTargetSegmentation()
 
   def segmentTarget(self):
@@ -418,6 +433,28 @@ class PlanningWidget(ScriptedLoadableModuleWidget):
 
   def setTrajectoryTarget(self):
     self.logic.placeTrajectoryTarget()
+
+  def updateUndoRedoButtons(self, caller=None, event=None):
+    self.ui.targetUndo.enabled = self.logic.undoAvailable()
+    self.ui.targetRedo.enabled = self.logic.redoAvailable()
+
+  def setUndoRedoObservers(self, segmentationNode):
+      seg = segmentationNode.GetSegmentation()
+      if self.undoRedoTag:
+        self.oldSeg.RemoveObserver(self.undoRedoTag)
+      
+      # self.undoRedoTag = self.addObserver(seg, seg.MasterRepresentationModified, self.updateUndoRedoButtons)
+      self.undoRedoTag = seg.AddObserver(seg.MasterRepresentationModified, self.updateUndoRedoButtons)
+      self.oldSeg = seg
+      self.updateUndoRedoButtons()
+
+  def undo(self):
+    self.logic.undo()
+    self.updateUndoRedoButtons()
+
+  def redo(self):
+    self.logic.redo()
+    self.updateUndoRedoButtons()
 
   
 def default_master_volume():
@@ -474,7 +511,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.editor_widget.setMRMLSegmentEditorNode(self.editor_node)
 
     self.landmarkLogic = LandmarkManagerLogic()
-  
+
   def removePatientImageData(self):
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
     nodeItem = shNode.GetItemByDataNode(self.master_volume)
@@ -686,7 +723,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       return False
     else:
       return True
-  
+ 
   def updateSkinSegmentationPreview(self, thresholdMin=30,thresholdMax=1000):
 
     """ Update the preview of skin segmentation effects. Be sure to use setEditorTargets
@@ -850,7 +887,6 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # paint effect does not need onApply().
 
   def beginErase(self):
-    print('Erase')
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
     self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
@@ -858,7 +894,23 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     erase = self.editor_widget.effectByName("Erase")
     erase.setCommonParameter("BrushRelativeDiameter", 1.5)
     erase.setParameter("EraseAllSegments", 1)
+  
+  def undo(self):
+    self.editor_widget.undo()
+  
+  def redo(self):
+    self.editor_widget.redo()
 
+  def undoAvailable(self):
+    self.editor_widget.updateWidgetFromMRML()
+    undoButton = slicer.util.findChild(self.editor_widget, 'UndoButton')
+    return undoButton.enabled and self.isEffectActive()
+
+  def redoAvailable(self):
+    self.editor_widget.updateWidgetFromMRML()
+    redoButton = slicer.util.findChild(self.editor_widget, 'RedoButton')
+    return redoButton.enabled and self.isEffectActive()
+  
   def endEffect(self):
     """ End the active effect, returning mouse control to normal.
     """

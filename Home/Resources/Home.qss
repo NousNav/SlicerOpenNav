@@ -309,8 +309,8 @@ QPushButton#targetPaintOutside,
 QPushButton#targetPreview,
 QPushButton#targetErase,
 QPushButton#targetReset,
-QPushButton#UndoButton,
-QPushButton#RedoButton,
+QPushButton#targetUndo,
+QPushButton#targetRedo,
 QPushButton#targetApply{
     min-height: 70px;
     font: 30px;
