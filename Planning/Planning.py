@@ -65,12 +65,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.workflow = Home.Workflow(
       'planning',
       nested=(
-        Home.Workflow('skin', setup=self.planningStep1, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1, validate=self.validate),
-        Home.Workflow('target', setup=self.planningStep2, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2,
+        Home.Workflow('skin', setup=self.planningStep1Skin, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1, validate=self.validate),
+        Home.Workflow('target', setup=self.planningStep2Target, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2,
           validate=self.validateTargetSegmentation),
-        Home.Workflow('trajectory', setup=self.planningStep3, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3,
+        Home.Workflow('trajectory', setup=self.planningStep3Trajectory, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3,
           validate=self.validateTrajectorySegmentation),
-        Home.Workflow('landmarks', setup=self.planningStep4, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4,
+        Home.Workflow('landmarks', setup=self.planningStep4Landmarks, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4,
           validate=self.validateDefineLandmarks),
       ),
       setup=self.enter,
@@ -237,7 +237,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   @NNUtils.backButton(text="Return to Patients")
   @NNUtils.advanceButton(text="Segment the Target")
-  def planningStep1(self):
+  def planningStep1Skin(self):
 
     self.tableManager.advanceButton = None
     
@@ -253,7 +253,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   @NNUtils.backButton(text="Segment the Skin")
   @NNUtils.advanceButton(text="Plan the Trajectory")
-  def planningStep2(self):
+  def planningStep2Target(self):
 
     self.tableManager.advanceButton = None
 
@@ -266,7 +266,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   @NNUtils.backButton(text="Segment the Target")
   @NNUtils.advanceButton(text="Define Landmarks")
-  def planningStep3(self):
+  def planningStep3Trajectory(self):
 
     self.tableManager.advanceButton = None
 
@@ -278,7 +278,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   @NNUtils.backButton(text="Plan the Trajectory")
   @NNUtils.advanceButton(text="")
-  def planningStep4(self):
+  def planningStep4Landmarks(self):
 
     self.landmarkLogic.setupPlanningLandmarksNode()
     self.tableManager.reconnect()
