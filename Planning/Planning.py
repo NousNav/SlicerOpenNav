@@ -140,8 +140,6 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         'Done': qt.QIcon(self.resourcePath('Icons/Done.svg')),
       }
     )
-
-    self.ui.savePlanButton.clicked.connect(NNUtils.savePlan)
  
   def exit(self):
     # Hide current
