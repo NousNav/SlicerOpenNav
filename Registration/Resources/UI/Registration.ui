@@ -14,7 +14,7 @@
    <item>
     <widget class="QStackedWidget" name="RegistrationWidget">
      <property name="currentIndex">
-      <number>7</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="RegistrationStepPatientPrep">
       <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -371,7 +371,7 @@ about the center
           </font>
          </property>
          <property name="text">
-          <string>Rotate pointer 
+          <string>Spin pointer 
 about its axis
 </string>
          </property>
