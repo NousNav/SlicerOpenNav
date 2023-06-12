@@ -52,15 +52,15 @@ class LandmarkManagerWidget(ScriptedLoadableModuleWidget):
 
 class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   ALL_LANDMARKS = [
-    # 'Inion',
-    # 'Left tragus',
+    'Inion',
+    'Left tragus',
     'Left outer canthus',
-    # 'Left inner canthus',
+    'Left inner canthus',
     'Nasion',
-    # 'Acanthion',
-    # 'Right inner canthus',
+    'Acanthion',
+    'Right inner canthus',
     'Right outer canthus',
-    # 'Right tragus',
+    'Right tragus',
   ]
   LANDMARKS_NEEDED = 3
 
@@ -157,12 +157,13 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
       return
 
     collectedCount = len(self.logic.landmarkIndexes)
-    requiredCount = len(self.logic.requiredLandmarks)
+    requiredCount = self.logic.LANDMARKS_NEEDED
     remainingCount = requiredCount - collectedCount
+    remainingCount = 0 if remainingCount < 0 else remainingCount
 
     if remainingCount:
       unit = 'landmark' if remainingCount == 1 else 'landmarks'
-      self.advanceButton.text = f'Touch {remainingCount} more {unit}'
+      self.advanceButton.text = f'Place {remainingCount} more {unit}'
       self.advanceButton.enabled = False
     else:
       self.advanceButton.text = 'Press to continue'
@@ -353,14 +354,13 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.tableWidget.setCellWidget(row, 1, nameLabel)
     self.tableWidget.setCellWidget(row, 2, button)
 
-  def updateModelPositions(self, positions):
+  def transferPlanningLandmarks(self, positions):
+    self.tableWidget.rowCount = 0
+    self.landmarks = []
+    self.landmarksDisplay.RemoveAllControlPoints()
     # positions[name] = position
     for name, position in positions.items():
-      for landmark in self.landmarks:
-        if landmark.name == name:
-          landmark.modelPosition = position
-          self.landmarksDisplay.SetNthControlPointPosition(landmark.index, position[0], position[1], position[2])
-      pass
+      self.addLandmark(name, position)
 
   def updateLandmarksDisplay(self):
 
@@ -379,6 +379,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     button = self.tableWidget.cellWidget(landmark.row, 2)
     iconLabel = self.tableWidget.cellWidget(landmark.row, 0)
     self.landmarksDisplay.SetNthControlPointSelected(landmark.row, False)
+    self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, True)
     if landmark.state == LandmarkState.NOT_STARTED:
       button.enabled = False
       button.text = ''
@@ -388,18 +389,20 @@ class Landmarks(ScriptedLoadableModuleLogic):
       button.enabled = True
       button.text = 'Skip'
       iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
-      self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
+      
 
     if landmark.state == LandmarkState.DONE:
       button.enabled = True
       button.text = 'Redo'
       iconLabel.setPixmap(self.doneIcon.pixmap(32, 32))
+      self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
       self.landmarksCollected += 1
 
     if landmark.state == LandmarkState.SKIPPED:
       button.enabled = True
       button.text = 'Add'
       iconLabel.setPixmap(self.SkippedIcon.pixmap(32, 32))
+      self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, False)
 
   def startNextLandmark(self):
     for landmark in self.landmarks:
@@ -439,6 +442,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
       if landmark.name == name:
         landmark.trackerPosition = pos
         landmark.state = LandmarkState.DONE
+        print('name: ' + name + " done")
 
   def syncTrackerNode(self,name,pos):
     for idx in range(0, self.trackerLandmarks.GetNumberOfControlPoints()):
