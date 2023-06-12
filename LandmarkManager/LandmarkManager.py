@@ -398,11 +398,11 @@ class Landmarks(ScriptedLoadableModuleLogic):
       self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
       self.landmarksCollected += 1
 
-    if landmark.state == LandmarkState.SKIPPED:
-      button.enabled = True
-      button.text = 'Add'
-      iconLabel.setPixmap(self.SkippedIcon.pixmap(32, 32))
-      self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, False)
+    # if landmark.state == LandmarkState.SKIPPED:
+    #   button.enabled = True
+    #   button.text = 'Add'
+    #   iconLabel.setPixmap(self.SkippedIcon.pixmap(32, 32))
+    #   self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, False)
 
   def startNextLandmark(self):
     for landmark in self.landmarks:
@@ -454,17 +454,18 @@ class Landmarks(ScriptedLoadableModuleLogic):
   
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:
+      print('attempt skip')
       landmark.state = LandmarkState.SKIPPED
       self.currentLandmark = None
       self.startNextLandmark()
-      return
+      landmark.state = LandmarkState.NOT_STARTED
+      self.updateLandmarkDisplay(landmark)
     elif landmark.state == LandmarkState.DONE:
       landmark.state = LandmarkState.IN_PROGRESS
       self.startLandmark(landmark)
-      return
-    elif landmark.state == LandmarkState.SKIPPED:
-      landmark.state = LandmarkState.IN_PROGRESS
-      self.startLandmark(landmark)
+    # elif landmark.state == LandmarkState.SKIPPED:
+    #   landmark.state = LandmarkState.IN_PROGRESS
+    #   self.startLandmark(landmark)
 
   def clearLandmarks(self):
     for landmark in self.landmarks:
