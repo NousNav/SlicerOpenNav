@@ -299,7 +299,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.startedIcon = qt.QIcon(self.resourcePath('Icons/Started.svg'))
     self.landmarksGuidanceNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
     self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetVisibility(False)
-    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetSelectedColor(90 / 255.0, 194 / 255.0, 201 / 255.0)
     self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
     self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetTextScale(0)
     self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
