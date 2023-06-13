@@ -274,7 +274,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
   
   def __init__(self, tableWidget, moduleName):
     super().__init__()
-    self.landmarks = []
+    self.landmarkStates = []
     self.moduleName = moduleName
     self.tableWidget = tableWidget
     self.currentLandmark = None
@@ -297,15 +297,15 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.doneIcon = qt.QIcon(self.resourcePath('Icons/Done.svg'))
     self.SkippedIcon = qt.QIcon(self.resourcePath('Icons/Skipped.svg'))
     self.startedIcon = qt.QIcon(self.resourcePath('Icons/Started.svg'))
-    self.landmarksDisplay = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetVisibility(False)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetTextScale(0)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetUseGlyphScale(False)
-    self.landmarksDisplay.GetMarkupsDisplayNode().SetGlyphSize(6)
-    self.landmarksDisplay.SetLocked(True)
-    self.landmarksDisplay.SaveWithSceneOff()
+    self.landmarksGuidanceNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Landmarks')
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetVisibility(False)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetTextScale(0)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
+    self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetGlyphSize(6)
+    self.landmarksGuidanceNode.SetLocked(True)
+    self.landmarksGuidanceNode.SaveWithSceneOff()
     self.showLandmarks = False
 
   def updateAdvanceButton(self):
@@ -329,8 +329,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
     newLandmark = Landmark(name, modelPos)
     self.addLandmarkToTable(newLandmark)
 
-    self.landmarks.append(newLandmark)
-    newLandmark.index = self.landmarksDisplay.AddControlPoint(modelPos[0], modelPos[1], modelPos[2])
+    self.landmarkStates.append(newLandmark)
+    newLandmark.index = self.landmarksGuidanceNode.AddControlPoint(modelPos[0], modelPos[1], modelPos[2])
     self.updateLandmarkDisplay(newLandmark)
 
   def addLandmarkToTable(self, landmark):
@@ -356,8 +356,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
 
   def transferPlanningLandmarks(self, positions):
     self.tableWidget.rowCount = 0
-    self.landmarks = []
-    self.landmarksDisplay.RemoveAllControlPoints()
+    self.landmarkStates = []
+    self.landmarksGuidanceNode.RemoveAllControlPoints()
     # positions[name] = position
     for name, position in positions.items():
       self.addLandmark(name, position)
@@ -365,11 +365,11 @@ class Landmarks(ScriptedLoadableModuleLogic):
   def updateLandmarksDisplay(self):
 
     self.landmarksCollected = 0
-    for landmark in self.landmarks:
+    for landmark in self.landmarkStates:
       self.updateLandmarkDisplay(landmark)
     if self.model:
       self.model.GetDisplayNode().SetVisibility(self.showLandmarks)
-    self.landmarksDisplay.GetDisplayNode().SetVisibility(self.showLandmarks)
+    self.landmarksGuidanceNode.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
     if self.showLandmarks:
@@ -378,8 +378,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
   def updateLandmarkDisplay(self, landmark):
     button = self.tableWidget.cellWidget(landmark.row, 2)
     iconLabel = self.tableWidget.cellWidget(landmark.row, 0)
-    self.landmarksDisplay.SetNthControlPointSelected(landmark.row, False)
-    self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, True)
+    self.landmarksGuidanceNode.SetNthControlPointSelected(landmark.row, False)
+    self.landmarksGuidanceNode.SetNthControlPointVisibility(landmark.row, True)
     if landmark.state == LandmarkState.NOT_STARTED:
       button.enabled = False
       button.text = ''
@@ -389,23 +389,16 @@ class Landmarks(ScriptedLoadableModuleLogic):
       button.enabled = True
       button.text = 'Skip'
       iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
-      
-
+    
     if landmark.state == LandmarkState.DONE:
       button.enabled = True
       button.text = 'Redo'
       iconLabel.setPixmap(self.doneIcon.pixmap(32, 32))
-      self.landmarksDisplay.SetNthControlPointSelected(landmark.row, True)
+      self.landmarksGuidanceNode.SetNthControlPointSelected(landmark.row, True)
       self.landmarksCollected += 1
 
-    # if landmark.state == LandmarkState.SKIPPED:
-    #   button.enabled = True
-    #   button.text = 'Add'
-    #   iconLabel.setPixmap(self.SkippedIcon.pixmap(32, 32))
-    #   self.landmarksDisplay.SetNthControlPointVisibility(landmark.row, False)
-
   def startNextLandmark(self):
-    for landmark in self.landmarks:
+    for landmark in self.landmarkStates:
       if landmark.state == LandmarkState.NOT_STARTED:
         self.startLandmark(landmark)
         break
@@ -433,12 +426,12 @@ class Landmarks(ScriptedLoadableModuleLogic):
       print('Warning - landmark is none')
 
   def getTrackerPosition(self, name):
-    for landmark in self.landmarks:
+    for landmark in self.landmarkStates:
       if landmark.name == name:
         return landmark.trackerPosition
 
   def syncTrackerPosition(self,name, pos):
-    for landmark in self.landmarks:
+    for landmark in self.landmarkStates:
       if landmark.name == name:
         landmark.trackerPosition = pos
         landmark.state = LandmarkState.DONE
@@ -454,7 +447,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
   
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:
-      print('attempt skip')
       landmark.state = LandmarkState.SKIPPED
       self.currentLandmark = None
       self.startNextLandmark()
@@ -463,12 +455,9 @@ class Landmarks(ScriptedLoadableModuleLogic):
     elif landmark.state == LandmarkState.DONE:
       landmark.state = LandmarkState.IN_PROGRESS
       self.startLandmark(landmark)
-    # elif landmark.state == LandmarkState.SKIPPED:
-    #   landmark.state = LandmarkState.IN_PROGRESS
-    #   self.startLandmark(landmark)
 
   def clearLandmarks(self):
-    for landmark in self.landmarks:
+    for landmark in self.landmarkStates:
       landmark.state = LandmarkState.NOT_STARTED
       landmark.trackerPosition = None
 

@@ -1019,15 +1019,6 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
   def setupLandmarkTables(self):
     self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName)
-    # # self.landmarks.addLandmark('Inion', [-1.912, 112.455, -151.242])
-    # # self.landmarks.addLandmark('Left tragus', [-73.714, 189.367, -162.215])
-    # self.landmarks.addLandmark('Left outer canthus', [-46.945, 256.678, -150.139])
-    # # self.landmarks.addLandmark('Left inner canthus', [-15.406, 265.77, -153.487])
-    # self.landmarks.addLandmark('Nasion',[-1.990, 281.283, -142.598])
-    # # self.landmarks.addLandmark('Acanthion', [-2.846, 278.845, -193.982])
-    # # self.landmarks.addLandmark('Right inner canthus', [16.526, 264.199, -155.210])
-    # self.landmarks.addLandmark('Right outer canthus', [46.786, 252.705, -149.633])
-    # # self.landmarks.addLandmark('Right tragus', [65.648, 189.888, -163.348])
     self.landmarks.advanceButton = self.advanceButton
 
   def disconnectAll(self, widget):
