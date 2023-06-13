@@ -392,7 +392,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
     if self.showLandmarks:
       self.updateAdvanceButton()
 
-  
   def setLandmarkInProgressDisplay(self, landmark):
     pos = [0, 0, 0]
     self.landmarksGuidanceNode.GetNthControlPointPositionWorld(landmark.row, pos)
@@ -423,8 +422,17 @@ class Landmarks(ScriptedLoadableModuleLogic):
       self.landmarksCollected += 1
 
   def startNextLandmark(self):
+    
+    indexList = list(range(0,len(self.landmarkStates) ))
+    if self.currentLandmark is not None:
+      currentIndex = self.landmarkStates.index(self.currentLandmark)
+      rotate = (currentIndex + 1)
+      indexList = indexList[rotate:] + indexList[:rotate]
+      
+    self.currentLandmark = None
     self.landmarksInProgressNode.SetNthControlPointVisibility(0, False)
-    for landmark in self.landmarkStates:
+    for index in indexList:
+      landmark = self.landmarkStates[index]
       if landmark.state == LandmarkState.NOT_STARTED:
         self.startLandmark(landmark)
         break
@@ -446,7 +454,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
       self.currentLandmark.state = LandmarkState.DONE
       self.currentLandmark.trackerPosition = pos
       self.syncTrackerNode(self.currentLandmark.name, pos)
-      self.currentLandmark = None
       self.startNextLandmark()
     else:
       print('Warning - landmark is none')
@@ -474,7 +481,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
   def updateLandmark(self, landmark):
     if landmark.state == LandmarkState.IN_PROGRESS:
       landmark.state = LandmarkState.SKIPPED
-      self.currentLandmark = None
       self.startNextLandmark()
       landmark.state = LandmarkState.NOT_STARTED
       self.updateLandmarkDisplay(landmark)
