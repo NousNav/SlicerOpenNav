@@ -404,8 +404,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksGuidanceNode.SetNthControlPointSelected(landmark.row, False)
     self.landmarksGuidanceNode.SetNthControlPointVisibility(landmark.row, True)
     if landmark.state == LandmarkState.NOT_STARTED:
-      button.enabled = False
-      button.text = ''
+      button.enabled = True
+      button.text = 'Select'
       iconLabel.setPixmap(self.notStartedIcon.pixmap(32, 32))
 
     if landmark.state == LandmarkState.IN_PROGRESS:
@@ -485,6 +485,9 @@ class Landmarks(ScriptedLoadableModuleLogic):
       landmark.state = LandmarkState.NOT_STARTED
       self.updateLandmarkDisplay(landmark)
     elif landmark.state == LandmarkState.DONE:
+      landmark.state = LandmarkState.IN_PROGRESS
+      self.startLandmark(landmark)
+    elif landmark.state == LandmarkState.NOT_STARTED:
       landmark.state = LandmarkState.IN_PROGRESS
       self.startLandmark(landmark)
 
