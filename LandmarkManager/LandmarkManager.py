@@ -389,10 +389,6 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksInProgressNode.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
-
-    if self.landmarksCollected == self.landmarksNeeded - 1:
-      # disable skip button of last landmark
-      self.updateLandmarkDisplay(self.currentLandmark)
     if self.showLandmarks:
       self.updateAdvanceButton()
 
@@ -413,12 +409,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
       iconLabel.setPixmap(self.notStartedIcon.pixmap(32, 32))
 
     if landmark.state == LandmarkState.IN_PROGRESS:
-      if self.landmarksCollected == self.landmarksNeeded - 1:
-        button.enabled = False
-        button.text = ''
-      else:
-        button.enabled = True
-        button.text = 'Skip'
+      button.enabled = False
+      button.text = ''
       iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
       self.setLandmarkInProgressDisplay(landmark)
     
