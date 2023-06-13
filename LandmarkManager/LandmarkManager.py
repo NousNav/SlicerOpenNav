@@ -372,6 +372,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
   def transferPlanningLandmarks(self, positions):
     self.tableWidget.rowCount = 0
     self.landmarkStates = []
+    self.currentLandmark = None
     self.landmarksGuidanceNode.RemoveAllControlPoints()
     # positions[name] = position
     self.landmarksNeeded = 0
