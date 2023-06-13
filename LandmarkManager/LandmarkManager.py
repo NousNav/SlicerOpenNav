@@ -410,7 +410,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
 
     if landmark.state == LandmarkState.IN_PROGRESS:
       button.enabled = False
-      button.text = ''
+      button.text = '(active)'
       iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
       self.setLandmarkInProgressDisplay(landmark)
     
