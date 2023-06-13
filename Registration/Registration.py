@@ -1018,7 +1018,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.trace.addPoint(outputPoint)
 
   def setupLandmarkTables(self):
-    self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName)
+    self.landmarks = Landmarks(self.ui.RegistrationWidget.RegistrationStepLandmarkRegistration.LandmarkTableWidget, self.moduleName, self.ui.CollectButton)
     self.landmarks.advanceButton = self.advanceButton
 
   def disconnectAll(self, widget):

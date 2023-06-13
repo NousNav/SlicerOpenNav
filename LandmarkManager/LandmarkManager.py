@@ -275,12 +275,13 @@ class Landmarks(ScriptedLoadableModuleLogic):
   trackerLandmarks = NNUtils.nodeReferenceProperty('TRACKER_LANDMARKS', default=None)
   # From Registration/RegistrationUtils/Landmarks.py
   
-  def __init__(self, tableWidget, moduleName):
+  def __init__(self, tableWidget, moduleName, collectButton):
     super().__init__()
     self.landmarkStates = []
     self.moduleName = moduleName
     self.tableWidget = tableWidget
     self.currentLandmark = None
+    self.collectButton = collectButton
     self.tableWidget.setShowGrid(False)
     self.tableWidget.setFocusPolicy(qt.Qt.NoFocus)
     self.tableWidget.setSelectionMode(qt.QAbstractItemView.NoSelection)
@@ -389,6 +390,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksInProgressNode.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
+    self.collectButton.enabled = not self.landmarksFinished
     if self.showLandmarks:
       self.updateAdvanceButton()
 
