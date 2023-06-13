@@ -7,10 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>457</width>
-    <height>295</height>
+    <height>452</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="RecentPatientLabel">
+     <property name="text">
+      <string>Recent patients</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QTableWidget" name="CasesTableWidget">
      <property name="sizePolicy">
@@ -24,6 +31,9 @@
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>

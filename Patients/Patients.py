@@ -120,7 +120,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.PatientListButton.enabled = not master_volume
     
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
-    self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidget.selectedItems()) != 0
+    self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
     self.ui.ClearPlanButton.enabled = master_volume
 
     slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
@@ -172,7 +172,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.CasesTableWidget.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialog = slicer.util.loadUI(self.resourcePath('UI/PatientListDialog.ui'))
     self.patientListDialogUI = slicer.util.childWidgetVariables(self.patientListDialog)
-    self.patientListDialogUI.CasesTableWidget.itemSelectionChanged.connect(self.updateGUIFromPatientState)
+    self.patientListDialogUI.CasesTableWidgetDialog.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
 
   def startNewCase(self):
@@ -194,8 +194,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     print("Updating table")
     cases = NNUtils.listAvailablePlans()
     self.ui.CasesTableWidget.clearContents()
-    self.patientListDialogUI.CasesTableWidget.clearContents()
-    self.patientListDialogUI.CasesTableWidget.setRowCount(len(cases))
+    recentRowCount = len(cases) if len(cases) < 5 else 5
+    self.ui.CasesTableWidget.setRowCount(recentRowCount)
+    self.patientListDialogUI.CasesTableWidgetDialog.clearContents()
+    self.patientListDialogUI.CasesTableWidgetDialog.setRowCount(len(cases))
     for i, (case, date) in enumerate(cases):
       if i < 5:    # add to shortcuts
         item_name_panel = qt.QTableWidgetItem(case)
@@ -204,8 +206,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
         self.ui.CasesTableWidget.setItem(i, 1, item_date_panel)
       item_name_list = qt.QTableWidgetItem(case)
       item_date_list = qt.QTableWidgetItem(time.ctime(date))
-      self.patientListDialogUI.CasesTableWidget.setItem(i, 0, item_name_list)
-      self.patientListDialogUI.CasesTableWidget.setItem(i, 1, item_date_list)
+      self.patientListDialogUI.CasesTableWidgetDialog.setItem(i, 0, item_name_list)
+      self.patientListDialogUI.CasesTableWidgetDialog.setItem(i, 1, item_date_list)
   
   def loadCaseFromPanel(self):
     currentRow = self.ui.CasesTableWidget.currentRow()
@@ -214,8 +216,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.loadCase(caseName)
 
   def loadCaseFromList(self):
-     currentRow = self.patientListDialogUI.CasesTableWidget.currentRow()
-     caseItem = self.patientListDialogUI.CasesTableWidget.item(currentRow, 0)
+     currentRow = self.patientListDialogUI.CasesTableWidgetDialog.currentRow()
+     caseItem = self.patientListDialogUI.CasesTableWidgetDialog.item(currentRow, 0)
      caseName = caseItem.text()
      self.loadCase(caseName)
   

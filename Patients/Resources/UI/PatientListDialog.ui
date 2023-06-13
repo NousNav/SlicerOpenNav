@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>481</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,9 +29,12 @@
     </widget>
    </item>
    <item row="0" column="0" colspan="2">
-    <widget class="QTableWidget" name="CasesTableWidget">
+    <widget class="QTableWidget" name="CasesTableWidgetDialog">
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>

@@ -283,7 +283,7 @@ QPushButton#ClearPlanButton,
 QPushButton#PatientListButton,
 QPushButton#SavePlanButton{
     min-height: 120px;
-    font: 20px;
+    font: 30px;
     font-weight: bold;
     margin: 12px;
 }
@@ -397,4 +397,44 @@ ctkConsole
     qproperty-stdinTextColor: #b7b7b7;
     qproperty-welcomeTextColor: #b7b7b7;
     qproperty-commandTextColor: #b7b7b7;
+}
+
+/* Patients table */
+QTableWidget#CasesTableWidgetDialog,
+QTableWidget#CasesTableWidget{
+    alternate-background-color: #434343;
+    selection-background-color: #316d71;
+    font: 14px;
+    font-weight: bold;
+    gridline-color: #2a2a2a;
+    border: none;
+}
+
+QHeaderView{
+    font: 16px;
+    font-style: italic;
+    font-weight: bold;
+    border: none;
+    color:#434343;
+   
+}
+
+QHeaderView::section{
+    background-color: #2a2a2a;
+    border: none;
+}
+
+QLabel#RecentPatientLabel{
+    font: 24px;
+    font-weight: bold;
+    padding-left: 20px;
+    color:#666666;
+}
+
+QPushButton#OpenButton,
+QPushButton#CancelButton{
+    min-height: 40px;
+    font: 20px;
+    font-weight: bold;
+    margin: 12px;
 }
