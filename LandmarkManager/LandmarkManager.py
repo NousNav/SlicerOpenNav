@@ -306,6 +306,17 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksGuidanceNode.GetMarkupsDisplayNode().SetGlyphSize(6)
     self.landmarksGuidanceNode.SetLocked(True)
     self.landmarksGuidanceNode.SaveWithSceneOff()
+
+    self.landmarksInProgressNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'LandmarkInProgress')
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetVisibility(False)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetSelectedColor(0 / 255.0, 255 / 255.0, 0 / 255.0)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetColor(0 / 255.0, 255 / 255.0, 0 / 255.0)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetTextScale(0)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetGlyphSize(8)
+    self.landmarksInProgressNode.SetLocked(True)
+    self.landmarksInProgressNode.SaveWithSceneOff()
+    self.landmarksInProgressNode.AddControlPoint(0,0,0)
     self.showLandmarks = False
 
   def updateAdvanceButton(self):
@@ -372,10 +383,18 @@ class Landmarks(ScriptedLoadableModuleLogic):
     if self.model:
       self.model.GetDisplayNode().SetVisibility(self.showLandmarks)
     self.landmarksGuidanceNode.GetDisplayNode().SetVisibility(self.showLandmarks)
+    self.landmarksInProgressNode.GetDisplayNode().SetVisibility(self.showLandmarks)
 
     self.landmarksFinished = self.landmarksCollected >= self.landmarksNeeded
     if self.showLandmarks:
       self.updateAdvanceButton()
+
+  
+  def setLandmarkInProgressDisplay(self, landmark):
+    pos = [0, 0, 0]
+    self.landmarksGuidanceNode.GetNthControlPointPositionWorld(landmark.row, pos)
+    self.landmarksInProgressNode.SetNthControlPointPositionWorld(0, pos[0], pos[1], pos[2])
+    self.landmarksInProgressNode.SetNthControlPointVisibility(0, True)
 
   def updateLandmarkDisplay(self, landmark):
     button = self.tableWidget.cellWidget(landmark.row, 2)
@@ -391,6 +410,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
       button.enabled = True
       button.text = 'Skip'
       iconLabel.setPixmap(self.startedIcon.pixmap(32, 32))
+      self.setLandmarkInProgressDisplay(landmark)
     
     if landmark.state == LandmarkState.DONE:
       button.enabled = True
@@ -400,6 +420,7 @@ class Landmarks(ScriptedLoadableModuleLogic):
       self.landmarksCollected += 1
 
   def startNextLandmark(self):
+    self.landmarksInProgressNode.SetNthControlPointVisibility(0, False)
     for landmark in self.landmarkStates:
       if landmark.state == LandmarkState.NOT_STARTED:
         self.startLandmark(landmark)
