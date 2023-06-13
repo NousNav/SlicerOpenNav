@@ -359,8 +359,10 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarkStates = []
     self.landmarksGuidanceNode.RemoveAllControlPoints()
     # positions[name] = position
+    self.landmarksNeeded = 0
     for name, position in positions.items():
       self.addLandmark(name, position)
+      self.landmarksNeeded += 1
 
   def updateLandmarksDisplay(self):
 
