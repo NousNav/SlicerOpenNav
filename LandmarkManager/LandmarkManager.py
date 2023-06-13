@@ -309,8 +309,8 @@ class Landmarks(ScriptedLoadableModuleLogic):
 
     self.landmarksInProgressNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'LandmarkInProgress')
     self.landmarksInProgressNode.GetMarkupsDisplayNode().SetVisibility(False)
-    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetSelectedColor(0 / 255.0, 255 / 255.0, 0 / 255.0)
-    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetColor(0 / 255.0, 255 / 255.0, 0 / 255.0)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetSelectedColor(255 / 255.0, 85 / 255.0, 0 / 255.0)
+    self.landmarksInProgressNode.GetMarkupsDisplayNode().SetColor(255 / 255.0, 85 / 255.0, 0 / 255.0)
     self.landmarksInProgressNode.GetMarkupsDisplayNode().SetTextScale(0)
     self.landmarksInProgressNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
     self.landmarksInProgressNode.GetMarkupsDisplayNode().SetGlyphSize(8)
