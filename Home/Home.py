@@ -117,7 +117,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def setupNodes(self):
     # Set up the layout / 3D View
-    self.setup3DView()
+    NNUtils.setup3DView()
     NNUtils.setupSliceViewers()
 
   def onClose(self, unusedOne, unusedTwo):
@@ -285,21 +285,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.NoContextMenu)
 
     NNUtils.setupSliceViewers(visible)
+    NNUtils.setup3DView(visible)
 
-  def setup3DView(self):
-    layoutManager = slicer.app.layoutManager()
-    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    controller.setBlackBackground()
-    controller.set3DAxisVisible(False)
-    controller.set3DAxisLabelVisible(False)
-    controller.setOrientationMarkerType(3)  # Axis marker
-    controller.setStyleSheet("background-color: #000000")
-
-    threeDWidget = layoutManager.threeDWidget(0)
-    threeDWidget.mrmlViewNode().SetBoxVisible(False)
-    threeDWidget.threeDController().visible = False
-    horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
-    threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
 
 class Step:
   """Contains actions required to enter/exit a single step in the workflow.

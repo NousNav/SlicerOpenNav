@@ -318,6 +318,26 @@ def setupSliceViewer(sliceWidget, visible=False):
   setSliceControllerButtonsVisible(sliceWidget, visible)
 
 
+def setup3DView(visible=False):
+    layoutManager = slicer.app.layoutManager()
+    controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
+    controller.setBlackBackground()
+    controller.set3DAxisVisible(False)
+    controller.set3DAxisLabelVisible(False)
+    controller.setOrientationMarkerType(3)  # Axis marker
+    controller.setStyleSheet("background-color: #000000")
+
+    threeDWidget = layoutManager.threeDWidget(0)
+    threeDWidget.mrmlViewNode().SetBoxVisible(False)
+    horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
+    threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
+
+    setSliceControllerComponentVisible(slicer.util.findChild(controller, "MaximizeViewButton"), True)
+    setSliceControllerComponentVisible(slicer.util.findChild(controller, "PinButton"), visible)
+    setSliceControllerComponentVisible(slicer.util.findChild(controller, "ViewLabel"), False)
+    setSliceControllerComponentVisible(slicer.util.findChild(controller, "CenterButton_Header"), visible)
+
+
 def setSliceControllerButtonsVisible(sliceWidget, visible):
   slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
   setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "PinButton"), visible)
@@ -325,6 +345,7 @@ def setSliceControllerButtonsVisible(sliceWidget, visible):
   setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "FitToWindowToolButton"), visible)
   setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "MaximizeViewButton"), True)
   setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "MoreButton"), visible)
+
 
 def setSliceControllerComponentVisible(component, visible):
   component.visible = visible
