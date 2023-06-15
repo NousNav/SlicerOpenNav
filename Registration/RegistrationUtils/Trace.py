@@ -15,7 +15,7 @@ class Trace:
     self.traceNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode', 'Trace')
     self.traceNode.GetMarkupsDisplayNode().SetVisibility(False)
     self.traceNode.GetMarkupsDisplayNode().SetVisibility2D(False)
-    self.traceNode.GetMarkupsDisplayNode().SetSelectedColor(35 / 255.0, 76 / 255.0, 79 / 255.0)
+    self.traceNode.GetMarkupsDisplayNode().SetSelectedColor(90 / 255.0, 194 / 255.0, 201 / 255.0)
     self.traceNode.GetMarkupsDisplayNode().SetColor(72 / 255.0, 72 / 255.0, 72 / 255.0)
     self.traceNode.GetMarkupsDisplayNode().SetTextScale(0)
     self.traceNode.GetMarkupsDisplayNode().SetUseGlyphScale(False)
