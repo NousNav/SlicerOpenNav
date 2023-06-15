@@ -305,20 +305,30 @@ def initializeNavigationLayouts():
   layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutFourUpView)
 
 
-def setupSliceViewers():
+def setupSliceViewers(visible=False):
   for name in slicer.app.layoutManager().sliceViewNames():
     sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-    setupSliceViewer(sliceWidget)
+    setupSliceViewer(sliceWidget, visible)
 
 
-def setupSliceViewer(sliceWidget):
+def setupSliceViewer(sliceWidget, visible=False):
   controller = sliceWidget.sliceController()
   controller.setStyleSheet("background-color: #000000")
   controller.sliceViewLabel = ""
-  slicer.util.findChild(sliceWidget, "PinButton").visible = False
-  slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
-  slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
+  setSliceControllerButtonsVisible(sliceWidget, visible)
+
+
+def setSliceControllerButtonsVisible(sliceWidget, visible):
   slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
+  setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "PinButton"), visible)
+  setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "ViewLabel"), False)
+  setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "FitToWindowToolButton"), visible)
+  setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "MaximizeViewButton"), True)
+  setSliceControllerComponentVisible(slicer.util.findChild(sliceWidget, "MoreButton"), visible)
+
+def setSliceControllerComponentVisible(component, visible):
+  component.visible = visible
+  component.setStyleSheet("background-color: #5ac2c9")
 
 
 def showSliceOrientationLabels(visible):

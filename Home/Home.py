@@ -118,7 +118,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setupNodes(self):
     # Set up the layout / 3D View
     self.setup3DView()
-    self.setupSliceViewers()
+    NNUtils.setupSliceViewers()
 
   def onClose(self, unusedOne, unusedTwo):
     self.setupNodes()
@@ -284,6 +284,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     else:
       slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.NoContextMenu)
 
+    NNUtils.setupSliceViewers(visible)
+
   def setup3DView(self):
     layoutManager = slicer.app.layoutManager()
     controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
@@ -298,21 +300,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     threeDWidget.threeDController().visible = False
     horizontalSpacer = qt.QSpacerItem(0, 0, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum)
     threeDWidget.layout().insertSpacerItem(0, horizontalSpacer)
-
-  def setupSliceViewers(self):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        self.setupSliceViewer(sliceWidget)
-
-  def setupSliceViewer(self, sliceWidget):
-    controller = sliceWidget.sliceController()
-    controller.setStyleSheet("background-color: #000000")
-    controller.sliceViewLabel = ''
-    slicer.util.findChild(sliceWidget, "PinButton").visible = False
-    slicer.util.findChild(sliceWidget, "ViewLabel").visible = False
-    slicer.util.findChild(sliceWidget, "FitToWindowToolButton").visible = False
-    slicer.util.findChild(sliceWidget, "SliceOffsetSlider").spinBoxVisible = False
-
 
 class Step:
   """Contains actions required to enter/exit a single step in the workflow.

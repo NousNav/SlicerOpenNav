@@ -267,8 +267,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       displayNode.SetAutoWindowLevel(False)
       displayNode.SetLevel(50)
       displayNode.SetWindow(100)
-    slicer.modules.HomeWidget.setup3DView()
-    slicer.modules.HomeWidget.setupSliceViewers()
     self.updateGUIFromPatientState()
     if not slicer.modules.PlanningWidget.logic.case_name:
       self.launchCaseNameDialog()

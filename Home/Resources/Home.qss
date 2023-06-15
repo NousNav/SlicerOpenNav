@@ -459,3 +459,15 @@ QScrollBar::sub-line:vertical{
 QScrollBar::add-line:vertical{
     background-color: #2a2a2a;
 }
+
+QToolButton#PinButton,
+QToolButton#MaximizeViewButton,
+QToolButton#FitToWindowToolButton,
+QToolButton#CenterButton_Header,
+ctkExpandButton#MoreButton{
+  background-color: #5ac2c9;
+  border: 2px #5ac2c9;
+  border-radius: 2px;
+  margin: 0px;
+  padding: 0px;
+}
