@@ -174,7 +174,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.folderAction.toolTip = 'Open cases folder in Windows Explorer.'
 
     # Settings dialog
-    gearIcon = qt.QIcon(self.resourcePath('Icons/Settings.png'))
+    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
