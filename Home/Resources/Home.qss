@@ -231,7 +231,8 @@ QLabel#NousNavLabel {
     padding: 2px;
 }
 
-QLabel#PatientNameLabel {
+QLabel#PatientNameLabel,
+QLabel#SavingStatusLabel {
     background-color: #121212;
     color: #fafafa;
     border-bottom: 2px solid #434343;

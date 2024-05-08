@@ -178,7 +178,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def startNewCase(self):
     print('start a new case')
     slicer.modules.PlanningWidget.logic.case_name = self.caseDialogUI.CaseNameLineEdit.text
-    NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+    slicer.modules.HomeWidget.logic.autoSavePlan()
     self.updateCasesList()
     self.updateGUIFromPatientState()
   

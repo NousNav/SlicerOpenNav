@@ -125,8 +125,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def cleanup(self):
     print('Autosve on close')
-    NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
-    self.logic = None
+    self.logic.autoSavePlan()
+    self.logic = None  
 
   def modifyWindowUI(self):
 
@@ -161,7 +161,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.patientNameLabel = qt.QLabel('Patient: ')
     self.patientNameLabel.setObjectName('PatientNameLabel')
     self.primaryToolBar.addWidget(self.patientNameLabel)
+    self.savingStatusLabel = qt.QLabel()
+    self.savingStatusLabel.setObjectName('SavingStatusLabel')
+    self.primaryToolBar.addWidget(self.savingStatusLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
+    
 
     # Screenshot
     screenShotIcon = qt.QIcon(self.resourcePath('Icons/ScreenShot.png'))
@@ -721,7 +725,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     if autoSave and not self.autoSaveBlocked:
       print('Autosave started')
-      NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+      self.autoSavePlan()
       print('Autosave completed')
     else:
       print('Autosave blocked')
@@ -734,3 +738,10 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
   def gotoByName(self, name):
     self.goto(self.names[name])
+
+  def autoSavePlan(self):
+    label = slicer.util.findChild(slicer.util.mainWindow(),'SavingStatusLabel')
+    label.text = 'Saving...'
+    slicer.app.processEvents()
+    NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+    label.text = ''
