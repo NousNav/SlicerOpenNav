@@ -146,7 +146,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
     self.bottomToolBar.visible = False
     self.planningTabBar.visible = False
-
+    self.logic.endEffect()
     self.logic.setPlanningNodesVisibility(skinModel=False, targetSegmentation=False, seedSegmentation=False, trajectory=False, landmarks=False)
 
     self.removeObservers()
@@ -528,6 +528,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   
   def clearPlanningData(self):
     self.removePatientImageData()
+    self.endEffect()
     slicer.mrmlScene.RemoveNode(self.skin_segmentation)
     slicer.mrmlScene.RemoveNode(self.seed_segmentation)
     slicer.mrmlScene.RemoveNode(self.target_segmentation)
