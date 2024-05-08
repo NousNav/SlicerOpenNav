@@ -211,6 +211,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.logic.updateExtensionModels()
     self.setupPivotCalibration()
+    self.logic.setupSurfaceErrorComputation()
     self.landmarks.transferPlanningLandmarks(slicer.modules.PlanningWidget.landmarkLogic.positions)
     self.landmarks.syncLandmarks()
 
