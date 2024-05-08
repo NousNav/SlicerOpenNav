@@ -124,6 +124,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupNodes()
 
   def cleanup(self):
+    print('Autosve on close')
+    NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
     self.logic = None
 
   def modifyWindowUI(self):
