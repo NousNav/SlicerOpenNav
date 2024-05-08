@@ -323,7 +323,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       plusFileName = 'PLUSHeadKitware.xml.in'
 
     if self.selectorUI.BWHRadioButton.checked:
-      motiveFileName = 'NousNav-BWH-Hardware.xml'
+      motiveFileName = 'NousNav-BWH-Hardware_2024-05-08.xml'
       plusFileName = 'PLUSHead.xml.in'
 
     test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)

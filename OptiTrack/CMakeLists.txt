@@ -20,6 +20,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/MotiveProfile-2021-06-24.xml
   Resources/MotiveProfile-2021-10-22.xml
   Resources/NousNav-BWH-Hardware.xml
+  Resources/NousNav-BWH-Hardware_2024-05-08.xml
   )
 
 #-----------------------------------------------------------------------------
