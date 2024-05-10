@@ -165,22 +165,32 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.savingStatusLabel.setObjectName('SavingStatusLabel')
     self.primaryToolBar.addWidget(self.savingStatusLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
+
+    # Mousemode
+
+    mouseModeToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MouseModeToolBar')
+    actionTranslate = mouseModeToolBar.actions()[0]
+    actionTranslate.setIcon(qt.QIcon(self.resourcePath('Icons/arrow.svg')))
+    actionWindowLevel = mouseModeToolBar.actions()[1]
+    actionWindowLevel.setIcon(qt.QIcon(self.resourcePath('Icons/window_level.png')))
+    self.primaryToolBar.addAction(actionTranslate)
+    self.primaryToolBar.addAction(actionWindowLevel)
     
 
     # Screenshot
-    screenShotIcon = qt.QIcon(self.resourcePath('Icons/ScreenShot.png'))
+    screenShotIcon = qt.QIcon(self.resourcePath('Icons/ScreenShot.svg'))
     self.screenShotAction = self.primaryToolBar.addAction(screenShotIcon, "")
     self.screenShotAction.triggered.connect(self.takeScreenShot)
     self.screenShotAction.toolTip = 'Take Screenshot'
 
     # Open cases folder
-    folderIcon = qt.QIcon(self.resourcePath('Icons/Folder.png'))
+    folderIcon = qt.QIcon(self.resourcePath('Icons/Folder.svg'))
     self.folderAction = self.primaryToolBar.addAction(folderIcon, "")
     self.folderAction.triggered.connect(NNUtils.openCasesDirectoryInExplorer)
     self.folderAction.toolTip = 'Open cases folder in Windows Explorer.'
 
     # Settings dialog
-    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
+    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.svg'))
     self.settingsAction = self.primaryToolBar.addAction(gearIcon, "")
     self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
     self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)

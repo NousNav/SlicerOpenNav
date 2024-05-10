@@ -8,14 +8,15 @@ set(MODULE_PYTHON_SCRIPTS
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
-  Resources/Icons/Gears.png
-  Resources/Icons/Settings.png
-  Resources/Icons/ScreenShot.png
-  Resources/Icons/Folder.png
+  Resources/Icons/Gears.svg
+  Resources/Icons/ScreenShot.svg
+  Resources/Icons/Folder.svg
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Settings.ui
   Resources/UI/CenteredWidget.ui
   Resources/${MODULE_NAME}.qss
+  Resources/Icons/arrow.svg
+  Resources/Icons/window_level.png
   )
 
 #-----------------------------------------------------------------------------
