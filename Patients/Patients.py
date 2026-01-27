@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import os.path
 import pathlib
@@ -176,6 +177,11 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.patientListDialogUI.CasesTableWidgetDialog.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
     self.patientListDialogUI.RemoveButton.clicked.connect(self.removeCaseFromList)
+    self.patientListDialogUI.CasesTableWidgetDialog.horizontalHeader().setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+    self.patientListDialogUI.CasesTableWidgetDialog.horizontalHeader().setSectionResizeMode(0, qt.QHeaderView.Stretch)
+    self.ui.CasesTableWidget.horizontalHeader().setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+    self.ui.CasesTableWidget.horizontalHeader().setSectionResizeMode(0, qt.QHeaderView.Stretch)
+
 
   def startNewCase(self):
     print('start a new case')
@@ -203,11 +209,11 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     for i, (case, date) in enumerate(cases):
       if i < 5:    # add to shortcuts
         item_name_panel = qt.QTableWidgetItem(case)
-        item_date_panel = qt.QTableWidgetItem(time.ctime(date))
+        item_date_panel = qt.QTableWidgetItem(datetime.fromtimestamp(date).strftime("%b %d %H:%M %Y"))
         self.ui.CasesTableWidget.setItem(i, 0, item_name_panel)
         self.ui.CasesTableWidget.setItem(i, 1, item_date_panel)
       item_name_list = qt.QTableWidgetItem(case)
-      item_date_list = qt.QTableWidgetItem(time.ctime(date))
+      item_date_list = qt.QTableWidgetItem(datetime.fromtimestamp(date).strftime("%b %d %H:%M %Y"))
       self.patientListDialogUI.CasesTableWidgetDialog.setItem(i, 0, item_name_list)
       self.patientListDialogUI.CasesTableWidgetDialog.setItem(i, 1, item_date_list)
   
