@@ -332,14 +332,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       smoothingSize=self.ui.skinSmoothingSlider.value,
     )
     self.logic.endEffect()
-
-    # Make results visible in 3D and make model
-    segmentation.CreateClosedSurfaceRepresentation()
     
     skinSegment = segmentation.GetSegmentation().GetSegment(segment)
     slicer.modules.segmentations.logic().ExportSegmentToRepresentationNode(skinSegment, self.logic.skin_model)
     self.logic.skin_model.GetDisplayNode().SetVisibility(True)
     self.logic.skin_model.GetDisplayNode().SetColor(177.0/255.0,122.0/255.0,101.0/255.0)
+
+    skinSegment.RemoveRepresentation('Closed surface')
     
     NNUtils.centerCam()
 
@@ -445,8 +444,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       if self.undoRedoTag:
         self.oldSeg.RemoveObserver(self.undoRedoTag)
       
-      # self.undoRedoTag = self.addObserver(seg, seg.MasterRepresentationModified, self.updateTargetPanelButtons)
-      self.undoRedoTag = seg.AddObserver(seg.MasterRepresentationModified, self.updateTargetPanelButtons)
+      # self.undoRedoTag = self.addObserver(seg, seg.SourceRepresentationModified, self.updateTargetPanelButtons)
+      self.undoRedoTag = seg.AddObserver(seg.SourceRepresentationModified, self.updateTargetPanelButtons)
       self.oldSeg = seg
       self.updateTargetPanelButtons()
 
