@@ -280,6 +280,7 @@ QPushButton#ImportDICOMButton,
 QPushButton#DICOMToggleButton,
 QPushButton#LoadDataButton,
 QPushButton#planButton,
+QPushButton#dicomPathButton,
 QPushButton#PatientListButton,
 QPushButton#SavePlanButton{
     min-height: 80px;

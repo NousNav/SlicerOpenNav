@@ -143,12 +143,14 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       if master_volume:
         PatientsWidget.setDICOMBrowserVisible(False)
       self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
+      self.ui.dicomPathButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
       if slicer.modules.DICOMWidget.browserWidget.isHidden():
          self.ui.DICOMToggleButton.text = 'Add Patient From DICOM'
       else:
          self.ui.DICOMToggleButton.text = 'Close DICOM Database'
     else:
       self.ui.ImportDICOMButton.visible = False
+      self.ui.dicomPathButton.visible = False
 
   def onClose(self, o, e):
     pass
@@ -176,6 +178,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # For some reason, the browser is instantiated as not hidden. Close
     # so that the 'isHidden' check works as required
     slicer.modules.DICOMWidget.browserWidget.close()
+    dicomBrowser = slicer.modules.dicom.widgetRepresentation().self().browserWidget.dicomBrowser
+    self.ui.dicomPathButton.clicked.connect(lambda: dicomBrowser.selectDatabaseDirectory()) 
 
   def setupCaseDialog(self):
     self.caseDialog = slicer.util.loadUI(self.resourcePath('UI/CaseNameDialog.ui'))
