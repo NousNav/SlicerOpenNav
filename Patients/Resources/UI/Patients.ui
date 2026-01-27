@@ -105,7 +105,8 @@
    <item>
     <widget class="QPushButton" name="ImportDICOMButton">
      <property name="text">
-      <string>Add Folders to DICOM Database</string>
+      <string>Add Folders to 
+DICOM Database</string>
      </property>
     </widget>
    </item>
