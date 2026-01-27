@@ -279,11 +279,10 @@ QMainWindow::separator {
 QPushButton#ImportDICOMButton,
 QPushButton#DICOMToggleButton,
 QPushButton#LoadDataButton,
-QPushButton#loadPlanButton,
-QPushButton#ClearPlanButton,
+QPushButton#planButton,
 QPushButton#PatientListButton,
 QPushButton#SavePlanButton{
-    min-height: 120px;
+    min-height: 80px;
     font: 30px;
     font-weight: bold;
     margin: 12px;

@@ -68,16 +68,12 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="loadPlanButton">
+    <widget class="QPushButton" name="planButton">
      <property name="text">
       <string>Open Patient</string>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="ClearPlanButton">
-     <property name="text">
-      <string>Close Patient</string>
+     <property name="checkable">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

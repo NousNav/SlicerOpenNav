@@ -80,9 +80,17 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     # Make sure DICOM widget exists
     slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
 
-    self.ui.loadPlanButton.clicked.connect(self.loadCaseFromPanel)
+    self.ui.planButton.toggled.connect(self.onPlanButtonToggled)
     self.ui.PatientListButton.clicked.connect(self.launchPatientListDialog)
 
+  def onPlanButtonToggled(self,checked):
+    if checked:
+      self.loadCaseFromPanel()
+    else:
+      self.closePlan()
+    self.updateGUIFromPatientState()
+  
+  
   @NNUtils.backButton(text="Back", visible=False)
   @NNUtils.advanceButton(text="Go To Planning")
   def enter(self):
@@ -120,13 +128,17 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.ui.DICOMToggleButton.enabled = not master_volume
     self.ui.PatientListButton.enabled = not master_volume
     
-    self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
+    self.ui.planButton.enabled = (not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0) or master_volume
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
     self.patientListDialogUI.RemoveButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
-    self.ui.ClearPlanButton.enabled = master_volume
 
     slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
 
+    if master_volume:
+      self.ui.planButton.text = 'Close Current Patient'
+    else:
+      self.ui.planButton.text = 'Open Patient'
+    
     if hasattr(slicer.modules, "DICOMWidget"):
       if master_volume:
         PatientsWidget.setDICOMBrowserVisible(False)
@@ -160,7 +172,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
-    self.ui.ClearPlanButton.clicked.connect(self.closePlan)
 
     # For some reason, the browser is instantiated as not hidden. Close
     # so that the 'isHidden' check works as required
@@ -237,6 +248,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateCasesList()
   
   def loadCase(self, caseName):
+    master_volume = slicer.modules.PlanningWidget.logic.master_volume
+    if master_volume:
+      return  # already loaded
     print('load a case: ' + caseName)
     slicer.modules.PlanningWidget.logic.case_name = caseName
     NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
