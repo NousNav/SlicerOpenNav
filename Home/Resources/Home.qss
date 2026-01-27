@@ -433,6 +433,7 @@ QLabel#RecentPatientLabel{
 }
 
 QPushButton#OpenButton,
+QPushButton#RemoveButton,
 QPushButton#CancelButton{
     min-height: 40px;
     font: 20px;

@@ -121,6 +121,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     
     self.ui.loadPlanButton.enabled = not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
+    self.patientListDialogUI.RemoveButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
     self.ui.ClearPlanButton.enabled = master_volume
 
     slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
@@ -174,6 +175,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.patientListDialogUI = slicer.util.childWidgetVariables(self.patientListDialog)
     self.patientListDialogUI.CasesTableWidgetDialog.itemSelectionChanged.connect(self.updateGUIFromPatientState)
     self.patientListDialogUI.OpenButton.clicked.connect(self.loadCaseFromList)
+    self.patientListDialogUI.RemoveButton.clicked.connect(self.removeCaseFromList)
 
   def startNewCase(self):
     print('start a new case')
@@ -220,6 +222,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
      caseItem = self.patientListDialogUI.CasesTableWidgetDialog.item(currentRow, 0)
      caseName = caseItem.text()
      self.loadCase(caseName)
+
+  def removeCaseFromList(self):
+    currentRow = self.patientListDialogUI.CasesTableWidgetDialog.currentRow()
+    caseItem = self.patientListDialogUI.CasesTableWidgetDialog.item(currentRow, 0)
+    caseName = caseItem.text()
+    NNUtils.deleteAutoSave(caseName)
+    self.updateCasesList()
   
   def loadCase(self, caseName):
     print('load a case: ' + caseName)
