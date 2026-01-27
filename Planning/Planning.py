@@ -269,7 +269,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.tableManager.advanceButton = None
 
     self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
-    self.logic.skin_model.GetDisplayNode().SetOpacity(0.8)
+    self.logic.skin_model.GetDisplayNode().SetOpacity(0.5)
     self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
     self.logic.setSkinSegmentFor3DDisplay()
     self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
