@@ -53,6 +53,9 @@ class Patients(ScriptedLoadableModule):
       return
 
     slicer.modules.dicom.widgetRepresentation()
+    # For some reason, the browser is instantiated as not hidden. Close
+    # so that the 'isHidden' check works as required
+    slicer.modules.DICOMWidget.browserWidget.close()
 
 
 class PatientsWidget(ScriptedLoadableModuleWidget):
@@ -94,12 +97,15 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.enabled = False
 
     self.setupCaseDialog()
-    self.setupDICOMBrowser()
+
+    self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
+    self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
 
     
 
     self.ui.planButton.toggled.connect(self.onPlanButtonToggled)
     self.ui.PatientListButton.clicked.connect(self.launchPatientListDialog)
+    self.ui.dicomPathButton.clicked.connect(self.onDicomPathButtonClicked)
 
   def onPlanButtonToggled(self,checked):
     if checked:
@@ -107,6 +113,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     else:
       self.closePlan()
     self.updateGUIFromPatientState()
+
+  def onDicomPathButtonClicked(self):
+    dicomBrowser = slicer.modules.DICOMWidget.browserWidget.dicomBrowser
+    dicomBrowser.selectDatabaseDirectory()
   
   
   @OpenNavUtils.backButton(text="Back", visible=False)
@@ -175,26 +185,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
   def cleanup(self):
     pass
-
-  
-
-  def setupDICOMBrowser(self):
-    """Instantiate the DICOM widget and connect the Patients step DICOM buttons.
-
-    .. warning::
-
-        This function is expected to be called only once and it will log an error
-        message and return otherwise.
-    """
-
-    self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
-    self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
-
-    # For some reason, the browser is instantiated as not hidden. Close
-    # so that the 'isHidden' check works as required
-    slicer.modules.DICOMWidget.browserWidget.close()
-    dicomBrowser = slicer.modules.dicom.widgetRepresentation().self().browserWidget.dicomBrowser
-    self.ui.dicomPathButton.clicked.connect(lambda: dicomBrowser.selectDatabaseDirectory()) 
 
   def setupCaseDialog(self):
     self.caseDialog = slicer.util.loadUI(self.resourcePath('UI/CaseNameDialog.ui'))
