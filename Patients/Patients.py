@@ -36,6 +36,24 @@ class Patients(ScriptedLoadableModule):
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = ""
 
+    # Make sure DICOM widget exists
+    slicer.app.connect("startupCompleted()", self.createDICOMWidget)
+
+  def createDICOMWidget(self):
+    """Create the DICOM widget if it does not already exist.
+
+    .. warning::
+
+        This function is expected to be called only once and it will log an error
+        message and return otherwise.
+    """
+
+    if hasattr(slicer.modules, "DICOMWidget"):
+      logging.error("error: DICOMWidget is already instantiated: PatientsWidget.createDICOMWidget() should be called only once.")
+      return
+
+    slicer.modules.dicom.widgetRepresentation()
+
 
 class PatientsWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
@@ -76,9 +94,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.advanceButtonAction.enabled = False
 
     self.setupCaseDialog()
+    self.setupDICOMBrowser()
 
-    # Make sure DICOM widget exists
-    slicer.app.connect("startupCompleted()", self.setupDICOMBrowser)
+    
 
     self.ui.planButton.toggled.connect(self.onPlanButtonToggled)
     self.ui.PatientListButton.clicked.connect(self.launchPatientListDialog)
@@ -158,6 +176,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def cleanup(self):
     pass
 
+  
+
   def setupDICOMBrowser(self):
     """Instantiate the DICOM widget and connect the Patients step DICOM buttons.
 
@@ -167,11 +187,6 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
         message and return otherwise.
     """
 
-    if hasattr(slicer.modules, "DICOMWidget"):
-      logging.error("error: DICOMWidget is already instantiated: PatientsWidget.setupDICOMBrowser() should be called only once.")
-      return
-
-    slicer.modules.dicom.widgetRepresentation()
     self.ui.DICOMToggleButton.clicked.connect(self.toggleDICOMBrowser)
     self.ui.ImportDICOMButton.clicked.connect(PatientsWidget.onDICOMImport)
 
