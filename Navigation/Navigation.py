@@ -39,7 +39,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     super().__init__(parent)
 
-    self.workflow = Home.Workflow(
+    self.workflow = OpenNavUtils.Workflow(
       'navigation',
       widget=self.parent,
       setup=self.enter,

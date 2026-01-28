@@ -62,15 +62,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.undoRedoTag = None
     self.oldSeg = None
 
-    self.workflow = Home.Workflow(
+    self.workflow = OpenNavUtils.Workflow(
       'planning',
       nested=(
-        Home.Workflow('skin', setup=self.planningStep1Skin, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1, validate=self.validate),
-        Home.Workflow('target', setup=self.planningStep2Target, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2,
+        OpenNavUtils.Workflow('skin', setup=self.planningStep1Skin, teardown=self.teardownPlanningStep1, widget=self.ui.PlanningStep1, validate=self.validate),
+        OpenNavUtils.Workflow('target', setup=self.planningStep2Target, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep2,
           validate=self.validateTargetSegmentation),
-        Home.Workflow('trajectory', setup=self.planningStep3Trajectory, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3,
+        OpenNavUtils.Workflow('trajectory', setup=self.planningStep3Trajectory, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep3,
           validate=self.validateTrajectorySegmentation),
-        Home.Workflow('landmarks', setup=self.planningStep4Landmarks, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4,
+        OpenNavUtils.Workflow('landmarks', setup=self.planningStep4Landmarks, teardown=self.logic.resetDefaultNodeAppearance, widget=self.ui.PlanningStep4,
           validate=self.validateDefineLandmarks),
       ),
       setup=self.enter,

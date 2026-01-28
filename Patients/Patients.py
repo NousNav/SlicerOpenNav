@@ -63,7 +63,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     super().__init__(parent)
     self.VolumeNodeTag = None
 
-    self.workflow = Home.Workflow(
+    self.workflow = OpenNavUtils.Workflow(
       'patients',
       widget=self.parent,
       setup=self.enter,
