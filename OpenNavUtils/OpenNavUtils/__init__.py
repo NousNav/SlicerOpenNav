@@ -642,7 +642,7 @@ def registerTwoUpNavigationLayout():
 
 def _casesDirectory():
   userPath = os.path.expanduser('~')
-  return os.path.join(userPath, 'NousNav', 'Cases')
+  return os.path.join(userPath, 'OpenNav', 'Cases')
 
 
 def _autoSaveDirectory(caseName):
@@ -803,7 +803,7 @@ def savePlan():
   dialog = qt.QFileDialog()
   plan_path = dialog.getSaveFileName(
     slicer.util.mainWindow(),
-    'Save NousNav Plan',
+    'Save OpenNav Plan',
     default_dir,
     '*.mrb',
   )

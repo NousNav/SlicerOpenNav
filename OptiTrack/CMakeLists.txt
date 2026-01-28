@@ -19,8 +19,8 @@ set(MODULE_PYTHON_RESOURCES
   Resources/PLUSHeadKitware.xml.in
   Resources/MotiveProfile-2021-06-24.xml
   Resources/MotiveProfile-2021-10-22.xml
-  Resources/NousNav-BWH-Hardware.xml
-  Resources/NousNav-BWH-Hardware_2024-05-08.xml
+  Resources/OpenNav-BWH-Hardware.xml
+  Resources/OpenNav-BWH-Hardware_2024-05-08.xml
   )
 
 #-----------------------------------------------------------------------------

@@ -14,7 +14,7 @@ from slicer.ScriptedLoadableModule import (
 from slicer.util import VTKObservationMixin
 
 import Home
-import NNUtils
+import OpenNavUtils
 
 from LandmarkManager import (
   LandmarkManagerLogic,
@@ -29,12 +29,12 @@ class Planning(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Planning"
+    self.parent.title = "OpenNav Planning"
     self.parent.categories = [""]
     self.parent.dependencies = ["VolumeRendering", "SegmentEditor"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
-This is the Home module for the NousNav application
+This is the Home module for the OpenNav application
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -87,7 +87,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Planning Tab Bar
     self.planningTabBar = qt.QTabBar()
     self.planningTabBar.setObjectName("PlanningTabBar")
-    NNUtils.addCssClass(self.planningTabBar, "secondary-tabbar")
+    OpenNavUtils.addCssClass(self.planningTabBar, "secondary-tabbar")
     self.planningTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
@@ -109,7 +109,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.backButtonAction,
       self.advanceButton,
       self.advanceButtonAction,
-    ) = NNUtils.setupWorkflowToolBar("Planning")
+    ) = OpenNavUtils.setupWorkflowToolBar("Planning")
 
     self.ui.skinThresholdSlider.setValue(30)
     self.ui.skinThresholdSlider.valueChanged.connect(self.updateSkinSegmentationPreview)
@@ -201,8 +201,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
     for widget in [modulePanel ,sidePanel, centralPanel]:
-      NNUtils.setCssClass(widget, "widget--color-light")
-      NNUtils.polish(widget)
+      OpenNavUtils.setCssClass(widget, "widget--color-light")
+      OpenNavUtils.polish(widget)
 
     # set slice viewer background
     volume = self.logic.master_volume
@@ -213,8 +213,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     slicer.util.setSliceViewerLayers(foreground=volume, background=None, label=None, fit=True)
-    NNUtils.setSliceViewBackgroundColor('#000000')
-    NNUtils.goToFourUpLayout(volumeNode=volume)
+    OpenNavUtils.setSliceViewBackgroundColor('#000000')
+    OpenNavUtils.goToFourUpLayout(volumeNode=volume)
 
     # Set threshold slider extremes and default
     volumeDisplay = self.logic.master_volume.GetDisplayNode()
@@ -233,8 +233,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     except Exception:
       pass
 
-  @NNUtils.backButton(text="Return to Patients")
-  @NNUtils.advanceButton(text="Segment the Target")
+  @OpenNavUtils.backButton(text="Return to Patients")
+  @OpenNavUtils.advanceButton(text="Segment the Target")
   def planningStep1Skin(self):
 
     self.tableManager.advanceButton = None
@@ -249,8 +249,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.endEffect()
     self.logic.resetDefaultNodeAppearance()
 
-  @NNUtils.backButton(text="Segment the Skin")
-  @NNUtils.advanceButton(text="Plan the Trajectory")
+  @OpenNavUtils.backButton(text="Segment the Skin")
+  @OpenNavUtils.advanceButton(text="Plan the Trajectory")
   def planningStep2Target(self):
 
     self.tableManager.advanceButton = None
@@ -262,8 +262,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.)
     self.updateTargetPanelButtons()
 
-  @NNUtils.backButton(text="Segment the Target")
-  @NNUtils.advanceButton(text="Define Landmarks")
+  @OpenNavUtils.backButton(text="Segment the Target")
+  @OpenNavUtils.advanceButton(text="Define Landmarks")
   def planningStep3Trajectory(self):
 
     self.tableManager.advanceButton = None
@@ -274,8 +274,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.setSkinSegmentFor3DDisplay()
     self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
-  @NNUtils.backButton(text="Plan the Trajectory")
-  @NNUtils.advanceButton(text="")
+  @OpenNavUtils.backButton(text="Plan the Trajectory")
+  @OpenNavUtils.advanceButton(text="")
   def planningStep4Landmarks(self):
 
     self.landmarkLogic.setupPlanningLandmarksNode()
@@ -340,7 +340,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     skinSegment.RemoveRepresentation('Closed surface')
     
-    NNUtils.centerCam()
+    OpenNavUtils.centerCam()
 
     messageBox.hide()
   
@@ -461,7 +461,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 def default_master_volume():
   logging.warning('No master volume is set.')
 
-  node_id = NNUtils.getActiveVolume()
+  node_id = OpenNavUtils.getActiveVolume()
   if not node_id:
     logging.warning('There is no active volume.')
     return None
@@ -481,26 +481,26 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  master_volume = NNUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
-  skin_segmentation = NNUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
-  seed_segmentation = NNUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
-  target_segmentation = NNUtils.nodeReferenceProperty("TARGET_SEGMENTATION", default=None)
-  trajectory_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
-  trajectory_target_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
-  trajectory_entry_markup = NNUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
-  skin_model = NNUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
+  master_volume = OpenNavUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
+  skin_segmentation = OpenNavUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
+  seed_segmentation = OpenNavUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
+  target_segmentation = OpenNavUtils.nodeReferenceProperty("TARGET_SEGMENTATION", default=None)
+  trajectory_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
+  trajectory_target_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
+  trajectory_entry_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
+  skin_model = OpenNavUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
 
-  current_step = NNUtils.parameterProperty("CURRENT_TAB")
-  case_name = NNUtils.parameterProperty("CASE_NAME", default=None)
+  current_step = OpenNavUtils.parameterProperty("CURRENT_TAB")
+  case_name = OpenNavUtils.parameterProperty("CASE_NAME", default=None)
 
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
     VTKObservationMixin.__init__(self)
 
-    self.SKIN_SEGMENT = 'NN_SKIN'
+    self.SKIN_SEGMENT = 'OpenNav_SKIN'
 
-    self.SEED_INSIDE_SEGMENT = 'NN_INSIDE'
-    self.SEED_OUTSIDE_SEGMENT = 'NN_OUTSIDE'
+    self.SEED_INSIDE_SEGMENT = 'OpenNav_INSIDE'
+    self.SEED_OUTSIDE_SEGMENT = 'OpenNav_OUTSIDE'
 
     self.SMOOTHING_LEVEL_TARGET_SEGMENTATION = 5
 
@@ -568,7 +568,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.skin_model:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLModelNode",
-        "NN_SKIN_MODEL",
+        "OpenNav_SKIN_MODEL",
       )
       node.CreateDefaultDisplayNodes()
       node.GetDisplayNode().SetVisibility(False)
@@ -578,13 +578,13 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.skin_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLSegmentationNode",
-        "NN_SKIN_SEGMENTATION",
+        "OpenNav_SKIN_SEGMENTATION",
       )
       node.CreateDefaultDisplayNodes()
       segmentation = node.GetSegmentation()
       skin_segment = segmentation.GetSegment(segmentation.AddEmptySegment(
-        "NN_SKIN",
-        "NN_SKIN",
+        "OpenNav_SKIN",
+        "OpenNav_SKIN",
         [0.40, 0.35, 0.35],
       ))
       node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 1.)
@@ -606,18 +606,18 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.seed_segmentation:
       node = slicer.mrmlScene.AddNewNodeByClass(
         "vtkMRMLSegmentationNode",
-        "NN_SEED_SEGMENTATION",
+        "OpenNav_SEED_SEGMENTATION",
       )
       node.CreateDefaultDisplayNodes()
       segmentation = node.GetSegmentation()
       inside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(  # noqa: F841
-        "NN_INSIDE",
-        "NN_INSIDE",
+        "OpenNav_INSIDE",
+        "OpenNav_INSIDE",
         [0.10, 0.90, 0.10],
       ))
       outside_segment = segmentation.GetSegment(segmentation.AddEmptySegment(  # noqa: F841
-        "NN_OUTSIDE",
-        "NN_OUTSIDE",
+        "OpenNav_OUTSIDE",
+        "OpenNav_OUTSIDE",
         [0.90, 0.10, 0.10],
       ))
 
@@ -632,7 +632,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       slicer.mrmlScene.RemoveNode(self.target_segmentation)
     node = slicer.mrmlScene.AddNewNodeByClass(
       "vtkMRMLSegmentationNode",
-      "NN_TARGET_SEGMENTATION",
+      "OpenNav_TARGET_SEGMENTATION",
     )
     node.CreateDefaultDisplayNodes()
     self.target_segmentation = node
@@ -651,7 +651,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.trajectory_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
         'vtkMRMLMarkupsLineNode',
-        'NN_TRAJECTORY',
+        'OpenNav_TRAJECTORY',
       )
       node.CreateDefaultDisplayNodes()
       display = node.GetDisplayNode()
@@ -669,7 +669,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.trajectory_target_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
         'vtkMRMLMarkupsFiducialNode',
-        'NN_TRAJECTORY_TARGET',
+        'OpenNav_TRAJECTORY_TARGET',
       )
       display = node.GetDisplayNode()
       display.SetPointLabelsVisibility(False)
@@ -682,7 +682,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     if not self.trajectory_entry_markup:
       node = slicer.mrmlScene.AddNewNodeByClass(
         'vtkMRMLMarkupsFiducialNode',
-        'NN_TRAJECTORY_ENTRY',
+        'OpenNav_TRAJECTORY_ENTRY',
       )
       display = node.GetDisplayNode()
       display.SetPointLabelsVisibility(False)

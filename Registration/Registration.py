@@ -11,7 +11,7 @@ from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModuleWidget,
 )
 
-import NNUtils
+import OpenNavUtils
 import Home
 
 from LandmarkManager import Landmarks
@@ -26,12 +26,12 @@ class Registration(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Registration"
+    self.parent.title = "OpenNav Registration"
     self.parent.categories = [""]
     self.parent.dependencies = ["PivotCalibration"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
-This is the Registration main module for the NousNav application
+This is the Registration main module for the OpenNav application
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -120,12 +120,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       self.backButtonAction,
       self.advanceButton,
       self.advanceButtonAction,
-    ) = NNUtils.setupWorkflowToolBar("Registration")
+    ) = OpenNavUtils.setupWorkflowToolBar("Registration")
 
     # Registration Tab Bar
     self.registrationTabBar = qt.QTabBar()
     self.registrationTabBar.setObjectName("RegistrationTabBar")
-    NNUtils.addCssClass(self.registrationTabBar, "secondary-tabbar")
+    OpenNavUtils.addCssClass(self.registrationTabBar, "secondary-tabbar")
     self.registrationTabBar.visible = False
     secondaryTabWidget = slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryCenteredWidget')
     secondaryTabWidgetUI = slicer.util.childWidgetVariables(secondaryTabWidget)
@@ -206,8 +206,8 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
     for widget in [modulePanel, sidePanel, centralPanel]:
-      NNUtils.setCssClass(widget, "widget--color-light")
-      NNUtils.polish(widget)
+      OpenNavUtils.setCssClass(widget, "widget--color-light")
+      OpenNavUtils.polish(widget)
 
     self.logic.updateExtensionModels()
     self.setupPivotCalibration()
@@ -235,7 +235,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return "OptiTrack not connected"
 
   def validateSpinCalibration(self):
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
       return 'Perform pivot calibration before spin calibration'
     if not self.logic.pivot_calibration_passed:
       return 'Improve pivot calibration before spin calibration'
@@ -245,7 +245,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before registering'
 
     # check if pivot transform is identity
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
       return 'Perform pointer pivot calibration before registering'
 
     # check if pivot and spin calibration is good
@@ -259,7 +259,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before registering'
 
     # check if pivot transform is identity
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
       return 'Perform pointer calibration before registering'
 
     # check if pivot and spin calibration is good
@@ -273,7 +273,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before registering'
 
     # check if pivot transform is identity
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.pointer_calibration):
       return 'Perform pointer calibration before registering'
 
     # check if pivot and spin calibration is good
@@ -285,7 +285,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # check if landmark registration is present and good
     if not self.logic.landmark_registration_transform:
       return 'Landmark registration missing'
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform):
       return 'Landmark registration not complete'
     if not self.logic.landmark_registration_passed:
       return 'Please redo landmark registration to improve results'
@@ -293,7 +293,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     # check if surface registration is present and good
     if not self.logic.surface_registration_transform:
       return 'Surface registration missing'
-    if NNUtils.isLinearTransformNodeIdentity(self.logic.surface_registration_transform):
+    if OpenNavUtils.isLinearTransformNodeIdentity(self.logic.surface_registration_transform):
       return 'Surface registration not complete'
     if not self.logic.surface_registration_passed:
       return 'Please redo surface tracing to improve results'
@@ -323,7 +323,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
       plusFileName = 'PLUSHeadKitware.xml.in'
 
     if self.selectorUI.BWHRadioButton.checked:
-      motiveFileName = 'NousNav-BWH-Hardware_2024-05-08.xml'
+      motiveFileName = 'OpenNav-BWH-Hardware_2024-05-08.xml'
       plusFileName = 'PLUSHead.xml.in'
 
     test = qt.QMessageBox(qt.QMessageBox.Information, "Starting", "Starting tracker", qt.QMessageBox.NoButton)
@@ -357,60 +357,60 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.shortcut.disconnect("activated()")
 
-  @NNUtils.backButton(text="Return to Planning")
-  @NNUtils.advanceButton(text="Setup NousNav")
+  @OpenNavUtils.backButton(text="Return to Planning")
+  @OpenNavUtils.advanceButton(text="Setup OpenNav")
   def registrationStepPatientPrep(self):
     self.stepSetup()
     self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
+    OpenNavUtils.goToPictureLayout(self.pictures["RegistrationStepPatientPrep.png"])
 
     self.shortcut.connect("activated()", self.workflow.gotoNext)
 
-  @NNUtils.backButton(text="Back")
-  @NNUtils.advanceButton(text="Press when done")
+  @OpenNavUtils.backButton(text="Back")
+  @OpenNavUtils.advanceButton(text="Press when done")
   def registrationStepTrackingPrep(self):
     self.stepSetup()
     self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
+    OpenNavUtils.goToPictureLayout(self.pictures["RegistrationStepTrackingPrep.png"])
 
     self.shortcut.connect("activated()", self.workflow.gotoNext)
 
-  @NNUtils.backButton(text="Back")
-  @NNUtils.advanceButton(text="Press when done")
+  @OpenNavUtils.backButton(text="Back")
+  @OpenNavUtils.advanceButton(text="Press when done")
   def registrationStepPointerPrep(self):
     self.stepSetup()
     self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
+    OpenNavUtils.goToPictureLayout(self.pictures["RegistrationStepPointerPrep.jpg"])
 
     self.shortcut.connect("activated()", self.workflow.gotoNext)
 
-  @NNUtils.backButton(text="Back")
-  @NNUtils.advanceButton(text="Press when done")
+  @OpenNavUtils.backButton(text="Back")
+  @OpenNavUtils.advanceButton(text="Press when done")
   def registrationStepAlignCamera(self):
     self.stepSetup()
     self.advanceButton.enabled = self.optitrack.isRunning
 
     # set the layout and display an image
-    NNUtils.goToPictureLayout(self.pictures["RegistrationStepAlignCamera.png"], sidePanelVisible=True)
+    OpenNavUtils.goToPictureLayout(self.pictures["RegistrationStepAlignCamera.png"], sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
 
     self.tools.setToolsStatusCheckEnabled(True)
 
     self.shortcut.connect("activated()", self.workflow.gotoNext)
 
-  @NNUtils.backButton(text="Back")
-  @NNUtils.advanceButton(text="Press when done")
+  @OpenNavUtils.backButton(text="Back")
+  @OpenNavUtils.advanceButton(text="Press when done")
   def registrationStepPivotCalibration(self):
     self.stepSetup()
 
     # set the layout and display an image
-    NNUtils.goToVideoLayout(self.resourcePath('Videos/pivot.html'), sidePanelVisible=True)
+    OpenNavUtils.goToVideoLayout(self.resourcePath('Videos/pivot.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
 
     self.tools.setToolsStatusCheckEnabled(True)
@@ -516,13 +516,13 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.logic.odd_extensions.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
     self.logic.even_extensions.SetAndObserveTransformNodeID(self.logic.pointer_calibration.GetID())
 
-  @NNUtils.backButton(text="Back")
-  @NNUtils.advanceButton(text="Press when done")
+  @OpenNavUtils.backButton(text="Back")
+  @OpenNavUtils.advanceButton(text="Press when done")
   def registrationStepSpinCalibration(self):
     self.stepSetup()
 
     # set the layout and display an image
-    NNUtils.goToVideoLayout(self.resourcePath('Videos/spin.html'), sidePanelVisible=True)
+    OpenNavUtils.goToVideoLayout(self.resourcePath('Videos/spin.html'), sidePanelVisible=True)
     self.AlignmentSideWidget.visible = True
 
     self.tools.setToolsStatusCheckEnabled(True)
@@ -620,11 +620,11 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
     self.messageBox.hide()
 
-  @NNUtils.backButton(text="Recalibrate")
-  @NNUtils.advanceButton(text="")
+  @OpenNavUtils.backButton(text="Recalibrate")
+  @OpenNavUtils.advanceButton(text="")
   def registrationStepLandmarkRegistration(self):
     # Set the layout
-    NNUtils.goToRegistrationCameraViewLayout()
+    OpenNavUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
     self.planningLogic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False,
                                              targetSegmentation=False, trajectory=False, landmarks=False)
@@ -644,7 +644,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.landmarks.showLandmarks = True
     self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
     self.landmarks.updateLandmarksDisplay()
-    NNUtils.centerCam()
+    OpenNavUtils.centerCam()
 
     # set the button labels
     self.landmarks.updateAdvanceButton()
@@ -661,18 +661,18 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut.disconnect("activated()")
     self.shortcut.connect("activated()", self.onCollectButton)
 
-  @NNUtils.backButton(text="Restart registration")
-  @NNUtils.advanceButton(text="Continue")
+  @OpenNavUtils.backButton(text="Restart registration")
+  @OpenNavUtils.advanceButton(text="Continue")
   def registrationStepSurfaceRegistration(self):
     # Transform validation is done here because the landmark registration is performed in the teardown (invoked after validate)
     if not self.logic.landmark_registration_transform or \
-            NNUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform) or \
+            OpenNavUtils.isLinearTransformNodeIdentity(self.logic.landmark_registration_transform) or \
             not self.logic.landmark_registration_passed:
       self.workflow.gotoPrev()
       return
 
     # Set the layout
-    NNUtils.goToRegistrationCameraViewLayout()
+    OpenNavUtils.goToRegistrationCameraViewLayout()
     self.AlignmentSideWidget.visible = True
     
     self.landmarks.showLandmarks = False
@@ -682,7 +682,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.addLandmarksToTrace()
     self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
                                              targetSegmentation=False, trajectory=False, landmarks=False)
-    NNUtils.centerCam()
+    OpenNavUtils.centerCam()
 
     self.advanceButton.enabled = self.logic.surface_registration_passed
 
@@ -697,12 +697,12 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.shortcut.disconnect("activated()")
     self.shortcut.connect("activated()", self.onTraceButton)
 
-  @NNUtils.backButton(text="Restart registration")
-  @NNUtils.advanceButton(text="Accept", enabled=False)
+  @OpenNavUtils.backButton(text="Restart registration")
+  @OpenNavUtils.advanceButton(text="Accept", enabled=False)
   def registrationStepVerifyRegistration(self):
     # Set the layout
     masterNode = slicer.modules.PlanningWidget.logic.master_volume
-    NNUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
+    OpenNavUtils.goToNavigationLayout(volumeNode=masterNode, mainPanelVisible=True)
     self.tools.setToolsStatusCheckEnabled(True)
     self.AlignmentSideWidget.visible = False
     self.planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False,
@@ -710,7 +710,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     self.logic.needle_model.GetDisplayNode().SetVisibility(True)
     self.logic.needle_model.GetDisplayNode().SetVisibility2D(True)
     self.trace.setVisible(False)
-    NNUtils.centerCam()
+    OpenNavUtils.centerCam()
 
     self.advanceButton.enabled = self.logic.landmark_registration_passed and self.logic.surface_registration_passed
     self.ui.GoToTracingButton.enabled = self.logic.landmark_registration_passed
@@ -1051,13 +1051,13 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
   EXTENSION_SEGMENT_LENGTH_MM = 10
 
-  pointer_calibration = NNUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
-  landmark_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
-  surface_registration_transform = NNUtils.nodeReferenceProperty("IMAGE_REGISTRATION_REFINEMENT", default=None)
-  pivot_calibration_passed = NNUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
-  spin_calibration_passed = NNUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
-  landmark_registration_passed = NNUtils.parameterProperty("LANDMARK_REGISTRATION_PASSED", default=False)
-  surface_registration_passed = NNUtils.parameterProperty("SURFACE_REGISTRATION_PASSED", default=False)
+  pointer_calibration = OpenNavUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
+  landmark_registration_transform = OpenNavUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
+  surface_registration_transform = OpenNavUtils.nodeReferenceProperty("IMAGE_REGISTRATION_REFINEMENT", default=None)
+  pivot_calibration_passed = OpenNavUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
+  spin_calibration_passed = OpenNavUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
+  landmark_registration_passed = OpenNavUtils.parameterProperty("LANDMARK_REGISTRATION_PASSED", default=False)
+  surface_registration_passed = OpenNavUtils.parameterProperty("SURFACE_REGISTRATION_PASSED", default=False)
 
   # Not a reference property, since we DO NOT want any reference to this saved with the scene
   # This node should only exists when the tracker is running
@@ -1252,6 +1252,6 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     icp.SetMeanDistanceModeToAbsoluteValue()
     icp.GetLandmarkTransform().SetModeToRigidBody()
     icp.SetTarget(skin_model_polydata)
-    icp.SetSource(NNUtils.createPolyData(tracePoints))
+    icp.SetSource(OpenNavUtils.createPolyData(tracePoints))
     icp.Update()
     return icp.GetMatrix()

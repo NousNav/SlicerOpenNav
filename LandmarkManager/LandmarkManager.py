@@ -14,7 +14,7 @@ from slicer.ScriptedLoadableModule import (
 )
 from slicer.util import VTKObservationMixin
 
-import NNUtils
+import OpenNavUtils
 
 
 class LandmarkManager(ScriptedLoadableModule):
@@ -64,11 +64,11 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
   ]
   LANDMARKS_NEEDED = 3
 
-  requiredLandmarks: List[str] = NNUtils.parameterProperty('REQUIRED_LANDMARKS', default=ALL_LANDMARKS)
+  requiredLandmarks: List[str] = OpenNavUtils.parameterProperty('REQUIRED_LANDMARKS', default=ALL_LANDMARKS)
 
-  landmarkIndexes: Dict[str, int] = NNUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
+  landmarkIndexes: Dict[str, int] = OpenNavUtils.parameterProperty('LANDMARK_INDEXES', factory=dict)
 
-  landmarks = NNUtils.nodeReferenceProperty('PLANNING_LANDMARKS', default=None)
+  landmarks = OpenNavUtils.nodeReferenceProperty('PLANNING_LANDMARKS', default=None)
 
   def __init__(self):
     super().__init__()
@@ -272,7 +272,7 @@ class Landmark:
 
 class Landmarks(ScriptedLoadableModuleLogic):
 
-  trackerLandmarks = NNUtils.nodeReferenceProperty('TRACKER_LANDMARKS', default=None)
+  trackerLandmarks = OpenNavUtils.nodeReferenceProperty('TRACKER_LANDMARKS', default=None)
   # From Registration/RegistrationUtils/Landmarks.py
   
   def __init__(self, tableWidget, moduleName, collectButton):

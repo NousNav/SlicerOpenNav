@@ -14,7 +14,7 @@ from slicer.ScriptedLoadableModule import (
 )
 from slicer.util import VTKObservationMixin
 
-import NNUtils
+import OpenNavUtils
 
 
 class Home(ScriptedLoadableModule):
@@ -24,12 +24,12 @@ class Home(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Home"
+    self.parent.title = "OpenNav Home"
     self.parent.categories = [""]
     self.parent.dependencies = ["Patients", "Planning", "Registration", "Navigation"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
-This is the Home module for the NousNav application
+This is the Home module for the OpenNav application
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -52,7 +52,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # |----------------------------------------------------------------------------------------------------|
     # |                                                                                                    |
-    # | (NousNavLabel)                     (CenteredWidget)                                                |
+    # | (OpenNavLabel)                     (CenteredWidget)                                                |
     # |                              PrimaryTab1 | ... | PrimaryTabN                            [Settings] |
     # |                                                                                                    |
     # |                                (SecondaryCenteredWidget)                                           |
@@ -81,7 +81,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.modifyWindowUI()
 
     # Initialize navigation layout
-    NNUtils.initializeNavigationLayouts()
+    OpenNavUtils.initializeNavigationLayouts()
 
     patients = slicer.modules.patients.createNewWidgetRepresentation()
     planning = slicer.modules.planning.createNewWidgetRepresentation()
@@ -113,12 +113,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.applyApplicationStyle()
 
   def applyApplicationStyle(self):
-    NNUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
+    OpenNavUtils.applyStyle([slicer.app], self.resourcePath("Home.qss"))
 
   def setupNodes(self):
     # Set up the layout / 3D View
-    NNUtils.setup3DView()
-    NNUtils.setupSliceViewers()
+    OpenNavUtils.setup3DView()
+    OpenNavUtils.setupSliceViewers()
 
   def onClose(self, unusedOne, unusedTwo):
     self.setupNodes()
@@ -155,9 +155,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.primaryTabWidgetUI.CenterArea.layout().addWidget(self.primaryTabBar)
 
     # Assemble primary bar
-    nousNavLabel = qt.QLabel('NousNav')
-    nousNavLabel.setObjectName("NousNavLabel")
-    self.primaryToolBar.addWidget(nousNavLabel)
+    openNavLabel = qt.QLabel('OpenNav')
+    openNavLabel.setObjectName("OpenNavLabel")
+    self.primaryToolBar.addWidget(openNavLabel)
     self.patientNameLabel = qt.QLabel('Patient: ')
     self.patientNameLabel.setObjectName('PatientNameLabel')
     self.primaryToolBar.addWidget(self.patientNameLabel)
@@ -186,7 +186,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Open cases folder
     folderIcon = qt.QIcon(self.resourcePath('Icons/Folder.svg'))
     self.folderAction = self.primaryToolBar.addAction(folderIcon, "")
-    self.folderAction.triggered.connect(NNUtils.openCasesDirectoryInExplorer)
+    self.folderAction.triggered.connect(OpenNavUtils.openCasesDirectoryInExplorer)
     self.folderAction.toolTip = 'Open cases folder in Windows Explorer.'
 
     # Settings dialog
@@ -251,9 +251,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   
   def takeScreenShot(self):
     if slicer.modules.PlanningWidget.logic.case_name:
-      NNUtils.saveScreenShot(slicer.modules.PlanningWidget.logic.case_name)
+      OpenNavUtils.saveScreenShot(slicer.modules.PlanningWidget.logic.case_name)
     else:
-      NNUtils.saveScreenShot('NonPatientScreenShots')
+      OpenNavUtils.saveScreenShot('NonPatientScreenShots')
   
   def toggleStyle(self,visible):
     if visible:
@@ -300,8 +300,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     else:
       slicer.util.mainWindow().setContextMenuPolicy(qt.Qt.NoContextMenu)
 
-    NNUtils.setupSliceViewers(visible)
-    NNUtils.setup3DView(visible)
+    OpenNavUtils.setupSliceViewers(visible)
+    OpenNavUtils.setup3DView(visible)
 
 
 class Step:
@@ -413,7 +413,7 @@ class Workflow:
   `Step.transition` yields the sequence of setup/teardown functions that should be invoked, and `HomeLogic.goto`
    actually performs the navigation between steps.
 
-  See https://github.com/NousNav/NousNav/pull/180 for more information.
+  See https://github.com/OpenNav/OpenNav/pull/180 for more information.
   """
 
   def __init__(
@@ -510,7 +510,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   """
 
   _currentNameCache: typing.Optional[typing.Tuple[str]]
-  _currentName: typing.Optional[typing.Tuple[str]] = NNUtils.parameterProperty('CURRENT_STEP_NAME', default=None)
+  _currentName: typing.Optional[typing.Tuple[str]] = OpenNavUtils.parameterProperty('CURRENT_STEP_NAME', default=None)
 
   @property
   def current(self) -> typing.Optional[Step]:
@@ -753,5 +753,5 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     label = slicer.util.findChild(slicer.util.mainWindow(),'SavingStatusLabel')
     label.text = 'Saving...'
     slicer.app.processEvents()
-    NNUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+    OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
     label.text = ''

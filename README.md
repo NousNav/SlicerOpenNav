@@ -6,7 +6,7 @@ Open source tools for surgical navigation built as a [3D Slicer](https://www.sli
 
 ## Overview
 
-SlicerOpenNav (also known as NousNav) provides a complete workflow for image-guided surgical navigation, including:
+SlicerOpenNav (also known as OpenNav) provides a complete workflow for image-guided surgical navigation, including:
 
 - **Patient Management**: DICOM import, case organization, and automatic session saving/loading
 - **Surgical Planning**: Skin and target segmentation, trajectory planning, and anatomical landmark definition
@@ -82,7 +82,7 @@ SlicerOpenNav (also known as NousNav) provides a complete workflow for image-gui
 
 ### Data Storage
 
-Cases are automatically saved to `~/NousNav/Cases/{case_name}/` and can be reopened from the Patients screen.
+Cases are automatically saved to `~/OpenNav/Cases/{case_name}/` and can be reopened from the Patients screen.
 
 ## Modules
 
@@ -95,7 +95,7 @@ Cases are automatically saved to `~/NousNav/Cases/{case_name}/` and can be reope
 | Navigation | Real-time tracking and visualization |
 | LandmarkManager | Anatomical landmark handling |
 | OptiTrack | Optical tracking hardware integration |
-| NNUtils | Shared utilities and helpers |
+| OpenNavUtils | Shared utilities and helpers |
 
 ## Contributing
 

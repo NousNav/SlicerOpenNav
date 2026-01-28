@@ -223,7 +223,7 @@ QPushButton[cssClass~="bottom-toolbar__back-button"]:hover {
     background-color: #343434;
 }
 
-QLabel#NousNavLabel {
+QLabel#OpenNavLabel {
     background-color: #121212;
     color: #5ac2c9;
     border-bottom: 2px solid #434343;

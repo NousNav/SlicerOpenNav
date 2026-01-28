@@ -6,7 +6,7 @@ from slicer.ScriptedLoadableModule import (
   ScriptedLoadableModuleWidget,
 )
 
-import NNUtils
+import OpenNavUtils
 import Home
 
 
@@ -17,12 +17,12 @@ class Navigation(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "NousNav Navigation"
+    self.parent.title = "OpenNav Navigation"
     self.parent.categories = [""]
     self.parent.dependencies = []
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
-This is the Navigation main module for the NousNav application
+This is the Navigation main module for the OpenNav application
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -60,7 +60,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.backButtonAction,
       self.advanceButton,
       self.advanceButtonAction,
-    ) = NNUtils.setupWorkflowToolBar("Navigation")
+    ) = OpenNavUtils.setupWorkflowToolBar("Navigation")
 
     # Navigation menu toolbar
     (
@@ -69,7 +69,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       self.pointerButtonAction,
       self.layoutButton,
       self.layoutButtonAction,
-    ) = NNUtils.setupNavigationToolBar("Navigation")
+    ) = OpenNavUtils.setupNavigationToolBar("Navigation")
 
     self.setupDialogs()
 
@@ -80,7 +80,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       return 'Perform pointer calibration before navigating'
 
     # check if pivot transform is identity
-    if NNUtils.isLinearTransformNodeIdentity(registration_logic.pointer_calibration):
+    if OpenNavUtils.isLinearTransformNodeIdentity(registration_logic.pointer_calibration):
       return 'Perform pointer pivot calibration before navigating'
 
     # check if pivot and spin calibration is good
@@ -91,7 +91,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     landmark_registration_node = registration_logic.landmark_registration_transform
     if not landmark_registration_node:
       return 'Landmark registration missing'
-    if NNUtils.isLinearTransformNodeIdentity(landmark_registration_node):
+    if OpenNavUtils.isLinearTransformNodeIdentity(landmark_registration_node):
       return 'Landmark registration not complete'
     if not slicer.modules.RegistrationWidget.logic.landmark_registration_passed:
       return 'Please redo landmark registration to improve results'
@@ -100,7 +100,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     surface_registration_node = registration_logic.surface_registration_transform
     if not surface_registration_node:
       return 'Surface registration missing'
-    if NNUtils.isLinearTransformNodeIdentity(surface_registration_node):
+    if OpenNavUtils.isLinearTransformNodeIdentity(surface_registration_node):
       return 'Surface registration not complete'
     if not slicer.modules.RegistrationWidget.logic.surface_registration_passed:
       return 'Please redo surface tracing to improve results'
@@ -116,8 +116,8 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
     for widget in [modulePanel, sidePanel, centralPanel]:
-      NNUtils.setCssClass(widget, "widget--color-light")
-      NNUtils.polish(widget)
+      OpenNavUtils.setCssClass(widget, "widget--color-light")
+      OpenNavUtils.polish(widget)
 
     planningLogic = slicer.modules.PlanningWidget.logic
 
@@ -146,7 +146,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility(True)
       slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility2D(True)
 
-    NNUtils.goToNavigationLayout(volumeNode=masterNode)
+    OpenNavUtils.goToNavigationLayout(volumeNode=masterNode)
 
     tools = slicer.modules.RegistrationWidget.tools
     tools.setToolsStatusCheckEnabled(True)
@@ -203,10 +203,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       masterNode = None
       print('No master volume node loaded')
     if self.layoutsDialogUI.SixUpCheckBox.checked:
-      NNUtils.goToNavigationLayout(volumeNode=masterNode, layout='SixUp')
+      OpenNavUtils.goToNavigationLayout(volumeNode=masterNode, layout='SixUp')
 
     if self.layoutsDialogUI.TwoUpCheckBox.checked:
-      NNUtils.goToNavigationLayout(volumeNode=masterNode, layout='TwoUp')
+      OpenNavUtils.goToNavigationLayout(volumeNode=masterNode, layout='TwoUp')
 
 
 class NavigationLogic(ScriptedLoadableModuleLogic):

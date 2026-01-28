@@ -18,21 +18,21 @@ from slicer.ScriptedLoadableModule import (
 )
 
 import Home
-import NNUtils
+import OpenNavUtils
 
 
 class Patients(ScriptedLoadableModule):
   def __init__(self, parent):
     super().__init__(parent)
 
-    self.parent.title = "NousNav Patients"
+    self.parent.title = "OpenNav Patients"
     self.parent.categories = [""]
     self.parent.dependencies = []
     self.parent.contributors = [
       "David Allemang (Kitware Inc.)",
       "Sam Horvath (Kitware Inc.)",
     ]
-    self.parent.helpText = "This is the Patients module for the NousNav application. "
+    self.parent.helpText = "This is the Patients module for the OpenNav application. "
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = ""
 
@@ -68,9 +68,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       self.backButtonAction,
       self.advanceButton,
       self.advanceButtonAction,
-    ) = NNUtils.setupWorkflowToolBar("Patients")
+    ) = OpenNavUtils.setupWorkflowToolBar("Patients")
 
-    NNUtils.addCssClass(self.bottomToolBar, "bottom-toolbar--color-dark")
+    OpenNavUtils.addCssClass(self.bottomToolBar, "bottom-toolbar--color-dark")
 
     # Default
     self.advanceButtonAction.enabled = False
@@ -91,8 +91,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateGUIFromPatientState()
   
   
-  @NNUtils.backButton(text="Back", visible=False)
-  @NNUtils.advanceButton(text="Go To Planning")
+  @OpenNavUtils.backButton(text="Back", visible=False)
+  @OpenNavUtils.advanceButton(text="Go To Planning")
   def enter(self):
     # Show current
     slicer.util.findChild(slicer.util.mainWindow(), 'SecondaryToolBar').visible = False
@@ -103,8 +103,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     sidePanel = slicer.util.findChild(slicer.util.mainWindow(), 'SidePanelDockWidget')
     centralPanel = slicer.util.findChild(slicer.util.mainWindow(), 'CentralWidget')
     for widget in [modulePanel, sidePanel, centralPanel]:
-      NNUtils.setCssClass(widget, "widget--color-dark")
-      NNUtils.polish(widget)
+      OpenNavUtils.setCssClass(widget, "widget--color-dark")
+      OpenNavUtils.polish(widget)
 
     # Begin listening for new volumes
     if self.VolumeNodeTag is None:
@@ -112,7 +112,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     # Passing the special value "keep-current" ensure the layer is not modified
     # See https://slicer.readthedocs.io/en/latest/developer_guide/slicer.html#slicer.util.setSliceViewerLayers
-    NNUtils.goToFourUpLayout(volumeNode='keep-current')
+    OpenNavUtils.goToFourUpLayout(volumeNode='keep-current')
     self.updateCasesList()
     self.updateGUIFromPatientState()
 
@@ -210,12 +210,12 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateGUIFromPatientState()
   
   def launchCaseNameDialog(self):
-    self.caseDialogUI.CaseNameLineEdit.text = NNUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
+    self.caseDialogUI.CaseNameLineEdit.text = OpenNavUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
     self.caseDialog.exec()
 
   def updateCasesList(self):
     print("Updating table")
-    cases = NNUtils.listAvailablePlans()
+    cases = OpenNavUtils.listAvailablePlans()
     self.ui.CasesTableWidget.clearContents()
     recentRowCount = len(cases) if len(cases) < 5 else 5
     self.ui.CasesTableWidget.setRowCount(recentRowCount)
@@ -248,7 +248,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     currentRow = self.patientListDialogUI.CasesTableWidgetDialog.currentRow()
     caseItem = self.patientListDialogUI.CasesTableWidgetDialog.item(currentRow, 0)
     caseName = caseItem.text()
-    NNUtils.deleteAutoSave(caseName)
+    OpenNavUtils.deleteAutoSave(caseName)
     self.updateCasesList()
   
   def loadCase(self, caseName):
@@ -257,7 +257,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
       return  # already loaded
     print('load a case: ' + caseName)
     slicer.modules.PlanningWidget.logic.case_name = caseName
-    NNUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
+    OpenNavUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
     slicer.modules.PlanningWidget.logic.case_name = caseName
     self.updateGUIFromPatientState()
     
@@ -319,7 +319,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     dialog = qt.QFileDialog()
     plan_path = dialog.getOpenFileName(
       slicer.util.mainWindow(),
-      'Open NousNav Plan',
+      'Open OpenNav Plan',
       default_dir,
       '*.mrb',
     )
