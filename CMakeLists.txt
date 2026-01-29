@@ -7,7 +7,7 @@ project(SlicerOpenNav)
 set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/SlicerOpenNav")
 set(EXTENSION_CONTRIBUTORS "Sam Horvath (Kitware Inc.)")
 set(EXTENSION_DESCRIPTION "Open source tools for surgical navigation")
-set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/SlicerOpenNav.png")
+set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/SlicerOpenNav.svg")
 set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/SlicerOpenNav/Screenshots/1.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a list or "NA" if no dependencies
 
