@@ -12,7 +12,7 @@ import Home
 
 class Navigation(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
@@ -33,7 +33,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 
 class NavigationWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
@@ -122,10 +122,10 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
     planningLogic = slicer.modules.PlanningWidget.logic
 
     try:
-      masterNode = planningLogic.master_volume
+      sourceNode = planningLogic.source_volume
     except:
-      masterNode = None
-      print('No master volume node loaded')
+      sourceNode = None
+      print('No source volume node loaded')
 
     planningLogic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
     try:
@@ -146,7 +146,7 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
       slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility(True)
       slicer.modules.RegistrationWidget.logic.even_extensions.GetDisplayNode().SetVisibility2D(True)
 
-    OpenNavUtils.goToNavigationLayout(volumeNode=masterNode)
+    OpenNavUtils.goToNavigationLayout(volumeNode=sourceNode)
 
     tools = slicer.modules.RegistrationWidget.tools
     tools.setToolsStatusCheckEnabled(True)
@@ -198,15 +198,15 @@ class NavigationWidget(ScriptedLoadableModuleWidget):
   def changeLayout(self):
     planningLogic = slicer.modules.PlanningWidget.logic
     try:
-      masterNode = planningLogic.master_volume
+      sourceNode = planningLogic.source_volume
     except:
-      masterNode = None
-      print('No master volume node loaded')
+      sourceNode = None
+      print('No source volume node loaded')
     if self.layoutsDialogUI.SixUpCheckBox.checked:
-      OpenNavUtils.goToNavigationLayout(volumeNode=masterNode, layout='SixUp')
+      OpenNavUtils.goToNavigationLayout(volumeNode=sourceNode, layout='SixUp')
 
     if self.layoutsDialogUI.TwoUpCheckBox.checked:
-      OpenNavUtils.goToNavigationLayout(volumeNode=masterNode, layout='TwoUp')
+      OpenNavUtils.goToNavigationLayout(volumeNode=sourceNode, layout='TwoUp')
 
 
 class NavigationLogic(ScriptedLoadableModuleLogic):
@@ -216,7 +216,7 @@ class NavigationLogic(ScriptedLoadableModuleLogic):
   this class and make use of the functionality without
   requiring an instance of the Widget.
   Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):

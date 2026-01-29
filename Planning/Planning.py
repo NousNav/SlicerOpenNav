@@ -24,7 +24,7 @@ from LandmarkManager import (
 
 class Planning(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
@@ -45,7 +45,7 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 
 class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """Uses ScriptedLoadableModuleWidget base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
@@ -186,9 +186,9 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return 'Define trajectory before continuing'
   
   def validate(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if volume is None:
-      return 'No master volume is set and no volume is active. Choose a master volume.'
+      return 'No source volume is set and no volume is active. Choose a source volume.'
   
   def enter(self):
     # Show current
@@ -205,10 +205,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       OpenNavUtils.polish(widget)
 
     # set slice viewer background
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if volume is None:
       slicer.util.errorDisplay(
-        'No master volume is set and no volume is active. Choose a master volume.'
+        'No source volume is set and no volume is active. Choose a source volume.'
       )
       return
 
@@ -217,7 +217,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     OpenNavUtils.goToFourUpLayout(volumeNode=volume)
 
     # Set threshold slider extremes and default
-    volumeDisplay = self.logic.master_volume.GetDisplayNode()
+    volumeDisplay = self.logic.source_volume.GetDisplayNode()
     min = volumeDisplay.GetWindowLevelMin()
     max = volumeDisplay.GetWindowLevelMax()
     window = volumeDisplay.GetWindow()
@@ -242,7 +242,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False, trajectory=False, landmarks=False)
     self.logic.setSkinSegmentForEditing()
 
-    self.advanceButton.enabled = self.logic.master_volume is not None
+    self.advanceButton.enabled = self.logic.source_volume is not None
     self.updateSkinSegmentationPreview()
 
   def teardownPlanningStep1(self):
@@ -287,7 +287,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.tableManager.advanceButton = self.advanceButton
    
   def updateSkinSegmentationPreview(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -302,11 +302,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.updateSkinSegmentationPreview(
       thresholdMin=self.ui.skinThresholdSlider.value,
-      thresholdMax=self.logic.master_volume.GetImageData().GetScalarRange()[1]
+      thresholdMax=self.logic.source_volume.GetImageData().GetScalarRange()[1]
     )
 
   def createSkinSegmentation(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -328,7 +328,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Only use a lower threshold and use the max value of volume as upper bound:
     self.logic.applySkinSegmentation(
       thresholdMin=self.ui.skinThresholdSlider.value,
-      thresholdMax=self.logic.master_volume.GetImageData().GetScalarRange()[1],
+      thresholdMax=self.logic.source_volume.GetImageData().GetScalarRange()[1],
       smoothingSize=self.ui.skinSmoothingSlider.value,
     )
     self.logic.endEffect()
@@ -345,7 +345,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     messageBox.hide()
   
   def eraseAll(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -361,7 +361,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.beginErase()
   
   def paintInside(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -377,7 +377,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.beginPaint()
 
   def paintOutside(self):
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -406,7 +406,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def previewTarget(self):
     self.logic.endEffect()
     self.logic.setupTargetSegmentationNode()
-    volume = self.logic.master_volume
+    volume = self.logic.source_volume
     if not volume:
       slicer.util.errorDisplay('There is no volume in the scene.')
       return
@@ -458,8 +458,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateTargetPanelButtons()
 
   
-def default_master_volume():
-  logging.warning('No master volume is set.')
+def default_source_volume():
+  logging.warning('No source volume is set.')
 
   node_id = OpenNavUtils.getActiveVolume()
   if not node_id:
@@ -478,10 +478,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   this class and make use of the functionality without
   requiring an instance of the Widget.
   Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+  https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  master_volume = OpenNavUtils.nodeReferenceProperty("MASTER_VOLUME", factory=default_master_volume)
+  source_volume = OpenNavUtils.nodeReferenceProperty("SOURCE_VOLUME", factory=default_source_volume)
   skin_segmentation = OpenNavUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
   seed_segmentation = OpenNavUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
   target_segmentation = OpenNavUtils.nodeReferenceProperty("TARGET_SEGMENTATION", default=None)
@@ -515,11 +515,11 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
   def removePatientImageData(self):
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    nodeItem = shNode.GetItemByDataNode(self.master_volume)
+    nodeItem = shNode.GetItemByDataNode(self.source_volume)
     studyItem = shNode.GetItemAncestorAtLevel(nodeItem, 'Study')
     patientItem = shNode.GetItemAncestorAtLevel(nodeItem, 'Patient')
     
-    slicer.mrmlScene.RemoveNode(self.master_volume)
+    slicer.mrmlScene.RemoveNode(self.source_volume)
     if studyItem != 0:
       shNode.RemoveItem(studyItem)
     if patientItem != 0:

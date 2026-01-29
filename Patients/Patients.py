@@ -152,23 +152,23 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     PatientsWidget.setDICOMBrowserVisible(False)
   
   def updateGUIFromPatientState(self):
-    master_volume = slicer.modules.PlanningWidget.logic.master_volume
-    self.ui.DICOMToggleButton.enabled = not master_volume
-    self.ui.PatientListButton.enabled = not master_volume
+    source_volume = slicer.modules.PlanningWidget.logic.source_volume
+    self.ui.DICOMToggleButton.enabled = not source_volume
+    self.ui.PatientListButton.enabled = not source_volume
     
-    self.ui.planButton.enabled = (not master_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0) or master_volume
+    self.ui.planButton.enabled = (not source_volume and len(self.ui.CasesTableWidget.selectedItems()) != 0) or source_volume
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
     self.patientListDialogUI.RemoveButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
 
     slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
 
-    if master_volume:
+    if source_volume:
       self.ui.planButton.text = 'Close Current Patient'
     else:
       self.ui.planButton.text = 'Open Patient'
     
     if hasattr(slicer.modules, "DICOMWidget"):
-      if master_volume:
+      if source_volume:
         PatientsWidget.setDICOMBrowserVisible(False)
       self.ui.ImportDICOMButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
       self.ui.dicomPathButton.visible = not slicer.modules.DICOMWidget.browserWidget.isHidden()
@@ -215,7 +215,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateGUIFromPatientState()
   
   def launchCaseNameDialog(self):
-    self.caseDialogUI.CaseNameLineEdit.text = OpenNavUtils.slugify(slicer.modules.PlanningWidget.logic.master_volume.GetName())
+    self.caseDialogUI.CaseNameLineEdit.text = OpenNavUtils.slugify(slicer.modules.PlanningWidget.logic.source_volume.GetName())
     self.caseDialog.exec()
 
   def updateCasesList(self):
@@ -257,8 +257,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.updateCasesList()
   
   def loadCase(self, caseName):
-    master_volume = slicer.modules.PlanningWidget.logic.master_volume
-    if master_volume:
+    source_volume = slicer.modules.PlanningWidget.logic.source_volume
+    if source_volume:
       return  # already loaded
     print('load a case: ' + caseName)
     slicer.modules.PlanningWidget.logic.case_name = caseName
