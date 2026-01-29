@@ -9,6 +9,10 @@ set(MODULE_PYTHON_SCRIPTS
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/UI/${MODULE_NAME}.ui
+  Resources/Icons/Done.svg
+  Resources/Icons/NotStarted.svg
+  Resources/Icons/Skipped.svg
+  Resources/Icons/Started.svg
   )
 
 #-----------------------------------------------------------------------------

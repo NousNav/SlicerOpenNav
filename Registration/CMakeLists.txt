@@ -20,11 +20,6 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Images/RegistrationStepAlignCamera.png
   Resources/Data/manny.vtk
   Resources/Data/beep.wav
-  Resources/Icons/Done.svg
-  Resources/Icons/NotStarted.svg
-  Resources/Icons/NotStarted.png
-  Resources/Icons/Skipped.svg
-  Resources/Icons/Started.svg
   Resources/Videos/pivot.html
   Resources/Videos/Pivot.webm
   Resources/Videos/spin.html

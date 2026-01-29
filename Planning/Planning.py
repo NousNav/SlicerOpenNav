@@ -136,8 +136,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.landmarkLogic,
       self.ui.defineLandmarkTableWidget,
       {
-        'NotStarted': qt.QIcon(self.resourcePath('Icons/NotStarted.svg')),
-        'Done': qt.QIcon(self.resourcePath('Icons/Done.svg')),
+        'NotStarted': qt.QIcon(self.landmarkLogic.resourcePath('Icons/NotStarted.svg')),
+        'Done': qt.QIcon(self.landmarkLogic.resourcePath('Icons/Done.svg')),
       }
     )
  

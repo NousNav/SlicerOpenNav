@@ -75,6 +75,11 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
 
     self.rebuildMaps()
 
+  
+  def resourcePath(self, filename):
+    scriptedModulesPath = os.path.dirname(slicer.util.modulePath('LandmarkManager'))
+    return os.path.join(scriptedModulesPath, 'Resources', filename)
+  
   def reconnect(self):
     self.removeObservers()
 
@@ -321,8 +326,9 @@ class Landmarks(ScriptedLoadableModuleLogic):
     self.landmarksInProgressNode.SetLocked(True)
     self.landmarksInProgressNode.SaveWithSceneOff()
     self.landmarksInProgressNode.AddControlPoint(0,0,0)
-    self.showLandmarks = False
-
+    self.showLandmarks = False  
+  
+  
   def updateAdvanceButton(self):
 
     landmarksRemaining = self.landmarksNeeded - self.landmarksCollected
