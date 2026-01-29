@@ -124,7 +124,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def cleanup(self):
     print('Autosave on close')
-    OpenNavUtils.autoSavePlan()
+    OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
     self.logic = None
 
   def modifyWindowUI(self):
@@ -541,7 +541,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     if autoSave and not self.autoSaveBlocked:
       print('Autosave started')
-      OpenNavUtils.autoSavePlan()
+      OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
       print('Autosave completed')
     else:
       print('Autosave blocked')
