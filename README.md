@@ -1,6 +1,6 @@
 # SlicerOpenNav
 
-![SlicerOpenNav](SlicerOpenNav.svg)
+<img src="SlicerOpenNav.svg" width="256" height="256" alt="SlicerOpenNav">
 
 Open source tools for surgical navigation built as a [3D Slicer](https://www.slicer.org/) extension.
 
