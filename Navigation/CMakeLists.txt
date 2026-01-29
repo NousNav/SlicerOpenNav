@@ -7,7 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/${MODULE_NAME}.png
+  Resources/Icons/${MODULE_NAME}.svg
   Resources/UI/LayoutsDialog.ui
   Resources/UI/PointerDialog.ui
   )

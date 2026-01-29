@@ -7,7 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/${MODULE_NAME}.png
+  Resources/Icons/${MODULE_NAME}.svg
   Resources/PlusDeviceSet_Server_OptiTrack_Profile.xml.in
   Resources/Reference.xml.in
   Resources/ReplayOptiTrack.xml.in

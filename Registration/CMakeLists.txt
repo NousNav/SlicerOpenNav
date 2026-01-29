@@ -10,7 +10,7 @@ set(MODULE_PYTHON_SCRIPTS
   )
 
 set(MODULE_PYTHON_RESOURCES
-  Resources/Icons/${MODULE_NAME}.png
+  Resources/Icons/${MODULE_NAME}.svg
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/HardwareDialog.ui
   Resources/UI/AlignmentSideWidget.ui
