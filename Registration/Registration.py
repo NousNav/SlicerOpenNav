@@ -27,7 +27,7 @@ class Registration(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "OpenNav Registration"
-    self.parent.categories = [""]
+    self.parent.categories = ["OpenNav.Workflows"]
     self.parent.dependencies = ["PivotCalibration"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """

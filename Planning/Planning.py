@@ -30,7 +30,7 @@ class Planning(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "OpenNav Planning"
-    self.parent.categories = [""]
+    self.parent.categories = ["OpenNav.Workflows"]
     self.parent.dependencies = ["VolumeRendering", "SegmentEditor"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """

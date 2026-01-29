@@ -23,8 +23,8 @@ class Home(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "OpenNav Home"
-    self.parent.categories = [""]
+    self.parent.title = "Start OpenNav"
+    self.parent.categories = ["","OpenNav"]
     self.parent.dependencies = ["Patients", "Planning", "Registration", "Navigation"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """

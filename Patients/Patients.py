@@ -26,7 +26,7 @@ class Patients(ScriptedLoadableModule):
     super().__init__(parent)
 
     self.parent.title = "OpenNav Patients"
-    self.parent.categories = [""]
+    self.parent.categories = ["OpenNav.Workflows"]
     self.parent.dependencies = []
     self.parent.contributors = [
       "David Allemang (Kitware Inc.)",
