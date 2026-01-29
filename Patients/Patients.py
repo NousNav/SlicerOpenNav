@@ -164,6 +164,10 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     if patientNameLabel:
       patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
 
+    oldState = self.ui.planButton.blockSignals(True)
+    self.ui.planButton.checked = source_volume is not None
+    self.ui.planButton.blockSignals(oldState)
+    
     if source_volume:
       self.ui.planButton.text = 'Close Current Patient'
     else:
