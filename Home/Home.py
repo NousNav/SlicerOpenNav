@@ -123,9 +123,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupNodes()
 
   def cleanup(self):
-    print('Autosve on close')
-    self.logic.autoSavePlan()
-    self.logic = None  
+    print('Autosave on close')
+    OpenNavUtils.autoSavePlan()
+    self.logic = None
 
   def modifyWindowUI(self):
 
@@ -155,13 +155,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Assemble primary bar
     openNavLabel = qt.QLabel('OpenNav')
-    openNavLabel.setObjectName("OpenNavLabel")
+    openNavLabel.setObjectName(OpenNavUtils.applicationTitleLabelName)
     self.primaryToolBar.addWidget(openNavLabel)
     self.patientNameLabel = qt.QLabel('Patient: ')
-    self.patientNameLabel.setObjectName('PatientNameLabel')
+    self.patientNameLabel.setObjectName(OpenNavUtils.patientNameLabelName)
     self.primaryToolBar.addWidget(self.patientNameLabel)
     self.savingStatusLabel = qt.QLabel()
-    self.savingStatusLabel.setObjectName('SavingStatusLabel')
+    self.savingStatusLabel.setObjectName(OpenNavUtils.statusLabelName)
     self.primaryToolBar.addWidget(self.savingStatusLabel)
     self.primaryToolBar.addWidget(self.primaryTabWidget)
 
@@ -541,7 +541,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
     if autoSave and not self.autoSaveBlocked:
       print('Autosave started')
-      self.autoSavePlan()
+      OpenNavUtils.autoSavePlan()
       print('Autosave completed')
     else:
       print('Autosave blocked')
@@ -555,9 +555,4 @@ class HomeLogic(ScriptedLoadableModuleLogic):
   def gotoByName(self, name):
     self.goto(self.names[name])
 
-  def autoSavePlan(self):
-    label = slicer.util.findChild(slicer.util.mainWindow(),'SavingStatusLabel')
-    label.text = 'Saving...'
-    slicer.app.processEvents()
-    OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
-    label.text = ''
+

@@ -160,7 +160,9 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
     self.patientListDialogUI.OpenButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
     self.patientListDialogUI.RemoveButton.enabled = len(self.patientListDialogUI.CasesTableWidgetDialog.selectedItems()) != 0
 
-    slicer.modules.HomeWidget.patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
+    patientNameLabel = OpenNavUtils.getWidgetFromSlicer(OpenNavUtils.patientNameLabelName)
+    if patientNameLabel:
+      patientNameLabel.text = 'Patient: ' + str(slicer.modules.PlanningWidget.logic.case_name)
 
     if source_volume:
       self.ui.planButton.text = 'Close Current Patient'
@@ -206,7 +208,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
   def startNewCase(self):
     print('start a new case')
     slicer.modules.PlanningWidget.logic.case_name = self.caseDialogUI.CaseNameLineEdit.text
-    slicer.modules.HomeWidget.logic.autoSavePlan()
+    OpenNavUtils.autoSavePlan()
     self.updateCasesList()
     self.updateGUIFromPatientState()
   

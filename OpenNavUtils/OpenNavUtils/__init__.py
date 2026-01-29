@@ -13,6 +13,13 @@ from .parameter_node import (  # noqa: F401
   nodeReferenceProperty,
 )
 
+
+# Reserved QObject names:
+
+statusLabelName = "StatusLabel"
+patientNameLabelName = "PatientNameLabel"
+applicationTitleLabelName = "ApplicationTitleLabel"
+
 class Step:
   """Contains actions required to enter/exit a single step in the workflow.
 
@@ -949,6 +956,12 @@ def autoSavePlan(caseName='Default'):
     logging.warning('Case is not set. Should only occur when skipping validation')
     return
   # construct autosave path
+
+  savingStatusLabel = getWidgetFromSlicer('SavingStatusLabel')
+  if savingStatusLabel:
+    savingStatusLabel.setText('Saving...')
+  
+  slicer.app.processEvents()
   
   incremental = os.path.exists(_autoSaveDirectory(caseName))
   if incremental:
@@ -969,6 +982,9 @@ def autoSavePlan(caseName='Default'):
   _autoSaveNodes(caseName,nodes)
   slicer.util.saveScene(_autoSaveFilePath(caseName))
   autoSaveDialog.hide()
+  if savingStatusLabel:
+    savingStatusLabel.setText('')
+  slicer.app.processEvents()
   
 
 def loadAutoSave(caseName):
@@ -1069,3 +1085,15 @@ def saveScreenShot(caseName):
 def openCasesDirectoryInExplorer():
   path = _casesDirectory()
   os.system('explorer.exe ' + path)
+
+def getWidgetFromSlicer(objectName):
+  """Get widget from Slicer main window by its object name.
+
+  Return None if the widget is not found.
+  """
+  children = slicer.util.findChildren(slicer.util.mainWindow(), objectName)
+
+  if len(children) == 0:
+    return None
+
+  return children[0]
