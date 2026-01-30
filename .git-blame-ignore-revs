@@ -1,0 +1,4 @@
+# Ignores mass linting/formatting commits for git blame
+
+# STYLE: Apply ruff linting
+e7edbe4e20516f4038251bec0cd8a57087ccb23f
