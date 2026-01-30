@@ -6,7 +6,7 @@ project(SlicerOpenNav)
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://github.com/NousNav/SlicerOpenNav")
 set(EXTENSION_CONTRIBUTORS "Sam Horvath (Kitware Inc.)")
-set(EXTENSION_DESCRIPTION "Open source tools for surgical navigation")
+set(EXTENSION_DESCRIPTION "Complete workflow for image-guided surgical navigation including DICOM import, trajectory planning, tool calibration, patient registration, and real-time instrument tracking")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/NousNav/SlicerOpenNav/refs/heads/main/SlicerOpenNav.svg")
 set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/NousNav/SlicerOpenNav/refs/heads/main/Screenshot1.png")
 set(EXTENSION_DEPENDS "SlicerOpenIGTLink", "SlicerIGT") # Specified as a list or "NA" if no dependencies
