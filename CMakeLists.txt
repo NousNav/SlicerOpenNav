@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.20.6...3.22.6 FATAL_ERROR)
 
-project(SlicerOpenNav)
+project(OpenNav)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://github.com/NousNav/SlicerOpenNav")
 set(EXTENSION_CONTRIBUTORS "Sam Horvath (Kitware Inc.)")
 set(EXTENSION_DESCRIPTION "Complete workflow for image-guided surgical navigation including DICOM import, trajectory planning, tool calibration, patient registration, and real-time instrument tracking")
-set(EXTENSION_ICONURL "https://raw.githubusercontent.com/NousNav/SlicerOpenNav/refs/heads/main/SlicerOpenNav.svg")
+set(EXTENSION_ICONURL "https://raw.githubusercontent.com/NousNav/SlicerOpenNav/refs/heads/main/OpenNav.svg")
 set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/NousNav/SlicerOpenNav/refs/heads/main/Screenshot1.png")
 set(EXTENSION_DEPENDS "SlicerOpenIGTLink", "SlicerIGT") # Specified as a list or "NA" if no dependencies
 
