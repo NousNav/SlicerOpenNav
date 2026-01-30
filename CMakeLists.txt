@@ -27,7 +27,6 @@ add_subdirectory(OpenNavUtils)
 add_subdirectory(OptiTrack)
 add_subdirectory(Patients)
 add_subdirectory(Planning)
-add_subdirectory(SlicerCustomAppUtilities)
 
 #-----------------------------------------------------------------------------
 include(${Slicer_EXTENSION_GENERATE_CONFIG})
