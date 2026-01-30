@@ -25,7 +25,7 @@ class OptiTrack(ScriptedLoadableModule):
     self.parent.title = "OptiTrack" # TODO make this more human readable by adding spaces
     self.parent.categories = ["OpenNav.Utilities"]
     self.parent.dependencies = ["OpenIGTLinkIF"]
-    self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Sam Horvath (Kitware Inc.)"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
 This is an example of scripted loadable module bundled in an extension.
 It performs a simple thresholding on the input volume and optionally captures a screenshot.

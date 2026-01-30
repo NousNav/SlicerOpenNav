@@ -26,7 +26,7 @@ class LandmarkManager(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Landmark Manager"
     self.parent.categories = ["OpenNav.Utilities"]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["Markups"]
     self.parent.contributors = ["David Allemang (Kitware Inc.)", "Sam Horvath (Kitware, Inc.)"]
     self.parent.helpText = ""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()

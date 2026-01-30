@@ -19,7 +19,7 @@ class Navigation(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "OpenNav Navigation"
     self.parent.categories = ["OpenNav.Workflows"]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["VolumeResliceDriver", "Planning", "Registration"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Navigation main module for the OpenNav application

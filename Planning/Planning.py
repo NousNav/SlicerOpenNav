@@ -31,7 +31,7 @@ class Planning(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "OpenNav Planning"
     self.parent.categories = ["OpenNav.Workflows"]
-    self.parent.dependencies = ["VolumeRendering", "SegmentEditor"]
+    self.parent.dependencies = ["SegmentEditor", "LandmarkManager"]
     self.parent.contributors = ["Samuel Gerber (Kitware Inc.)"]
     self.parent.helpText = """
 This is the Home module for the OpenNav application

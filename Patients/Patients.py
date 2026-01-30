@@ -27,7 +27,7 @@ class Patients(ScriptedLoadableModule):
 
     self.parent.title = "OpenNav Patients"
     self.parent.categories = ["OpenNav.Workflows"]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["Planning", "Registration", "DICOM"]
     self.parent.contributors = [
       "David Allemang (Kitware Inc.)",
       "Sam Horvath (Kitware Inc.)",
