@@ -4,6 +4,8 @@
 
 Open source tools for surgical navigation built as a [3D Slicer](https://www.slicer.org/) extension.
 
+<img src="Screenshot1.png" alt="Screenshot1">
+
 ## Overview
 
 SlicerOpenNav (also known as OpenNav) provides a complete workflow for image-guided surgical navigation, including:
