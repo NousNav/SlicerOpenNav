@@ -33,10 +33,8 @@ SlicerOpenNav (also known as OpenNav) provides a complete workflow for image-gui
 
 ### Slicer Extension Dependencies
 
-- OpenIGTLinkIF
-- VolumeRendering
-- SegmentEditor
-- PivotCalibration
+- SlicerOpenIGTLink
+- SlicerIGT
 
 ## Installation
 
@@ -48,7 +46,7 @@ SlicerOpenNav (also known as OpenNav) provides a complete workflow for image-gui
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-org/SlicerOpenNav.git
+   git clone https://github.com/NousNav/SlicerOpenNav.git
    ```
 
 2. Build as a Slicer extension:
@@ -103,9 +101,28 @@ Cases are automatically saved to `~/OpenNav/Cases/{case_name}/` and can be reope
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
 
+## Development
+
+### Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) with [ruff](https://docs.astral.sh/ruff/) for linting and formatting:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+### Git Blame
+
+To ignore formatting commits in git blame:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## License
 
-*(Add license information)*
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
