@@ -4,6 +4,7 @@ import re
 import qt
 import slicer
 import vtk
+from slicer.parameterNodeWrapper import parameterNodeWrapper
 
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
@@ -172,7 +173,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         self.registrationTabBar.visible = False
         self.bottomToolBar.visible = False
         self.landmarks.showLandmarks = False
-        self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+        self.landmarks.model = slicer.modules.PlanningWidget.logic.parameterNode.skin_model
         self.landmarks.updateLandmarksDisplay()
         self.shortcut.disconnect("activated()")
         self.trace.setVisible(False)
@@ -202,10 +203,10 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         print("Registration main validate called")
         landmarkLogic = slicer.modules.PlanningWidget.landmarkLogic
 
-        if not landmarkLogic.landmarks:
+        if not landmarkLogic.parameterNode.landmarks:
             return "Planning not complete"
 
-        if landmarkLogic.landmarks.GetNumberOfControlPoints() < 3:
+        if landmarkLogic.parameterNode.landmarks.GetNumberOfControlPoints() < 3:
             return "Planning not complete"
 
         if self.optitrack_pending:
@@ -331,7 +332,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         self.tools.updateToolsDisplay()
 
         self.landmarks.showLandmarks = False
-        self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+        self.landmarks.model = slicer.modules.PlanningWidget.logic.parameterNode.skin_model
         self.landmarks.updateLandmarksDisplay()
         self.trace.setVisible(False)
 
@@ -608,7 +609,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
 
         # Clear previous registration
         self.logic.clearRegistrationTransform()
-        self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+        self.landmarks.model = slicer.modules.PlanningWidget.logic.parameterNode.skin_model
         self.landmarks.setupTrackerLandmarksNode()
         self.landmarks.clearLandmarks()
         self.resetTrace()
@@ -619,7 +620,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         self.landmarks.advanceButton = self.advanceButton
 
         self.landmarks.showLandmarks = True
-        self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+        self.landmarks.model = slicer.modules.PlanningWidget.logic.parameterNode.skin_model
         self.landmarks.updateLandmarksDisplay()
         OpenNavUtils.centerCam()
 
@@ -651,7 +652,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
         self.AlignmentSideWidget.visible = True
 
         self.landmarks.showLandmarks = False
-        self.landmarks.model = slicer.modules.PlanningWidget.logic.skin_model
+        self.landmarks.model = slicer.modules.PlanningWidget.logic.parameterNode.skin_model
         self.landmarks.updateLandmarksDisplay()
         self.trace.setVisible(True)
         self.addLandmarksToTrace()
@@ -675,7 +676,7 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
     @OpenNavUtils.advanceButton(text="Accept", enabled=False)
     def registrationStepVerifyRegistration(self):
         # Set the layout
-        sourceNode = slicer.modules.PlanningWidget.logic.source_volume
+        sourceNode = slicer.modules.PlanningWidget.logic.parameterNode.source_volume
         OpenNavUtils.goToNavigationLayout(volumeNode=sourceNode, mainPanelVisible=True)
         self.tools.setToolsStatusCheckEnabled(True)
         self.AlignmentSideWidget.visible = False
@@ -1008,6 +1009,19 @@ class RegistrationWidget(ScriptedLoadableModuleWidget):
             self.pictures[image] = imagePixmap
 
 
+@parameterNodeWrapper
+class RegistrationParameterNode:
+    """Parameter node for RegistrationLogic using Slicer's parameterNodeWrapper pattern."""
+
+    pointer_calibration: slicer.vtkMRMLLinearTransformNode
+    landmark_registration_transform: slicer.vtkMRMLLinearTransformNode
+    surface_registration_transform: slicer.vtkMRMLLinearTransformNode
+    pivot_calibration_passed: bool = False
+    spin_calibration_passed: bool = False
+    landmark_registration_passed: bool = False
+    surface_registration_passed: bool = False
+
+
 class RegistrationLogic(ScriptedLoadableModuleLogic):
     """This class should implement all the actual
     computation done by your module.  The interface
@@ -1020,13 +1034,10 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
     EXTENSION_SEGMENT_LENGTH_MM = 10
 
-    pointer_calibration = OpenNavUtils.nodeReferenceProperty("POINTER_CALIBRATION", default=None)
-    landmark_registration_transform = OpenNavUtils.nodeReferenceProperty("IMAGE_REGISTRATION", default=None)
-    surface_registration_transform = OpenNavUtils.nodeReferenceProperty("IMAGE_REGISTRATION_REFINEMENT", default=None)
-    pivot_calibration_passed = OpenNavUtils.parameterProperty("PIVOT_CALIBRATION_PASSED", default=False)
-    spin_calibration_passed = OpenNavUtils.parameterProperty("SPIN_CALIBRATION_PASSED", default=False)
-    landmark_registration_passed = OpenNavUtils.parameterProperty("LANDMARK_REGISTRATION_PASSED", default=False)
-    surface_registration_passed = OpenNavUtils.parameterProperty("SURFACE_REGISTRATION_PASSED", default=False)
+    @property
+    def parameterNode(self) -> RegistrationParameterNode:
+        """Get the wrapped parameter node."""
+        return RegistrationParameterNode(self.getParameterNode())
 
     # Not a reference property, since we DO NOT want any reference to this saved with the scene
     # This node should only exists when the tracker is running
@@ -1039,51 +1050,51 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
     full_seg_transform = None
 
     def clearRegistrationData(self):
-        slicer.mrmlScene.RemoveNode(self.pointer_calibration)
-        slicer.mrmlScene.RemoveNode(self.landmark_registration_transform)
-        slicer.mrmlScene.RemoveNode(self.surface_registration_transform)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.pointer_calibration)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.landmark_registration_transform)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.surface_registration_transform)
         slicer.mrmlScene.RemoveNode(self.odd_extensions)
         slicer.mrmlScene.RemoveNode(self.even_extensions)
         self.odd_extensions = None
         self.even_extensions = None
-        self.pivot_calibration_passed = False
-        self.spin_calibration_passed = False
-        self.landmark_registration_passed = False
-        self.surface_registration_passed = False
+        self.parameterNode.pivot_calibration_passed = False
+        self.parameterNode.spin_calibration_passed = False
+        self.parameterNode.landmark_registration_passed = False
+        self.parameterNode.surface_registration_passed = False
 
     def setupPointerCalibration(self):
-        if not self.pointer_calibration:
+        if not self.parameterNode.pointer_calibration:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLLinearTransformNode",
                 "POINTER_CALIBRATION",
             )
-            self.pointer_calibration = node
+            self.parameterNode.pointer_calibration = node
 
     def setupRegistrationTransform(self):
-        if not self.landmark_registration_transform:
+        if not self.parameterNode.landmark_registration_transform:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLLinearTransformNode",
                 "IMAGE_REGISTRATION",
             )
-            self.landmark_registration_transform = node
-        if not self.surface_registration_transform:
+            self.parameterNode.landmark_registration_transform = node
+        if not self.parameterNode.surface_registration_transform:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLLinearTransformNode",
                 "IMAGE_REGISTRATION_REFINEMENT",
             )
-            self.surface_registration_transform = node
+            self.parameterNode.surface_registration_transform = node
 
     def clearRegistrationTransform(self):
-        if self.landmark_registration_transform:
+        if self.parameterNode.landmark_registration_transform:
             print("Clearing landmark registration transform to recompute")
             identityMatrix = vtk.vtkMatrix4x4()
-            self.landmark_registration_transform.SetMatrixTransformToParent(identityMatrix)
-        if self.surface_registration_transform:
+            self.parameterNode.landmark_registration_transform.SetMatrixTransformToParent(identityMatrix)
+        if self.parameterNode.surface_registration_transform:
             print("Clearing surface registration transform to recompute")
             identityMatrix = vtk.vtkMatrix4x4()
-            self.surface_registration_transform.SetMatrixTransformToParent(identityMatrix)
-        self.landmark_registration_passed = False
-        self.surface_registration_passed = False
+            self.parameterNode.surface_registration_transform.SetMatrixTransformToParent(identityMatrix)
+        self.parameterNode.landmark_registration_passed = False
+        self.parameterNode.surface_registration_passed = False
 
     def reconnect(self):
         if not self.pointer_to_headframe:
@@ -1096,19 +1107,19 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
                 )
             self.pointer_to_headframe.SaveWithSceneOff()
 
-        if self.pointer_calibration and self.pointer_to_headframe:
-            self.pointer_calibration.SetAndObserveTransformNodeID(self.pointer_to_headframe.GetID())
+        if self.parameterNode.pointer_calibration and self.pointer_to_headframe:
+            self.parameterNode.pointer_calibration.SetAndObserveTransformNodeID(self.pointer_to_headframe.GetID())
 
-        if self.needle_model and self.odd_extensions and self.even_extensions and self.pointer_calibration:
-            self.needle_model.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
-            self.odd_extensions.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
-            self.even_extensions.SetAndObserveTransformNodeID(self.pointer_calibration.GetID())
+        if self.needle_model and self.odd_extensions and self.even_extensions and self.parameterNode.pointer_calibration:
+            self.needle_model.SetAndObserveTransformNodeID(self.parameterNode.pointer_calibration.GetID())
+            self.odd_extensions.SetAndObserveTransformNodeID(self.parameterNode.pointer_calibration.GetID())
+            self.even_extensions.SetAndObserveTransformNodeID(self.parameterNode.pointer_calibration.GetID())
 
-        if self.landmark_registration_transform and self.pointer_to_headframe:
-            self.pointer_to_headframe.SetAndObserveTransformNodeID(self.landmark_registration_transform.GetID())
+        if self.parameterNode.landmark_registration_transform and self.pointer_to_headframe:
+            self.pointer_to_headframe.SetAndObserveTransformNodeID(self.parameterNode.landmark_registration_transform.GetID())
 
-        if self.surface_registration_transform and self.landmark_registration_transform:
-            self.landmark_registration_transform.SetAndObserveTransformNodeID(self.surface_registration_transform.GetID())
+        if self.parameterNode.surface_registration_transform and self.parameterNode.landmark_registration_transform:
+            self.parameterNode.landmark_registration_transform.SetAndObserveTransformNodeID(self.parameterNode.surface_registration_transform.GetID())
 
     def setupNeedleModel(self):
         createModelsLogic = slicer.modules.createmodels.logic()
@@ -1207,13 +1218,13 @@ class RegistrationLogic(ScriptedLoadableModuleLogic):
 
     def setupSurfaceErrorComputation(self):
         self.locator = vtk.vtkCellLocator()
-        self.locator.SetDataSet(slicer.modules.PlanningWidget.logic.skin_model.GetPolyData())
+        self.locator.SetDataSet(slicer.modules.PlanningWidget.logic.parameterNode.skin_model.GetPolyData())
         self.locator.SetNumberOfCellsPerBucket(1)
         self.locator.BuildLocator()
         self.locator.Update()
 
     def runSurfaceRegistration(self, tracePoints):
-        skin_model_polydata = slicer.modules.PlanningWidget.logic.skin_model.GetPolyData()
+        skin_model_polydata = slicer.modules.PlanningWidget.logic.parameterNode.skin_model.GetPolyData()
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetMaximumNumberOfIterations(50)
         icp.SetMaximumNumberOfLandmarks(200)

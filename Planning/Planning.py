@@ -1,10 +1,12 @@
 import logging
+from typing import Annotated, Optional
 
 import qt
 import slicer
 import vtk
 
 import slicer.modules
+from slicer.parameterNodeWrapper import parameterNodeWrapper, Default
 
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
@@ -149,13 +151,13 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.undoRedoTag = None
 
     def validateTargetSegmentation(self):
-        skin = self.logic.skin_segmentation
+        skin = self.logic.parameterNode.skin_segmentation
         if skin is None:
             return "Please segment skin before proceeding"
 
         # check for 3d representation
         # poly = vtk.vtkPolyData()
-        if not self.logic.skin_model:
+        if not self.logic.parameterNode.skin_model:
             return "Finalize skin segmentation before continuing"
 
     def validateTrajectorySegmentation(self):
@@ -163,12 +165,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if error:
             return error
 
-        if not self.logic.target_segmentation:
+        if not self.logic.parameterNode.target_segmentation:
             return "Create target segmentation before continuing"
 
         # check for 3d representation
         poly = vtk.vtkPolyData()
-        if not self.logic.target_segmentation.GetClosedSurfaceRepresentation(self.logic.SEED_INSIDE_SEGMENT, poly):
+        if not self.logic.parameterNode.target_segmentation.GetClosedSurfaceRepresentation(self.logic.SEED_INSIDE_SEGMENT, poly):
             return "Finalize target segmentation before continuing"
 
     def validateDefineLandmarks(self):
@@ -176,12 +178,12 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if error:
             return error
 
-        trajectory = self.logic.trajectory_markup
+        trajectory = self.logic.parameterNode.trajectory_markup
         if trajectory is None:
             return "Define trajectory before continuing"
 
     def validate(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if volume is None:
             return "No source volume is set and no volume is active. Choose a source volume."
 
@@ -200,7 +202,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             OpenNavUtils.polish(widget)
 
         # set slice viewer background
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if volume is None:
             slicer.util.errorDisplay(
                 "No source volume is set and no volume is active. Choose a source volume.",
@@ -212,15 +214,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         OpenNavUtils.goToFourUpLayout(volumeNode=volume)
 
         # Set threshold slider extremes and default
-        volumeDisplay = self.logic.source_volume.GetDisplayNode()
+        volumeDisplay = self.logic.parameterNode.source_volume.GetDisplayNode()
         min = volumeDisplay.GetWindowLevelMin()
         max = volumeDisplay.GetWindowLevelMax()
         window = volumeDisplay.GetWindow()
         self.ui.skinThresholdSlider.setMinimum(min - window)
         self.ui.skinThresholdSlider.setMaximum(max + window)
         self.ui.skinThresholdSlider.setValue(min + window / 10)
-        if self.landmarkLogic.landmarks:
-            self.landmarkLogic.landmarks.SetDisplayVisibility(True)
+        if self.landmarkLogic.parameterNode.landmarks:
+            self.landmarkLogic.parameterNode.landmarks.SetDisplayVisibility(True)
 
     def disconnectAll(self, widget):
         try:
@@ -236,7 +238,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.setPlanningNodesVisibility(skinModel=False, seedSegmentation=False, trajectory=False, landmarks=False)
         self.logic.setSkinSegmentForEditing()
 
-        self.advanceButton.enabled = self.logic.source_volume is not None
+        self.advanceButton.enabled = self.logic.parameterNode.source_volume is not None
         self.updateSkinSegmentationPreview()
 
     def teardownPlanningStep1(self):
@@ -249,10 +251,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.tableManager.advanceButton = None
 
         self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
-        self.logic.skin_model.GetDisplayNode().SetOpacity(0.5)
+        self.logic.parameterNode.skin_model.GetDisplayNode().SetOpacity(0.5)
         self.logic.setSkinSegmentFor3DDisplay()
-        if self.logic.target_segmentation:
-            self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(1.0)
+        if self.logic.parameterNode.target_segmentation:
+            self.logic.parameterNode.target_segmentation.GetDisplayNode().SetOpacity3D(1.0)
         self.updateTargetPanelButtons()
 
     @OpenNavUtils.backButton(text="Segment the Target")
@@ -261,10 +263,10 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.tableManager.advanceButton = None
 
         self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=False, targetSegmentation=True, trajectory=True, landmarks=False)
-        self.logic.skin_model.GetDisplayNode().SetOpacity(0.5)
-        self.logic.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+        self.logic.parameterNode.skin_model.GetDisplayNode().SetOpacity(0.5)
+        self.logic.parameterNode.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
         self.logic.setSkinSegmentFor3DDisplay()
-        self.logic.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
+        self.logic.parameterNode.target_segmentation.GetDisplayNode().SetOpacity3D(0.3)
 
     @OpenNavUtils.backButton(text="Plan the Trajectory")
     @OpenNavUtils.advanceButton(text="")
@@ -278,14 +280,14 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.tableManager.advanceButton = self.advanceButton
 
     def updateSkinSegmentationPreview(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
 
         self.logic.setupSkinSegmentationNode()
 
-        segmentation = self.logic.skin_segmentation
+        segmentation = self.logic.parameterNode.skin_segmentation
         segment = self.logic.SKIN_SEGMENT
 
         self.logic.setEditorTargets(volume, segmentation, segment)
@@ -293,11 +295,11 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Only use a lower threshold and use the max value of volume as upper bound:
         self.logic.updateSkinSegmentationPreview(
             thresholdMin=self.ui.skinThresholdSlider.value,
-            thresholdMax=self.logic.source_volume.GetImageData().GetScalarRange()[1],
+            thresholdMax=self.logic.parameterNode.source_volume.GetImageData().GetScalarRange()[1],
         )
 
     def createSkinSegmentation(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
@@ -305,7 +307,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.setupSkinSegmentationNode()
         self.logic.setupSkinModelNode()
 
-        segmentation = self.logic.skin_segmentation
+        segmentation = self.logic.parameterNode.skin_segmentation
         segment = self.logic.SKIN_SEGMENT
 
         messageBox = qt.QMessageBox(qt.QMessageBox.Information, "Computing", "Computing segmentation", qt.QMessageBox.NoButton)
@@ -319,15 +321,15 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Only use a lower threshold and use the max value of volume as upper bound:
         self.logic.applySkinSegmentation(
             thresholdMin=self.ui.skinThresholdSlider.value,
-            thresholdMax=self.logic.source_volume.GetImageData().GetScalarRange()[1],
+            thresholdMax=self.logic.parameterNode.source_volume.GetImageData().GetScalarRange()[1],
             smoothingSize=self.ui.skinSmoothingSlider.value,
         )
         self.logic.endEffect()
 
         skinSegment = segmentation.GetSegmentation().GetSegment(segment)
-        slicer.modules.segmentations.logic().ExportSegmentToRepresentationNode(skinSegment, self.logic.skin_model)
-        self.logic.skin_model.GetDisplayNode().SetVisibility(True)
-        self.logic.skin_model.GetDisplayNode().SetColor(177.0 / 255.0, 122.0 / 255.0, 101.0 / 255.0)
+        slicer.modules.segmentations.logic().ExportSegmentToRepresentationNode(skinSegment, self.logic.parameterNode.skin_model)
+        self.logic.parameterNode.skin_model.GetDisplayNode().SetVisibility(True)
+        self.logic.parameterNode.skin_model.GetDisplayNode().SetColor(177.0 / 255.0, 122.0 / 255.0, 101.0 / 255.0)
 
         skinSegment.RemoveRepresentation("Closed surface")
 
@@ -336,7 +338,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         messageBox.hide()
 
     def eraseAll(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
@@ -344,7 +346,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.setupSeedSegmentationNode()
         self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
-        segmentation = self.logic.seed_segmentation
+        segmentation = self.logic.parameterNode.seed_segmentation
         segment = self.logic.SEED_INSIDE_SEGMENT
 
         self.logic.setEditorTargets(volume, segmentation, segment)
@@ -352,7 +354,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.beginErase()
 
     def paintInside(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
@@ -360,7 +362,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.setupSeedSegmentationNode()
         self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
-        segmentation = self.logic.seed_segmentation
+        segmentation = self.logic.parameterNode.seed_segmentation
         segment = self.logic.SEED_INSIDE_SEGMENT
 
         self.logic.setEditorTargets(volume, segmentation, segment)
@@ -368,7 +370,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.beginPaint()
 
     def paintOutside(self):
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
@@ -376,7 +378,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.setupSeedSegmentationNode()
         self.logic.setPlanningNodesVisibility(skinModel=True, seedSegmentation=True, trajectory=False, landmarks=False)
 
-        segmentation = self.logic.seed_segmentation
+        segmentation = self.logic.parameterNode.seed_segmentation
         segment = self.logic.SEED_OUTSIDE_SEGMENT
 
         self.logic.setEditorTargets(volume, segmentation, segment)
@@ -386,22 +388,22 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def resetTargetSegmentation(self):
         self.logic.endEffect()
         self.logic.resetGrowFromSeeds()
-        slicer.mrmlScene.RemoveNode(self.logic.seed_segmentation)
-        slicer.mrmlScene.RemoveNode(self.logic.target_segmentation)
-        if self.logic.seed_segmentation:
-            self.logic.seed_segmentation = None
-        if self.logic.target_segmentation:
-            self.logic.target_segmentation = None
+        slicer.mrmlScene.RemoveNode(self.logic.parameterNode.seed_segmentation)
+        slicer.mrmlScene.RemoveNode(self.logic.parameterNode.target_segmentation)
+        if self.logic.parameterNode.seed_segmentation:
+            self.logic.parameterNode.seed_segmentation = None
+        if self.logic.parameterNode.target_segmentation:
+            self.logic.parameterNode.target_segmentation = None
         self.updateTargetPanelButtons()
 
     def previewTarget(self):
         self.logic.endEffect()
         self.logic.setupTargetSegmentationNode()
-        volume = self.logic.source_volume
+        volume = self.logic.parameterNode.source_volume
         if not volume:
             slicer.util.errorDisplay("There is no volume in the scene.")
             return
-        segmentation = self.logic.target_segmentation
+        segmentation = self.logic.parameterNode.target_segmentation
         self.logic.copySeedSegmentsToTargetSegmentationNode()
         self.logic.setPlanningNodesVisibility(skinModel=True, targetSegmentation=True, trajectory=False, landmarks=False)
 
@@ -414,7 +416,7 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.endEffect()
 
         self.logic.setPlanningNodesVisibility(skinModel=True, targetSegmentation=True, trajectory=False, landmarks=False)
-        segmentation = self.logic.target_segmentation
+        segmentation = self.logic.parameterNode.target_segmentation
         segmentation.CreateClosedSurfaceRepresentation()
 
     def setTrajectoryEntry(self):
@@ -427,8 +429,8 @@ class PlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.targetUndo.enabled = self.logic.undoAvailable()
         self.ui.targetRedo.enabled = self.logic.redoAvailable()
 
-        self.ui.targetPreview.enabled = bool(self.logic.seed_segmentation)
-        self.ui.targetApply.enabled = bool(self.logic.target_segmentation)
+        self.ui.targetPreview.enabled = bool(self.logic.parameterNode.seed_segmentation)
+        self.ui.targetApply.enabled = bool(self.logic.parameterNode.target_segmentation)
 
     def setUndoRedoObservers(self, segmentationNode):
         seg = segmentationNode.GetSegmentation()
@@ -462,6 +464,26 @@ def default_source_volume():
     return node
 
 
+@parameterNodeWrapper
+class PlanningParameterNode:
+    """Parameter node for PlanningLogic using Slicer's parameterNodeWrapper pattern."""
+
+    source_volume: Annotated[
+        slicer.vtkMRMLScalarVolumeNode,
+        Default(generator=default_source_volume),
+    ]
+    skin_segmentation: slicer.vtkMRMLSegmentationNode
+    seed_segmentation: slicer.vtkMRMLSegmentationNode
+    target_segmentation: slicer.vtkMRMLSegmentationNode
+    trajectory_markup: slicer.vtkMRMLMarkupsLineNode
+    trajectory_target_markup: slicer.vtkMRMLMarkupsFiducialNode
+    trajectory_entry_markup: slicer.vtkMRMLMarkupsFiducialNode
+    skin_model: slicer.vtkMRMLModelNode
+
+    current_step: Optional[str] = None
+    case_name: Optional[str] = None
+
+
 class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     """This class should implement all the actual
     computation done by your module.  The interface
@@ -472,17 +494,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
     """
 
-    source_volume = OpenNavUtils.nodeReferenceProperty("SOURCE_VOLUME", factory=default_source_volume)
-    skin_segmentation = OpenNavUtils.nodeReferenceProperty("SKIN_SEGMENTATION", default=None)
-    seed_segmentation = OpenNavUtils.nodeReferenceProperty("SEED_SEGMENTATION", default=None)
-    target_segmentation = OpenNavUtils.nodeReferenceProperty("TARGET_SEGMENTATION", default=None)
-    trajectory_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_MARKUP", default=None)
-    trajectory_target_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_TARGET", default=None)
-    trajectory_entry_markup = OpenNavUtils.nodeReferenceProperty("TRAJECTORY_ENTRY", default=None)
-    skin_model = OpenNavUtils.nodeReferenceProperty("SKIN_MODEL", default=None)
-
-    current_step = OpenNavUtils.parameterProperty("CURRENT_TAB")
-    case_name = OpenNavUtils.parameterProperty("CASE_NAME", default=None)
+    @property
+    def parameterNode(self) -> PlanningParameterNode:
+        """Get the wrapped parameter node."""
+        return PlanningParameterNode(self.getParameterNode())
 
     def __init__(self):
         ScriptedLoadableModuleLogic.__init__(self)
@@ -506,11 +521,11 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     def removePatientImageData(self):
         shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-        nodeItem = shNode.GetItemByDataNode(self.source_volume)
+        nodeItem = shNode.GetItemByDataNode(self.parameterNode.source_volume)
         studyItem = shNode.GetItemAncestorAtLevel(nodeItem, "Study")
         patientItem = shNode.GetItemAncestorAtLevel(nodeItem, "Patient")
 
-        slicer.mrmlScene.RemoveNode(self.source_volume)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.source_volume)
         if studyItem != 0:
             shNode.RemoveItem(studyItem)
         if patientItem != 0:
@@ -519,54 +534,54 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     def clearPlanningData(self):
         self.removePatientImageData()
         self.endEffect()
-        slicer.mrmlScene.RemoveNode(self.skin_segmentation)
-        slicer.mrmlScene.RemoveNode(self.seed_segmentation)
-        slicer.mrmlScene.RemoveNode(self.target_segmentation)
-        slicer.mrmlScene.RemoveNode(self.trajectory_markup)
-        slicer.mrmlScene.RemoveNode(self.trajectory_entry_markup)
-        slicer.mrmlScene.RemoveNode(self.trajectory_target_markup)
-        slicer.mrmlScene.RemoveNode(self.skin_model)
-        self.case_name = None
+        slicer.mrmlScene.RemoveNode(self.parameterNode.skin_segmentation)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.seed_segmentation)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.target_segmentation)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.trajectory_markup)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.trajectory_entry_markup)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.trajectory_target_markup)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.skin_model)
+        self.parameterNode.case_name = None
 
     def setPlanningNodesVisibility(self, skinModel=False, seedSegmentation=False, targetSegmentation=False, trajectory=False, landmarks=False):
-        if self.skin_segmentation:
+        if self.parameterNode.skin_segmentation:
             # Display 3D model instead of segmentation node:
-            if self.skin_model:
-                self.skin_model.GetDisplayNode().SetVisibility(skinModel)
+            if self.parameterNode.skin_model:
+                self.parameterNode.skin_model.GetDisplayNode().SetVisibility(skinModel)
                 self.setSkinSegmentFor3DDisplay()
 
-        if self.seed_segmentation:
-            self.seed_segmentation.SetDisplayVisibility(seedSegmentation)
-        if self.target_segmentation:
-            self.target_segmentation.SetDisplayVisibility(targetSegmentation)
-        if self.trajectory_markup:
-            self.trajectory_markup.SetDisplayVisibility(trajectory)
-        if self.trajectory_target_markup:
-            self.trajectory_target_markup.SetDisplayVisibility(trajectory)
-        if self.trajectory_entry_markup:
-            self.trajectory_entry_markup.SetDisplayVisibility(trajectory)
-        if self.landmarkLogic.landmarks:
-            self.landmarkLogic.landmarks.SetDisplayVisibility(landmarks)
+        if self.parameterNode.seed_segmentation:
+            self.parameterNode.seed_segmentation.SetDisplayVisibility(seedSegmentation)
+        if self.parameterNode.target_segmentation:
+            self.parameterNode.target_segmentation.SetDisplayVisibility(targetSegmentation)
+        if self.parameterNode.trajectory_markup:
+            self.parameterNode.trajectory_markup.SetDisplayVisibility(trajectory)
+        if self.parameterNode.trajectory_target_markup:
+            self.parameterNode.trajectory_target_markup.SetDisplayVisibility(trajectory)
+        if self.parameterNode.trajectory_entry_markup:
+            self.parameterNode.trajectory_entry_markup.SetDisplayVisibility(trajectory)
+        if self.landmarkLogic.parameterNode.landmarks:
+            self.landmarkLogic.parameterNode.landmarks.SetDisplayVisibility(landmarks)
 
     def resetDefaultNodeAppearance(self):
-        if self.skin_model:
-            self.skin_model.GetDisplayNode().SetOpacity(1.0)
-        if self.target_segmentation:
-            self.target_segmentation.GetDisplayNode().SetOpacity3D(1.0)
-            self.target_segmentation.GetDisplayNode().SetVisibility(False)
+        if self.parameterNode.skin_model:
+            self.parameterNode.skin_model.GetDisplayNode().SetOpacity(1.0)
+        if self.parameterNode.target_segmentation:
+            self.parameterNode.target_segmentation.GetDisplayNode().SetOpacity3D(1.0)
+            self.parameterNode.target_segmentation.GetDisplayNode().SetVisibility(False)
 
     def setupSkinModelNode(self):
-        if not self.skin_model:
+        if not self.parameterNode.skin_model:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLModelNode",
                 "OpenNav_SKIN_MODEL",
             )
             node.CreateDefaultDisplayNodes()
             node.GetDisplayNode().SetVisibility(False)
-            self.skin_model = node
+            self.parameterNode.skin_model = node
 
     def setupSkinSegmentationNode(self):
-        if not self.skin_segmentation:
+        if not self.parameterNode.skin_segmentation:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLSegmentationNode",
                 "OpenNav_SKIN_SEGMENTATION",
@@ -581,22 +596,22 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
                 )
             )
             node.GetDisplayNode().SetSegmentOpacity3D(skin_segment.GetName(), 1.0)
-            self.skin_segmentation = node
+            self.parameterNode.skin_segmentation = node
 
     def setSkinSegmentForEditing(self):
-        segment = self.skin_segmentation.GetSegmentation().GetSegment(self.SKIN_SEGMENT)
+        segment = self.parameterNode.skin_segmentation.GetSegmentation().GetSegment(self.SKIN_SEGMENT)
         segment.SetColor(0, 1, 0)
-        self.skin_segmentation.SetDisplayVisibility(True)
-        self.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
-        self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
+        self.parameterNode.skin_segmentation.SetDisplayVisibility(True)
+        self.parameterNode.skin_segmentation.GetDisplayNode().SetVisibility2D(True)
+        self.parameterNode.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
 
     def setSkinSegmentFor3DDisplay(self):
-        self.skin_segmentation.SetDisplayVisibility(False)
-        self.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
-        self.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
+        self.parameterNode.skin_segmentation.SetDisplayVisibility(False)
+        self.parameterNode.skin_segmentation.GetDisplayNode().SetVisibility2D(False)
+        self.parameterNode.skin_segmentation.GetDisplayNode().SetVisibility3D(False)
 
     def setupSeedSegmentationNode(self):
-        if not self.seed_segmentation:
+        if not self.parameterNode.seed_segmentation:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLSegmentationNode",
                 "OpenNav_SEED_SEGMENTATION",
@@ -621,31 +636,31 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
             node.GetDisplayNode().SetOpacity2DFill(0.2)
             node.GetDisplayNode().SetOpacity2DOutline(0.5)
             node.GetDisplayNode().SetSliceIntersectionThickness(1)
-            self.seed_segmentation = node
+            self.parameterNode.seed_segmentation = node
 
     def setupTargetSegmentationNode(self):
-        if self.target_segmentation:
+        if self.parameterNode.target_segmentation:
             print("removing old target")
-            slicer.mrmlScene.RemoveNode(self.target_segmentation)
+            slicer.mrmlScene.RemoveNode(self.parameterNode.target_segmentation)
         node = slicer.mrmlScene.AddNewNodeByClass(
             "vtkMRMLSegmentationNode",
             "OpenNav_TARGET_SEGMENTATION",
         )
         node.CreateDefaultDisplayNodes()
-        self.target_segmentation = node
+        self.parameterNode.target_segmentation = node
         node.GetDisplayNode().SetVisibility2DFill(False)
         node.GetDisplayNode().SetSliceIntersectionThickness(1)
 
     def copySeedSegmentsToTargetSegmentationNode(self):
-        targetSegmentation = self.target_segmentation.GetSegmentation()
-        seedSegmentation = self.seed_segmentation.GetSegmentation()
+        targetSegmentation = self.parameterNode.target_segmentation.GetSegmentation()
+        seedSegmentation = self.parameterNode.seed_segmentation.GetSegmentation()
         targetSegmentation.RemoveAllSegments()
         targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_INSIDE_SEGMENT)
         targetSegmentation.CopySegmentFromSegmentation(seedSegmentation, self.SEED_OUTSIDE_SEGMENT)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
     def setupTrajectoryMarkupNodes(self):
-        if not self.trajectory_markup:
+        if not self.parameterNode.trajectory_markup:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLMarkupsLineNode",
                 "OpenNav_TRAJECTORY",
@@ -661,9 +676,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
             node.AddControlPointWorld(vtk.vtkVector3d())
             node.SetLocked(True)
             display.SetVisibility(False)
-            self.trajectory_markup = node
+            self.parameterNode.trajectory_markup = node
 
-        if not self.trajectory_target_markup:
+        if not self.parameterNode.trajectory_target_markup:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLMarkupsFiducialNode",
                 "OpenNav_TRAJECTORY_TARGET",
@@ -674,9 +689,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
             display.SetGlyphSize(4)  # 4mm
             display.SetSelectedColor(0.0, 0.9, 0.0)  # green
             display.SetActiveColor(0.4, 1.0, 0.4)  # hover: pale green
-            self.trajectory_target_markup = node
+            self.parameterNode.trajectory_target_markup = node
 
-        if not self.trajectory_entry_markup:
+        if not self.parameterNode.trajectory_entry_markup:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLMarkupsFiducialNode",
                 "OpenNav_TRAJECTORY_ENTRY",
@@ -687,7 +702,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
             display.SetGlyphSize(4)  # 4mm
             display.SetSelectedColor(0.8, 0.4, 0.4)  # skin color; brighter, saturated
             display.SetActiveColor(1.0, 0.7, 0.7)  # hover: paler selected color
-            self.trajectory_entry_markup = node
+            self.parameterNode.trajectory_entry_markup = node
 
         self.reconnect()
 
@@ -700,10 +715,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
             slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
             slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
         ]:
-            if self.trajectory_target_markup:
-                self.addObserver(self.trajectory_target_markup, event, self.updateTrajectory)
-            if self.trajectory_entry_markup:
-                self.addObserver(self.trajectory_entry_markup, event, self.updateTrajectory)
+            if self.parameterNode.trajectory_target_markup:
+                self.addObserver(self.parameterNode.trajectory_target_markup, event, self.updateTrajectory)
+            if self.parameterNode.trajectory_entry_markup:
+                self.addObserver(self.parameterNode.trajectory_entry_markup, event, self.updateTrajectory)
 
     def setEditorTargets(self, volume, segmentation, segmentID=""):
         """Set the persistent segment editor to edit the given volume and segmentation.
@@ -824,19 +839,19 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         self.editor_widget.setActiveEffectByName("Grow from seeds")
         effect = self.editor_widget.activeEffect()
         # Make sure both segments are visible
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
         effect.setParameter("AutoUpdate", 0)
         effect.self().onPreview()
 
         # Rehide target segments:
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, False)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
         # Set preview style:
-        previewDisplayNode = slicer.util.getNode(self.target_segmentation.GetName() + " preview").GetDisplayNode()
+        previewDisplayNode = slicer.util.getNode(self.parameterNode.target_segmentation.GetName() + " preview").GetDisplayNode()
         previewDisplayNode.SetVisibility2DOutline(True)
         previewDisplayNode.SetVisibility2DFill(False)
         previewDisplayNode.SetOpacity2DOutline(1.0)
@@ -865,9 +880,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         effect.self().onApply()
 
         # Make sure both segments are visible
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
         self.editor_widget.setActiveEffectByName("Smoothing")
         effect = self.editor_widget.activeEffect()
@@ -876,7 +891,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         effect.self().onApply()
 
         # Rehide outside segment
-        self.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.target_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, False)
 
         messageBox.hide()
 
@@ -886,9 +901,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         """
 
         # Make both segments visible when painting
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
 
         self.editor_widget.setActiveEffectByName("Paint")
         paint = self.editor_widget.effectByName("Paint")
@@ -896,9 +911,9 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         # paint effect does not need onApply().
 
     def beginErase(self):
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
-        self.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_INSIDE_SEGMENT, True)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility(self.SEED_OUTSIDE_SEGMENT, True)
+        self.parameterNode.seed_segmentation.GetDisplayNode().SetSegmentVisibility3D(self.SEED_OUTSIDE_SEGMENT, False)
         self.editor_widget.setActiveEffectByName("Erase")
         erase = self.editor_widget.effectByName("Erase")
         erase.setCommonParameter("BrushRelativeDiameter", 1.5)
@@ -931,7 +946,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     def placeTrajectoryEntry(self):
         self.setupTrajectoryMarkupNodes()
 
-        markup = self.trajectory_entry_markup
+        markup = self.parameterNode.trajectory_entry_markup
         markup.RemoveAllControlPoints()
 
         selection_node = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
@@ -944,7 +959,7 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     def placeTrajectoryTarget(self):
         self.setupTrajectoryMarkupNodes()
 
-        markup = self.trajectory_target_markup
+        markup = self.parameterNode.trajectory_target_markup
         markup.RemoveAllControlPoints()
 
         selection_node = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
@@ -955,10 +970,10 @@ class PlanningLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         interaction_node.SetCurrentInteractionMode(interaction_node.Place)
 
     def updateTrajectory(self, o, e):
-        line = self.trajectory_markup
+        line = self.parameterNode.trajectory_markup
 
-        entry = self.trajectory_entry_markup
-        target = self.trajectory_target_markup
+        entry = self.parameterNode.trajectory_entry_markup
+        target = self.parameterNode.trajectory_target_markup
 
         entry_exists = entry.GetNumberOfControlPoints() > 0
         target_exists = target.GetNumberOfControlPoints() > 0

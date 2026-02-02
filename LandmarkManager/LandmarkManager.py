@@ -5,6 +5,7 @@ from enum import Enum
 import qt
 import slicer
 import vtk
+from slicer.parameterNodeWrapper import parameterNodeWrapper
 
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
@@ -14,6 +15,36 @@ from slicer.ScriptedLoadableModule import (
 from slicer.util import VTKObservationMixin
 
 import OpenNavUtils
+
+
+# Default landmark list used for initialization
+ALL_LANDMARKS = [
+    "Inion",
+    "Left tragus",
+    "Left outer canthus",
+    "Left inner canthus",
+    "Nasion",
+    "Acanthion",
+    "Right inner canthus",
+    "Right outer canthus",
+    "Right tragus",
+]
+
+
+@parameterNodeWrapper
+class LandmarkManagerParameterNode:
+    """Parameter node for LandmarkManagerLogic using Slicer's parameterNodeWrapper pattern."""
+
+    requiredLandmarks: list[str] = ALL_LANDMARKS.copy()
+    landmarkIndexes: dict[str, int]
+    landmarks: slicer.vtkMRMLMarkupsFiducialNode
+
+
+@parameterNodeWrapper
+class LandmarksParameterNode:
+    """Parameter node for Landmarks class using Slicer's parameterNodeWrapper pattern."""
+
+    trackerLandmarks: slicer.vtkMRMLMarkupsFiducialNode
 
 
 class LandmarkManager(ScriptedLoadableModule):
@@ -50,24 +81,13 @@ class LandmarkManagerWidget(ScriptedLoadableModuleWidget):
 
 
 class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
-    ALL_LANDMARKS = [
-        "Inion",
-        "Left tragus",
-        "Left outer canthus",
-        "Left inner canthus",
-        "Nasion",
-        "Acanthion",
-        "Right inner canthus",
-        "Right outer canthus",
-        "Right tragus",
-    ]
+    ALL_LANDMARKS = ALL_LANDMARKS  # Reference module-level constant for backward compatibility
     LANDMARKS_NEEDED = 3
 
-    requiredLandmarks: list[str] = OpenNavUtils.parameterProperty("REQUIRED_LANDMARKS", default=ALL_LANDMARKS)
-
-    landmarkIndexes: dict[str, int] = OpenNavUtils.parameterProperty("LANDMARK_INDEXES", factory=dict)
-
-    landmarks = OpenNavUtils.nodeReferenceProperty("PLANNING_LANDMARKS", default=None)
+    @property
+    def parameterNode(self) -> LandmarkManagerParameterNode:
+        """Get the wrapped parameter node."""
+        return LandmarkManagerParameterNode(self.getParameterNode())
 
     def __init__(self):
         super().__init__()
@@ -81,26 +101,26 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
     def reconnect(self):
         self.removeObservers()
 
-        if self.landmarks:
+        if self.parameterNode.landmarks:
             for event in [
                 slicer.vtkMRMLMarkupsNode.PointAddedEvent,
                 slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
                 slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
             ]:
-                self.addObserver(self.landmarks, event, self.rebuildMaps)
+                self.addObserver(self.parameterNode.landmarks, event, self.rebuildMaps)
 
     @property
     def positions(self):
         data = {}
-        for name, idx in self.landmarkIndexes.items():
+        for name, idx in self.parameterNode.landmarkIndexes.items():
             point = [0, 0, 0]
-            self.landmarks.GetNthControlPointPositionWorld(idx, point)
+            self.parameterNode.landmarks.GetNthControlPointPositionWorld(idx, point)
             data[name] = point
 
         return data
 
     def rebuildMaps(self, sender=None, event=None):
-        landmarks = self.landmarks
+        landmarks = self.parameterNode.landmarks
         indexes = {}
 
         if landmarks is not None:
@@ -111,18 +131,18 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
                 if status == landmarks.PositionDefined:
                     indexes[label] = idx
 
-        self.landmarkIndexes = indexes
+        self.parameterNode.landmarkIndexes = indexes
 
     def setupPlanningLandmarksNode(self):
-        if not self.landmarks:
+        if not self.parameterNode.landmarks:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLMarkupsFiducialNode",
                 "PLANNING_LANDMARKS",
             )
             node.CreateDefaultDisplayNodes()
 
-            self.landmarks = node
-        display = self.landmarks.GetDisplayNode()
+            self.parameterNode.landmarks = node
+        display = self.parameterNode.landmarks.GetDisplayNode()
         display.SetUseGlyphScale(False)
         display.SetGlyphSize(6)  # 4mm
         display.SetColor(90 / 255.0, 194 / 255.0, 201 / 255.0)
@@ -131,7 +151,7 @@ class LandmarkManagerLogic(VTKObservationMixin, ScriptedLoadableModuleLogic):
         self.reconnect()
 
     def clearPlanningLandmarks(self):
-        slicer.mrmlScene.RemoveNode(self.landmarks)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.landmarks)
 
 
 class PlanningLandmarkTableManager(VTKObservationMixin):
@@ -273,8 +293,12 @@ class Landmark:
 
 
 class Landmarks(ScriptedLoadableModuleLogic):
-    trackerLandmarks = OpenNavUtils.nodeReferenceProperty("TRACKER_LANDMARKS", default=None)
     # From Registration/RegistrationUtils/Landmarks.py
+
+    @property
+    def parameterNode(self) -> LandmarksParameterNode:
+        """Get the wrapped parameter node."""
+        return LandmarksParameterNode(self.getParameterNode())
 
     def __init__(self, tableWidget, moduleName, collectButton):
         super().__init__()
@@ -471,12 +495,12 @@ class Landmarks(ScriptedLoadableModuleLogic):
                 print("name: " + name + " done")
 
     def syncTrackerNode(self, name, pos):
-        for idx in range(0, self.trackerLandmarks.GetNumberOfControlPoints()):
-            node_name = self.trackerLandmarks.GetNthControlPointLabel(idx)
+        for idx in range(0, self.parameterNode.trackerLandmarks.GetNumberOfControlPoints()):
+            node_name = self.parameterNode.trackerLandmarks.GetNthControlPointLabel(idx)
             if node_name == name:
-                self.trackerLandmarks.SetNthControlPointPositionWorld(idx, pos[0], pos[1], pos[2])
+                self.parameterNode.trackerLandmarks.SetNthControlPointPositionWorld(idx, pos[0], pos[1], pos[2])
                 return
-        self.trackerLandmarks.AddControlPointWorld(vtk.vtkVector3d(pos), name)
+        self.parameterNode.trackerLandmarks.AddControlPointWorld(vtk.vtkVector3d(pos), name)
 
     def updateLandmark(self, landmark):
         if landmark.state == LandmarkState.IN_PROGRESS:
@@ -498,30 +522,30 @@ class Landmarks(ScriptedLoadableModuleLogic):
         self.updateLandmarksDisplay()
 
     def syncLandmarks(self):
-        if not self.trackerLandmarks:
+        if not self.parameterNode.trackerLandmarks:
             return
-        if self.trackerLandmarks.GetNumberOfControlPoints() == 0:
+        if self.parameterNode.trackerLandmarks.GetNumberOfControlPoints() == 0:
             return
 
         self.clearLandmarks()
 
-        for idx in range(0, self.trackerLandmarks.GetNumberOfControlPoints()):
+        for idx in range(0, self.parameterNode.trackerLandmarks.GetNumberOfControlPoints()):
             point = [0, 0, 0]
-            self.trackerLandmarks.GetNthControlPointPositionWorld(idx, point)
-            name = self.trackerLandmarks.GetNthControlPointLabel(idx)
+            self.parameterNode.trackerLandmarks.GetNthControlPointPositionWorld(idx, point)
+            name = self.parameterNode.trackerLandmarks.GetNthControlPointLabel(idx)
             self.syncTrackerPosition(name, point)
 
         self.updateLandmarksDisplay()
 
     def setupTrackerLandmarksNode(self):
-        if not self.trackerLandmarks:
+        if not self.parameterNode.trackerLandmarks:
             node = slicer.mrmlScene.AddNewNodeByClass(
                 "vtkMRMLMarkupsFiducialNode",
                 "TRACKER_LANDMARKS",
             )
             node.CreateDefaultDisplayNodes()
-            self.trackerLandmarks = node
-        self.trackerLandmarks.GetDisplayNode().SetVisibility(False)
+            self.parameterNode.trackerLandmarks = node
+        self.parameterNode.trackerLandmarks.GetDisplayNode().SetVisibility(False)
 
     def clearTrackerLandmarks(self):
-        slicer.mrmlScene.RemoveNode(self.trackerLandmarks)
+        slicer.mrmlScene.RemoveNode(self.parameterNode.trackerLandmarks)

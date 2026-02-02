@@ -147,7 +147,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
         PatientsWidget.setDICOMBrowserVisible(False)
 
     def updateGUIFromPatientState(self):
-        source_volume = slicer.modules.PlanningWidget.logic.source_volume
+        source_volume = slicer.modules.PlanningWidget.logic.parameterNode.source_volume
         self.ui.DICOMToggleButton.enabled = not source_volume
         self.ui.PatientListButton.enabled = not source_volume
 
@@ -157,7 +157,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
         patientNameLabel = OpenNavUtils.getWidgetFromSlicer(OpenNavUtils.patientNameLabelName)
         if patientNameLabel:
-            patientNameLabel.text = "Patient: " + str(slicer.modules.PlanningWidget.logic.case_name)
+            patientNameLabel.text = "Patient: " + str(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
 
         oldState = self.ui.planButton.blockSignals(True)
         self.ui.planButton.checked = source_volume is not None
@@ -205,8 +205,8 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
 
     def startNewCase(self):
         print("start a new case")
-        slicer.modules.PlanningWidget.logic.case_name = self.caseDialogUI.CaseNameLineEdit.text
-        OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+        slicer.modules.PlanningWidget.logic.parameterNode.case_name = self.caseDialogUI.CaseNameLineEdit.text
+        OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
         self.updateCasesList()
         self.updateGUIFromPatientState()
 
@@ -215,7 +215,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
         self.updateGUIFromPatientState()
 
     def launchCaseNameDialog(self):
-        self.caseDialogUI.CaseNameLineEdit.text = OpenNavUtils.slugify(slicer.modules.PlanningWidget.logic.source_volume.GetName())
+        self.caseDialogUI.CaseNameLineEdit.text = OpenNavUtils.slugify(slicer.modules.PlanningWidget.logic.parameterNode.source_volume.GetName())
         self.caseDialog.exec()
 
     def updateCasesList(self):
@@ -257,13 +257,13 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
         self.updateCasesList()
 
     def loadCase(self, caseName):
-        source_volume = slicer.modules.PlanningWidget.logic.source_volume
+        source_volume = slicer.modules.PlanningWidget.logic.parameterNode.source_volume
         if source_volume:
             return  # already loaded
         print("load a case: " + caseName)
-        slicer.modules.PlanningWidget.logic.case_name = caseName
-        OpenNavUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.case_name)
-        slicer.modules.PlanningWidget.logic.case_name = caseName
+        slicer.modules.PlanningWidget.logic.parameterNode.case_name = caseName
+        OpenNavUtils.loadAutoSave(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
+        slicer.modules.PlanningWidget.logic.parameterNode.case_name = caseName
         self.updateGUIFromPatientState()
 
     def closePlan(self):
@@ -305,7 +305,7 @@ class PatientsWidget(ScriptedLoadableModuleWidget):
             displayNode.SetLevel(50)
             displayNode.SetWindow(100)
         self.updateGUIFromPatientState()
-        if not slicer.modules.PlanningWidget.logic.case_name:
+        if not slicer.modules.PlanningWidget.logic.parameterNode.case_name:
             self.launchCaseNameDialog()
 
     @vtk.calldata_type(vtk.VTK_OBJECT)

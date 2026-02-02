@@ -1,10 +1,12 @@
 import typing
+from typing import Optional
 
 from collections import OrderedDict
 
 import ctk
 import qt
 import slicer
+from slicer.parameterNodeWrapper import parameterNodeWrapper
 
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
@@ -14,6 +16,14 @@ from slicer.ScriptedLoadableModule import (
 from slicer.util import VTKObservationMixin
 
 import OpenNavUtils
+
+
+@parameterNodeWrapper
+class HomeParameterNode:
+    """Parameter node for HomeLogic using Slicer's parameterNodeWrapper pattern."""
+
+    # Variable-length tuple of strings for step names
+    currentStepName: Optional[tuple[str, ...]] = None
 
 
 class Home(ScriptedLoadableModule):
@@ -124,7 +134,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def cleanup(self):
         print("Autosave on close")
-        OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+        OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
         self.logic = None
 
     def modifyWindowUI(self):
@@ -247,8 +257,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         qt.QSettings().setValue("Segmentations/ConfirmEditHiddenSegment", str(qt.QMessageBox.Yes))
 
     def takeScreenShot(self):
-        if slicer.modules.PlanningWidget.logic.case_name:
-            OpenNavUtils.saveScreenShot(slicer.modules.PlanningWidget.logic.case_name)
+        if slicer.modules.PlanningWidget.logic.parameterNode.case_name:
+            OpenNavUtils.saveScreenShot(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
         else:
             OpenNavUtils.saveScreenShot("NonPatientScreenShots")
 
@@ -310,20 +320,24 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
     """
 
-    _currentNameCache: typing.Optional[tuple[str]]
-    _currentName: typing.Optional[tuple[str]] = OpenNavUtils.parameterProperty("CURRENT_STEP_NAME", default=None)
+    _currentNameCache: typing.Optional[tuple[str, ...]]
+
+    @property
+    def parameterNode(self) -> HomeParameterNode:
+        """Get the wrapped parameter node."""
+        return HomeParameterNode(self.getParameterNode())
 
     @property
     def current(self) -> typing.Optional[OpenNavUtils.Step]:
-        if self._currentName is None:
+        if self.parameterNode.currentStepName is None:
             return None
 
-        return self.names[tuple(self._currentName)]
+        return self.names[tuple(self.parameterNode.currentStepName)]
 
     @current.setter
     def current(self, value: OpenNavUtils.Step):
         names = tuple(value.names)
-        self._currentName = names
+        self.parameterNode.currentStepName = names
         self._currentNameCache = names
 
     @property
@@ -536,7 +550,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
 
         if autoSave and not self.autoSaveBlocked:
             print("Autosave started")
-            OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.case_name)
+            OpenNavUtils.autoSavePlan(slicer.modules.PlanningWidget.logic.parameterNode.case_name)
             print("Autosave completed")
         else:
             print("Autosave blocked")

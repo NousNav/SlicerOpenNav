@@ -6,8 +6,11 @@
 #   - layout.py: Layout management, slice viewers, reslicing
 #   - autosave.py: Case/plan saving and loading
 #   - utils.py: Transform utilities, volume helpers, etc.
-#   - parameter_node.py: Parameter node property descriptors
+#   - parameter_node.py: Parameter node property descriptors (DEPRECATED)
 
+# DEPRECATED: parameterProperty and nodeReferenceProperty are deprecated.
+# Use slicer.parameterNodeWrapper instead.
+# See https://slicer.readthedocs.io/en/latest/developer_guide/parameter_nodes/overview.html
 from .parameter_node import (  # noqa: F401
     parameterProperty,
     nodeReferenceProperty,

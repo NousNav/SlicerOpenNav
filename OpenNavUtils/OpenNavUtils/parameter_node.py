@@ -1,5 +1,6 @@
 import json
 import typing
+import warnings
 
 import slicer
 
@@ -26,6 +27,10 @@ def parameterProperty(
     default: typing.Any = MISSING,
 ):
     """
+    .. deprecated::
+        Use slicer.parameterNodeWrapper instead.
+        See https://slicer.readthedocs.io/en/latest/developer_guide/parameter_nodes/overview.html
+
     Create a property which stores data in a parameter node (vtkMRMLScriptedModuleNode).
     Intended to be used in module logic classes (ScriptedLoadableModuleLogic subclasses).
 
@@ -108,6 +113,10 @@ def nodeReferenceProperty(
     class_: str = MISSING,
 ):
     """
+    .. deprecated::
+        Use slicer.parameterNodeWrapper instead.
+        See https://slicer.readthedocs.io/en/latest/developer_guide/parameter_nodes/overview.html
+
     Create a property which stores a node reference in a parameter node (vtkMRMLScriptedModuleNode).
     Intended to be used in module logic classes (ScriptedLoadableModuleLogic subclasses).
 
