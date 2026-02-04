@@ -23,7 +23,7 @@ class HomeParameterNode:
     """Parameter node for HomeLogic using Slicer's parameterNodeWrapper pattern."""
 
     # Variable-length tuple of strings for step names
-    currentStepName: tuple[str, ...] = None
+    currentStepName: Optional[list[str]] = None
 
 
 class Home(ScriptedLoadableModule):
@@ -320,7 +320,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
     """
 
-    _currentNameCache: typing.Optional[tuple[str, ...]]
+    _currentNameCache: typing.Optional[list[str]]
 
     @property
     def parameterNode(self) -> HomeParameterNode:
@@ -332,11 +332,11 @@ class HomeLogic(ScriptedLoadableModuleLogic):
         if self.parameterNode.currentStepName is None:
             return None
 
-        return self.names[tuple(self.parameterNode.currentStepName)]
+        return self.names[list(self.parameterNode.currentStepName)]
 
     @current.setter
     def current(self, value: OpenNavUtils.Step):
-        names = tuple(value.names)
+        names = list(value.names)
         self.parameterNode.currentStepName = names
         self._currentNameCache = names
 
