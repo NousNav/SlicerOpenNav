@@ -182,7 +182,7 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
         if not self.advanceButton:
             return
 
-        collectedCount = len(self.logic.landmarkIndexes)
+        collectedCount = len(self.logic.parameterNode.landmarkIndexes)
         requiredCount = self.logic.LANDMARKS_NEEDED
         remainingCount = requiredCount - collectedCount
         remainingCount = 0 if remainingCount < 0 else remainingCount
@@ -204,7 +204,7 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
 
         self.table.setFrameStyle(qt.QFrame.NoFrame)
 
-        for row, name in enumerate(self.logic.requiredLandmarks):
+        for row, name in enumerate(self.logic.parameterNode.requiredLandmarks):
             self.table.insertRow(row)
 
             iconLabel = qt.QLabel()
@@ -227,20 +227,20 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
 
     def reconnect(self):
         self.removeObservers()
-        if self.logic.landmarks:
+        if self.logic.parameterNode.landmarks:
             for event in [
                 slicer.vtkMRMLMarkupsNode.PointAddedEvent,
                 slicer.vtkMRMLMarkupsNode.PointModifiedEvent,
                 slicer.vtkMRMLMarkupsNode.PointRemovedEvent,
             ]:
-                self.addObserver(self.logic.landmarks, event, self.onPointsChanged)
+                self.addObserver(self.logic.parameterNode.landmarks, event, self.onPointsChanged)
 
     def updateLandmarkDisplay(self, name, row):
         iconLabel = self.table.cellWidget(row, 0)
         nameLabel = self.table.cellWidget(row, 1)
         button = self.table.cellWidget(row, 2)
 
-        if name in self.logic.landmarkIndexes:  # position is defined
+        if name in self.logic.parameterNode.landmarkIndexes:  # position is defined
             iconLabel.setPixmap(self.icons["Done"].pixmap(32, 32))
             nameLabel.text = name
             button.text = "Remove"
@@ -250,7 +250,7 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
             button.text = "Place"
 
     def updateLandmarksDisplay(self):
-        for row, name in enumerate(self.logic.requiredLandmarks):
+        for row, name in enumerate(self.logic.parameterNode.requiredLandmarks):
             self.updateLandmarkDisplay(name, row)
 
     def onPointsChanged(self, sender=None, event=None):
@@ -258,17 +258,17 @@ class PlanningLandmarkTableManager(VTKObservationMixin):
         self.updateAdvanceButton()
 
     def onButtonClick(self, name, row):
-        if name in self.logic.landmarkIndexes:
+        if name in self.logic.parameterNode.landmarkIndexes:
             # position is defined, so remove point
             # triggers onPointsChanged
-            self.logic.landmarks.RemoveNthControlPoint(self.logic.landmarkIndexes[name])
+            self.logic.parameterNode.landmarks.RemoveNthControlPoint(self.logic.parameterNode.landmarkIndexes[name])
         else:
             # position is not defined, so add point
             # once user defs point, triggers onPointsChanged
-            self.selectionNode.SetActivePlaceNodeID(self.logic.landmarks.GetID())
-            self.selectionNode.SetActivePlaceNodeClassName(self.logic.landmarks.GetClassName())
+            self.selectionNode.SetActivePlaceNodeID(self.logic.parameterNode.landmarks.GetID())
+            self.selectionNode.SetActivePlaceNodeClassName(self.logic.parameterNode.landmarks.GetClassName())
             self.interactionNode.SetCurrentInteractionMode(self.interactionNode.Place)
-            self.logic.landmarks.SetMarkupLabelFormat(name)  # names next markup even if cursor moves between views
+            self.logic.parameterNode.landmarks.SetMarkupLabelFormat(name)  # names next markup even if cursor moves between views
 
 
 class LandmarkState(Enum):
