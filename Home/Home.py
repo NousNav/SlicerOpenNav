@@ -23,7 +23,7 @@ class HomeParameterNode:
     """Parameter node for HomeLogic using Slicer's parameterNodeWrapper pattern."""
 
     # Variable-length tuple of strings for step names
-    currentStepName: Optional[tuple[str, ...]] = None
+    currentStepName: tuple[str, ...] = None
 
 
 class Home(ScriptedLoadableModule):
